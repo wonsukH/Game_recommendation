@@ -4,135 +4,82 @@ YBIGTA 27기 신입기수 팀 프로젝트로 만든 시스템을, 마치고 나
 
 원본 팀 작업은 `27th-project-game/`에 그대로 보존되어 있고, 본 레포는 그 시점의 clone에서 출발해 점진적으로 손을 본 흔적이 `git log`에 그대로 남는다.
 
----
-
-## 무엇이 부족했나
-
-팀 작업 직후 코드를 다시 읽으며 정리해본 약점들:
-
-- `tmp/` 폴더에 미채택 v0 파이프라인이 그대로 살아있고, 어느 게 현역인지 표시되어 있지 않음
-- 동일 로직의 `user_game_scores_penalty.py`가 `Crawling/`과 `FE/` 양쪽에 중복
-- `FE/step1.py` ~ `step9.py` 같은 절차적 이름이라 어떤 step이 뭔지 알려면 README를 따로 봐야 함
-- 9개 step 스크립트가 같은 I/O 코드(`index_maps.json` 로드, stats 저장 등)를 각자 들고 있음
-- 하이퍼파라미터(γ, κ, α, η, λ, embedding_dim, text_model)가 argparse 디폴트로만 흩어져 있어 single source of truth 없음. 실제로 `params_v1.json`이 stale해진 채로 방치되어 있었음
-- 프롬프트 few-shot이 Python triple-quoted string에 박혀있어 수정 diff가 코드 변경처럼 보임
-- `st_app/app.py`가 215줄에 LangGraph 빌드 + Streamlit UI + 이벤트 핸들링을 다 가지고 있음
-- 4개 파일에 bare `except:` (KeyboardInterrupt까지 삼킴)
-- `outputs/`와 `st_app/data/` 사이 수동 sync (이미 어긋난 상태였음)
-- `utils/`가 패키지가 아닌 flat 폴더라 `pip install -e .` 불가, sys.path hack에 의존
-- 디렉토리 명명이 일관성 없음 (`Crawling`, `EDA`는 PascalCase, `st_app`은 `st_` 접두사)
+본 시스템의 핵심 가설은 **"게임 입문자는 `Soulslike`, `Roguelite`, `Cozy` 같은 태그를 자연어적으로 이해 못 한다. 태그 간 의미적 유사도 + 자연어↔태그 사상이 정확하면 입문자도 평범한 말로 적합한 게임에 도달할 수 있다"**. 그래서 본 시스템의 1급 자산은 **태그 의미 임베딩**(PPMI+SVD + Item2Vec 앙상블)이고, 4-metric rerank + Streamlit 태그 지도가 그 위에 올라간다.
 
 ---
 
-## 지금까지 정리한 것
-
-`git log --oneline` 기준 13개 커밋.
-
-**기초 정리 (`66e577e` ~ `3d414c4`, `b66068b`)**
-
-- 미사용 v0 온라인 파이프라인 코드(`tmp/step10-15.py`) 삭제, 죽은 파일 3개 삭제
-- `user_game_scores_penalty` 중복 제거 (CLI 버전으로 통일)
-- 공유 I/O 헬퍼를 `utils/io.py`로 추출 + `pyproject.toml` 추가
-- 하이퍼파라미터를 `config/default.yaml`로 단일화
-- LLM 프롬프트를 `prompts/*.txt`로 외부화
-- 모놀리식 `app.py`를 `graph.py` + `ui.py` + `main.py`로 분할
-- `utils/logging.py` 구조화 로깅 + bare `except:` 4개 파일 narrowing
-- `scripts/sync_data.py` 자동 동기화 + README 정리
-- README 톤 정리 (이모지 제거, 자연스러운 문체로)
-
-**레이아웃 리팩토링 (`f65e25d` ~ this commit)**
-
-- `utils/` -> `game_rec/` 패키지로 승격, `logging.py` -> `log.py` (stdlib shadow 회피)
-- `FE/step1..9.py` -> 의미 있는 도메인 이름으로 재배치:
-    - `FE/step1.py` -> `game_rec/data/tag_vocab.py`
-    - `FE/step2.py` -> `game_rec/data/game_tag_matrix.py`
-    - `FE/step3.py` -> `game_rec/data/game_weights.py`
-    - `FE/step4.py` -> `game_rec/models/tag_embeddings.py`
-    - `FE/step5.py` -> `game_rec/models/tag_effects.py`
-    - `FE/step6.py` -> `game_rec/models/game_vectors.py`
-    - `FE/step7.py` -> `game_rec/models/text_alignment.py`
-    - `FE/step8.py` -> `game_rec/evaluation/metadata.py`
-    - `FE/step9.py` -> `game_rec/evaluation/quality.py`
-    - `FE/create_faiss_index.py` -> `game_rec/index/faiss_index.py`
-    - `FE/tag_similarity_matrix.py` -> `game_rec/index/tag_similarity.py`
-- `st_app/rag/` -> `game_rec/agent/` (노드 파일은 `_node` 접미사 제거)
-- `Crawling/` -> `crawlers/`, `EDA/` -> `eda/`, `st_app/` -> `app/`
-- `pipelines/build_offline.py` — 9개 모듈을 차례로 호출하는 단일 진입점
-
----
-
-## 다음에 손볼 것
-
-### Agent 가치 평가 인프라
-
-LangGraph 멀티노드 구조가 단발 호출 대비 실제로 가치 있는지 측정해보고 싶다.
-
-- 30-50개 정도 테스트 쿼리 (similar/vibe/hybrid + edge cases)
-- 베이스라인 3종: 단발 LLM / 단순 1턴 RAG / 현재 풀 시스템
-- 평가: LLM-as-judge + manual blind 채점 + 응답 시간 / 토큰 비용
-- 어떤 쿼리 유형에서 멀티노드가 의미 있었는지 실패 분석
-
-### Agent 기능 확장
-
-- Steam Web API 라이브 호출 노드 (가격, 할인, 동시접속자)
-- 멀티턴 메모리 ("그거 말고 더 가벼운 거" 같은 후속 질문 처리)
-- Self-reflection 루프 (응답을 다시 평가해서 어긋나면 재검색)
-- `novelty_score` 실제 구현 (현재 0.5 placeholder)
-
-### 게임 데이터 활용
-
-이미 수집한 리뷰 / 태그 데이터로 만들 수 있는 다른 응용:
-
-- 부정 리뷰 클러스터링으로 개선 액션아이템 추출
-- 태그 조합 기반 게임 컨셉 브레인스토밍
-- 메타데이터 -> Steam 페이지 카피 생성
-
-### 인프라
-
-- FastAPI 백엔드 분리
-- 데이터 자산 DVC 또는 외부 스토리지 이동
-- 평가 결과를 CI에서 자동 비교
-
----
-
-## 자산
-
-팀 baseline에서 만든 것 그대로 사용:
-
-| 자산 | 형상 |
-|---|---|
-| `game_vecs.npy` | (1031, 128), 단위벡터 |
-| `tag_vecs.npy` | (393, 128), PPMI + Truncated SVD |
-| `tag_beta.npy` | (393,), Ridge 회귀 |
-| `W_align.npy` | (4096, 128), Upstage Solar 임베딩 -> 태그 공간 사상 |
-| `faiss_index.faiss` | IndexFlatL2 |
-
-상세한 학습 과정은 워크스페이스 루트의 `PROJECT_HISTORY.md` 참조 (팀 baseline 시점 기준의 history 문서).
-
----
-
-## 아키텍처
+## 시스템 구조
 
 ```
-사용자 쿼리
-    |
-[parser]        LLM이 mode/games/phrases/tags JSON으로 파싱
-    |
-[normalizer]    Bigram Jaccard로 게임명 캐노니컬화
-    |
-[route_by_mode] similar / vibe / hybrid / general 분기
-    |
-    +-- similar    FAISS 유사 게임 검색
-    +-- vibe       태그 expand + 임베딩 합성 + FAISS
-    +-- hybrid     similar + vibe 가중 결합
-    +-- general    -> END
-    |
-[rerank]        tag_match x novelty 가중치 (사이드바 슬라이더)
-    |
-[response]      LangChain LLM으로 한국어 자연어 응답
-    |
-   END
+[ 사용자 자연어 쿼리 ]
+        |
+        v
+[ Streamlit UI ]  serving/main.py + pages/
+        |
+        v
+[ LangGraph 에이전트 ]  pipeline/game_rec/agent/
+   parser -> normalizer -> route_by_mode
+                              |
+              +---------------+---------------+
+              v               v               v
+           similar          vibe            hybrid
+              |               |               |
+              +-------+-------+
+                      v
+                  [ rerank ]   MMR + 4 signals
+                      v
+              [ response_generator ]
+
+
+[ Offline pipeline ]  pipeline/orchestration/build_offline.py
+  user_scores -> tag_vocab -> game_tag_matrix -> game_weights (Bayesian)
+              -> game_popularity
+              -> tag_embeddings (PPMI+SVD)
+              -> tag_effects (Ridge)
+              -> item2vec (user-favorite SkipGram)
+              -> game_vectors (PPMI + Item2Vec ensemble)
+              -> text_alignment (Solar -> tag space)
+              -> faiss_index
+              -> tag_projection (UMAP 2D for the map page)
+              -> quality_report
+
+
+[ Data collection ]  data_collection/crawlers/
+  metacritic.ipynb         (Metacritic PC userscore -> ~1800 titles)
+  steam_reviews.py         (Steam Search + appreviews API -> review CSV)
+  steamspy.py              (SteamSpy /all + /appdetails -> user-tags + popularity)
+  steam_appdetails.py      (Steam Store API -> rich metadata: genre, lang, price)
+  user_reviews.py          (steamcommunity HTML -> per-user review history)
 ```
+
+---
+
+## 평가 4-metric
+
+추천 결과를 4축으로 평가. 메트릭 정의 + 구현은 `pipeline/game_rec/evaluation/metrics.py`.
+
+| 축 | 측정 | 사용자 선호도와의 관계 |
+|---|---|---|
+| **Relevance** | Recall@k / NDCG@k | 쿼리 의도와 얼마나 일치 |
+| **Diversity** | Intra-List Distance (1 - 평균 pairwise cosine) | 같은 카테고리 안에서 폭 넓은지 |
+| **Novelty** | Self-Information `-log2(P(item))` | 메이저 게임만 안 나오는지 |
+| **Serendipity** | Relevance × not-in-popularity-baseline | 입문자가 모르는 좋은 게임을 발견하는지 |
+
+`pipeline/orchestration/benchmark.py`가 평가 셋(`tests/evaluation_set.json`)을 받아 6개 모드(`popularity`, `content-ppmi`, `content-ensemble`, `mmr-{beginner, balanced, heavy}`)를 4-metric으로 비교한다.
+
+---
+
+## 입문자 / 헤비 유저 슬라이더
+
+`config/default.yaml`의 `rerank.presets`:
+
+| 프리셋 | Relevance | Diversity | Novelty | Serendipity |
+|---|---|---|---|---|
+| **입문자** | 9 | 4 | 2 | 1 |
+| **균형** | 5 | 5 | 5 | 5 |
+| **헤비** | 5 | 7 | 8 | 8 |
+
+입문자는 인기/검증된 게임 위주 (Novelty 낮음). 헤비 유저는 long-tail 발견 위주 (Novelty/Serendipity 높음). 사이드바에 4축 슬라이더 + 3개 프리셋 버튼.
 
 ---
 
@@ -143,66 +90,75 @@ LangGraph 멀티노드 구조가 단발 호출 대비 실제로 가치 있는지
 ```powershell
 .venv\Scripts\Activate.ps1
 pip install -e .
-# .env 또는 환경변수에 UPSTAGE_API_KEY
+# .env 또는 환경변수에 UPSTAGE_API_KEY (LLM), STEAM_API_KEY (옵션)
 ```
+
+### 데이터 수집 (게임 풀 확장)
+
+```powershell
+# Sample dry-run (1분)
+python -m data_collection.crawlers.steamspy --target-count 100 --dry-run
+
+# 본격 (10K 게임, 약 3시간)
+python -m data_collection.crawlers.steamspy --target-count 10000
+
+# Steam Store 메타데이터 (약 3시간, SteamSpy 다음에 직렬)
+python -m data_collection.crawlers.steam_appdetails --input outputs/steamspy_games.csv
+```
+
+자세한 흐름 + 트러블슈팅은 `docs/runbook_pool_expansion.md`.
 
 ### 오프라인 파이프라인
 
-전체를 한 번에:
+전체:
 
 ```powershell
-python -m pipelines.build_offline
+python -m pipeline.orchestration.build_offline
 ```
 
-API 키나 일부 의존성이 없을 때 단계 건너뛰기:
+API 키 / faiss 없으면 단계 skip:
 
 ```powershell
-python -m pipelines.build_offline --skip-text-alignment --skip-faiss
+python -m pipeline.orchestration.build_offline --skip-text-alignment --skip-faiss
 ```
 
-개별 단계 직접 실행 (각각 `--help`로 인자 확인 가능):
+개별 단계:
 
 ```powershell
-python -m game_rec.data.user_scores
-python -m game_rec.data.tag_vocab
-python -m game_rec.data.game_tag_matrix
-python -m game_rec.data.game_weights
-python -m game_rec.models.tag_embeddings
-python -m game_rec.models.tag_effects
-python -m game_rec.models.game_vectors
-python -m game_rec.models.text_alignment
-python -m game_rec.evaluation.metadata --version v2 --backup
-python -m game_rec.evaluation.quality
-python -m game_rec.index.faiss_index
-```
-
-### 크롤링 / EDA
-
-크롤러와 EDA 스크립트는 별도로 실행. 자세한 흐름은 `README_PIPELINE.md` 참조.
-
-```powershell
-# 크롤링 (Metacritic 타이틀 -> Steam appid/리뷰/태그 -> 유저 리뷰)
-python crawlers/steam_reviews.py
-python crawlers/steam_tags_parallel.py
-python crawlers/user_reviews.py
-
-# EDA (Steam 리뷰 + 유저-게임 매트릭스 통계 + 시각화)
-python eda/game_analysis.py
-```
-
-각 단계의 기본 하이퍼파라미터는 `config/default.yaml`에 있으며 CLI 인자로 override 가능.
-
-### 데이터 동기화 (outputs/ -> app/data/)
-
-```powershell
-python scripts/sync_data.py
-python scripts/sync_data.py --dry-run   # 변경 미리보기
+python -m pipeline.game_rec.data.user_scores
+python -m pipeline.game_rec.data.tag_vocab
+python -m pipeline.game_rec.data.game_tag_matrix
+python -m pipeline.game_rec.data.game_weights        # Bayesian shrinkage
+python -m pipeline.game_rec.data.game_popularity
+python -m pipeline.game_rec.models.tag_embeddings    # PPMI + SVD
+python -m pipeline.game_rec.models.tag_effects       # Ridge
+python -m pipeline.game_rec.models.item2vec          # SkipGram on user favorites
+python -m pipeline.game_rec.models.game_vectors      # PPMI + Item2Vec ensemble
+python -m pipeline.game_rec.models.text_alignment
+python -m pipeline.game_rec.index.faiss_index
+python -m pipeline.game_rec.index.tag_projection     # UMAP 2D + clusters
+python -m pipeline.game_rec.evaluation.quality
 ```
 
 ### Streamlit 챗봇
 
 ```powershell
-streamlit run app/main.py
+python scripts/sync_data.py     # outputs/ -> serving/data/ 동기화
+streamlit run serving/main.py
+```
+
+좌측 사이드바에서 페이지 메뉴 → "태그 의미 지도"로 전환 가능.
+
+### Benchmark (평가 셋 만든 후)
+
+```powershell
+python -m pipeline.orchestration.benchmark --eval-set tests/evaluation_set.json -k 10
+```
+
+### Tests
+
+```powershell
+pytest tests/
 ```
 
 ---
@@ -211,65 +167,93 @@ streamlit run app/main.py
 
 ```
 Game_recommendation/
-  game_rec/                         # 라이브러리 패키지
-    config.py / io.py / log.py / prompts.py
-    data/                           # 오프라인 데이터 준비
-      user_scores.py                # user_all_reviews -> percent-rank + 가중 점수
-      tag_vocab.py
-      game_tag_matrix.py
-      game_weights.py
-    models/                         # 임베딩/회귀
-      tag_embeddings.py
-      tag_effects.py
-      game_vectors.py
-      text_alignment.py
-    index/
-      faiss_index.py
-      tag_similarity.py
-    evaluation/
-      metadata.py
-      quality.py
-    agent/                          # 온라인 추천 에이전트
-      retriever.py
-      nodes/
-        parser.py / router.py / normalizer.py
-        recommendation.py / response.py / general.py
+  data_collection/                # 외부 데이터 수집 + EDA
+    crawlers/
+      metacritic.ipynb
+      steam_reviews.py
+      steamspy.py                 # tags + popularity (API)
+      steam_appdetails.py         # description / genre / price (API)
+      user_reviews.py             # steamcommunity HTML
+      _legacy/                    # 옛 Selenium 크롤러 (보완용)
+    eda/
+      game_analysis.py
+      plots/, similarity_plots/
 
-  pipelines/
-    build_offline.py                # 전체 파이프라인 오케스트레이션
+  pipeline/                       # 라이브러리 + CLI 오케스트레이션
+    game_rec/                     # 메인 패키지
+      io.py, config.py, log.py, prompts.py
+      data/                       # user_scores, tag_vocab, game_tag_matrix,
+                                  # game_weights (Bayesian), game_popularity
+      models/                     # tag_embeddings, tag_effects, item2vec,
+                                  # game_vectors (ensemble), text_alignment
+      index/
+        faiss_index.py
+        tag_projection.py         # UMAP + clusters (for tag map)
+        tag_similarity.py
+      evaluation/
+        metrics.py                # Recall / Diversity / Novelty / Serendipity
+        quality.py, metadata.py
+      agent/                      # 온라인 LangGraph 에이전트
+        retriever.py              # FAISS + MMR rerank
+        scoring.py                # pure-numpy helpers (testable)
+        nodes/
+          parser.py / router.py / normalizer.py
+          recommendation.py / response.py / general.py
+    orchestration/
+      build_offline.py            # 전체 파이프라인 직렬 실행
+      benchmark.py                # 4-metric 모드별 비교
 
-  app/                              # Streamlit 진입점
+  serving/                        # Streamlit 진입점
     main.py / graph.py / ui.py
-    data/                           # 앱이 읽는 산출물 사본
+    pages/
+      2_tag_map.py                # 태그 의미 지도 (multipage)
+    data/                         # 앱이 읽는 산출물 사본 (sync_data.py로 갱신)
 
-  crawlers/                         # Metacritic / Steam / steamcommunity 크롤러
-    metacritic.ipynb                # PC userscore 1~75 페이지 -> 타이틀 1800개
-    steam_reviews.py                # Steam search API + appreviews API
-    steam_tags.py                   # Selenium으로 Steam 상점 페이지에서 태그 수집
-    steam_tags_parallel.py          # 5개 Chrome 드라이버 병렬판
-    user_reviews.py                 # steamcommunity 프로필 HTML 파싱
-  eda/                              # 탐색적 분석 + 시각화
-    game_analysis.py
-    plots/                          # 리뷰 길이/추천률/플레이타임 분포
-    similarity_plots/               # 게임 유사도 히트맵/클러스터링/네트워크/감성지도
-  outputs/                          # 파이프라인 산출물 (gitignored)
-  config/                           # default.yaml
-  prompts/                          # parser.txt, response_generator.txt
-  scripts/                          # sync_data.py
+  config/                         # default.yaml — 하이퍼파라미터 + presets
+  prompts/                        # parser.txt, response_generator.txt
+  scripts/
+    sync_data.py                  # outputs/ -> serving/data/
+  docs/
+    runbook_pool_expansion.md     # SteamSpy/appdetails 크롤링 가이드
+  tests/                          # 40+ 단위 테스트
+  outputs/                        # gitignored 파이프라인 산출물
 
-  pyproject.toml
+  pyproject.toml, requirements.txt
+  .env (gitignored): STEAM_API_KEY, UPSTAGE_API_KEY
 ```
+
+---
+
+## 임베딩 quality 측면
+
+원본 baseline에서 회귀 R² = 0.3877이라 `quality.py`가 자동 "Poor fit" 라벨링했었다. 단 그건 *태그→점수 회귀 적합도*이지 *추천 quality*가 아니다. 이 차이를 정리하기 위해:
+
+- `data.game_weights`: 단순 평균 -> **Bayesian shrinkage**로 변경. 표본 작은 게임이 noisy 점수로 PPMI 가중치를 왜곡하는 걸 방지.
+- `models.item2vec`: user-favorite 시퀀스 SkipGram 임베딩 추가. PPMI(태그 co-occurrence)와 **다른 신호**(같이 플레이된 게임).
+- `models.game_vectors`: 두 임베딩 L2 정규화 후 가중 ensemble (`α=0.7` PPMI 우세, config로 조절).
+- `evaluation.metrics`: 4-metric으로 *추천 결과 quality*를 정량 측정 가능하게 함. R²와 별개.
+
+ablation: benchmark 표에서 `content-ppmi` vs `content-ensemble` 비교로 ensemble의 기여 측정.
+
+---
+
+## 의식적으로 빼는 것
+
+- **CF (ALS / BPR / LightFM)** — 본 시스템은 익명 query 기반이라 user-side cold-start. CF는 "이 유저와 비슷한 사람들" 신호인데 우리는 익명. 목적성에 부합 안 함. Novelty는 단순 popularity로 충분.
+- **Sequence / Session-based 추천** (SASRec, BERT4Rec) — 데이터에 timestamp 없음.
+- **Two-Tower / NCF / Node2Vec** — 작은 데이터에서 PPMI+SVD 대비 결정적 이득 보장 없음. 시간 ROI 약함.
 
 ---
 
 ## 알려진 제약사항
 
-- 회귀 R² = 0.3877. `game_rec.evaluation.quality`가 자동으로 "Poor fit" 판정. 태그 효과는 보조 신호고 주 임베딩 합성은 PPMI+SVD 기반이지만, 그 가정 자체가 옳은지는 Agent 평가 인프라 갖춘 뒤 ablation으로 검증 예정.
-- `novelty_score`는 현재 0.5 고정 placeholder. UI 슬라이더는 동작하지만 실제 점수 계산은 미구현.
+- `Item2Vec`은 user favorite 시퀀스(`s_round10_rec ≥ 7`)에서만 학습. 적은 표본의 user는 sentence가 짧아 임베딩 quality 떨어짐. cold-start 게임은 ensemble에서 자동으로 PPMI fallback.
+- `text_alignment`은 `UPSTAGE_API_KEY` 필요 (Solar 임베딩). 키 없으면 `--skip-text-alignment`로 회피.
 - 영문 리뷰만 수집. 한국어 리뷰는 데이터셋에 없음.
+- 입문자 평가 셋 (`tests/evaluation_set.json`)은 본인이 라벨링해야 함.
 
 ---
 
 ## 기술 스택
 
-Python 3.10+ · scikit-learn (Ridge, TruncatedSVD) · scipy (sparse) · FAISS-CPU · LangGraph · LangChain · Upstage Solar (chat + embedding) · Streamlit · pandas · numpy
+Python 3.10+ · scikit-learn · scipy · gensim (Item2Vec) · umap-learn · FAISS-CPU · plotly · LangGraph · LangChain · Upstage Solar · Streamlit · aiohttp · pandas · numpy
