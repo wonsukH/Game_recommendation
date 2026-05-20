@@ -30,7 +30,7 @@ YBIGTA 27기 신입기수 팀 프로젝트로 만든 시스템을, 마치고 나
 
 **기초 정리 (`66e577e` ~ `3d414c4`, `b66068b`)**
 
-- 미사용 실험 코드를 `archive/`로 격리, 죽은 파일 3개 삭제
+- 미사용 v0 온라인 파이프라인 코드(`tmp/step10-15.py`) 삭제, 죽은 파일 3개 삭제
 - `user_game_scores_penalty` 중복 제거 (CLI 버전으로 통일)
 - 공유 I/O 헬퍼를 `utils/io.py`로 추출 + `pyproject.toml` 추가
 - 하이퍼파라미터를 `config/default.yaml`로 단일화
@@ -256,7 +256,6 @@ Game_recommendation/
   config/                           # default.yaml
   prompts/                          # parser.txt, response_generator.txt
   scripts/                          # sync_data.py
-  archive/                          # 미채택 v0 온라인 파이프라인 보존
 
   pyproject.toml
 ```

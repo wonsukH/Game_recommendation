@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "game-recommendation"
 version = "0.1.0"
-description = "Steam game recommendation agent — personal follow-up to YBIGTA 27th team project"
+description = "Steam game recommendation agent."
 requires-python = ">=3.10"
 dynamic = ["dependencies"]
 
@@ -13,5 +13,5 @@ dynamic = ["dependencies"]
 dependencies = {file = "requirements.txt"}
 
 [tool.setuptools.packages.find]
-include = ["game_rec*", "app*"]
-exclude = ["archive*", "outputs*", "images*", "eda*", "crawlers*"]
+include = ["game_rec*", "app*", "pipelines*"]
+exclude = ["outputs*", "eda*", "crawlers*", "scripts*"]
