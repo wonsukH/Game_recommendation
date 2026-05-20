@@ -1,6 +1,6 @@
-"""Sync FE pipeline artifacts from outputs/ to app/data/.
+"""Sync FE pipeline artifacts from outputs/ to serving/data/.
 
-The Streamlit app reads from app/data/, which is a separate copy of
+The Streamlit app reads from serving/data/, which is a separate copy of
 the artifacts produced by the FE pipeline in outputs/. This script
 brings the app's copy up to date with the latest pipeline output.
 
@@ -10,7 +10,7 @@ are captured snapshots, not live artifacts.
 
 Usage:
     python scripts/sync_data.py
-    python scripts/sync_data.py --source outputs --target app/data
+    python scripts/sync_data.py --source outputs --target serving/data
     python scripts/sync_data.py --dry-run
 """
 
@@ -23,7 +23,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
-from game_rec.log import get_logger  # noqa: E402
+from pipeline.game_rec.log import get_logger  # noqa: E402
 
 log = get_logger("scripts.sync_data")
 
@@ -88,8 +88,8 @@ def main() -> None:
         help="FE pipeline output directory (default: <repo>/outputs)",
     )
     parser.add_argument(
-        "--target", type=Path, default=REPO_ROOT / "app" / "data",
-        help="Streamlit app data directory (default: <repo>/app/data)",
+        "--target", type=Path, default=REPO_ROOT / "serving" / "data",
+        help="Streamlit app data directory (default: <repo>/serving/data)",
     )
     parser.add_argument(
         "--dry-run", action="store_true",
