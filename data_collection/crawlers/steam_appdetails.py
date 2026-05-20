@@ -36,28 +36,55 @@ log = get_logger("crawlers.steam_appdetails")
 
 
 APPDETAILS_URL = "https://store.steampowered.com/api/appdetails"
-RATE_S = 1.0  # ~1 req/sec, see module docstring
+RATE_S = 1.5            # base inter-request sleep, slower than the 200/5min guideline
+BACKOFF_429_BASE_S = 60 # long sleep when Steam returns 429 (burst limit hit)
+MAX_RETRIES_429 = 3
 
 
-async def _fetch_appdetails(session: aiohttp.ClientSession, appid: int, lang: str = "english") -> dict | None:
-    """Returns the inner `data` dict for the given appid, or None on miss / error."""
-    try:
-        async with session.get(
-            APPDETAILS_URL,
-            params={"appids": appid, "cc": "us", "l": lang},
-            timeout=30,
-        ) as resp:
-            if resp.status != 200:
+async def _fetch_appdetails(
+    session: aiohttp.ClientSession,
+    appid: int,
+    lang: str = "english",
+) -> dict | None:
+    """Returns the inner `data` dict for the given appid, or None on miss.
+
+    Handles 429 (rate limit) with an exponential long backoff (60s, 120s,
+    240s) up to MAX_RETRIES_429 times. Other non-200 statuses (404 for
+    dropped apps, 403 for region-locked) return None immediately.
+
+    Connection-level errors are retried with shorter exponential backoff
+    (1s, 2s, 4s) since they're usually transient.
+    """
+    for attempt in range(MAX_RETRIES_429):
+        try:
+            async with session.get(
+                APPDETAILS_URL,
+                params={"appids": appid, "cc": "us", "l": lang},
+                timeout=30,
+            ) as resp:
+                if resp.status == 200:
+                    data = await resp.json(content_type=None)
+                    entry = data.get(str(appid)) or {}
+                    if not entry.get("success"):
+                        return None
+                    return entry.get("data")
+                if resp.status == 429:
+                    sleep_s = BACKOFF_429_BASE_S * (2 ** attempt)
+                    log.warning(
+                        "HTTP 429 for appid %d (attempt %d/%d) — sleeping %ds",
+                        appid, attempt + 1, MAX_RETRIES_429, sleep_s,
+                    )
+                    await asyncio.sleep(sleep_s)
+                    continue
+                # Other non-200: don't retry, just record as miss
                 log.warning("HTTP %d for appid %d", resp.status, appid)
                 return None
-            data = await resp.json(content_type=None)
-            entry = data.get(str(appid)) or {}
-            if not entry.get("success"):
-                return None
-            return entry.get("data")
-    except Exception as e:
-        log.warning("appid %d failed: %s", appid, e)
-        return None
+        except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+            log.warning("appid %d transient failure (attempt %d): %s",
+                        appid, attempt + 1, e)
+            await asyncio.sleep(2 ** attempt)
+    log.warning("appid %d gave up after %d retries", appid, MAX_RETRIES_429)
+    return None
 
 
 def _flatten(appid: int, data: dict | None) -> dict:
@@ -87,34 +114,65 @@ def _flatten(appid: int, data: dict | None) -> dict:
     }
 
 
-async def main_async(input_csv: Path, output_csv: Path, limit: int | None) -> None:
+async def main_async(
+    input_csv: Path,
+    output_csv: Path,
+    limit: int | None,
+    retry_missing: bool = False,
+) -> None:
     df_in = pd.read_csv(input_csv)
     appids = df_in["appid"].astype(int).tolist()
     if limit:
         appids = appids[:limit]
-    log.info("fetching appdetails for %d games -> %s", len(appids), output_csv)
 
-    rows: list[dict] = []
+    # Resume mode: skip appids already marked available=True in output_csv.
+    # Optionally also re-try the ones marked available=False (retry_missing).
+    existing_rows: list[dict] = []
+    skip_set: set[int] = set()
+    if output_csv.exists():
+        prev = pd.read_csv(output_csv)
+        existing_rows = prev.to_dict("records")
+        already_done = prev[prev["available"] == True]
+        skip_set = set(already_done["appid"].astype(int).tolist())
+        if retry_missing:
+            # Drop the failed rows from existing — we'll re-fetch them
+            existing_rows = already_done.to_dict("records")
+            log.info(
+                "resume: %d already available, %d will be retried, %d to skip",
+                len(skip_set),
+                int((prev["available"] == False).sum()),
+                len(skip_set),
+            )
+        else:
+            log.info("resume: skipping %d appids that already have available=True",
+                     len(skip_set))
+
+    todo = [a for a in appids if a not in skip_set]
+    log.info("fetching appdetails for %d games (skipping %d) -> %s",
+             len(todo), len(appids) - len(todo), output_csv)
+
+    rows = list(existing_rows)
     start = time.time()
 
     async with aiohttp.ClientSession() as session:
-        for idx, appid in enumerate(appids, 1):
+        for idx, appid in enumerate(todo, 1):
             data = await _fetch_appdetails(session, appid)
             rows.append(_flatten(appid, data))
             if idx % 50 == 0:
                 elapsed = time.time() - start
-                rate = idx / elapsed
-                eta_s = (len(appids) - idx) / rate
-                log.info("progress %d/%d (%.1f/s, eta %.0fs, %d available)",
-                         idx, len(appids), rate, eta_s,
-                         sum(1 for r in rows if r["available"]))
-                # checkpoint every 50
+                rate = idx / elapsed if elapsed > 0 else 0
+                eta_s = (len(todo) - idx) / rate if rate > 0 else 0
+                log.info(
+                    "progress %d/%d (%.1f/s, eta %.0fs, %d available so far)",
+                    idx, len(todo), rate, eta_s,
+                    sum(1 for r in rows if r.get("available")),
+                )
                 _write(rows, output_csv)
             await asyncio.sleep(RATE_S)
 
     _write(rows, output_csv)
     log.info("done. %d rows total, %d with data", len(rows),
-             sum(1 for r in rows if r["available"]))
+             sum(1 for r in rows if r.get("available")))
 
 
 def _write(rows: list[dict], path: Path) -> None:
@@ -143,12 +201,15 @@ def _parse_args() -> argparse.Namespace:
                         help="Output CSV path.")
     parser.add_argument("--limit", type=int, default=None,
                         help="Only fetch first N appids (sample / debug).")
+    parser.add_argument("--retry-missing", action="store_true",
+                        help="Re-fetch appids that previously came back available=False "
+                             "(e.g. 429 misses). Skips ones already marked True.")
     return parser.parse_args()
 
 
 def main() -> None:
     args = _parse_args()
-    asyncio.run(main_async(args.input, args.output, args.limit))
+    asyncio.run(main_async(args.input, args.output, args.limit, args.retry_missing))
 
 
 if __name__ == "__main__":

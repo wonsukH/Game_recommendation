@@ -235,6 +235,18 @@ Game_recommendation/
 
 ablation: benchmark 표에서 `content-ppmi` vs `content-ensemble` 비교로 ensemble의 기여 측정.
 
+### 데이터 충분성 결정 분기점
+
+benchmark 결과를 보고 user data를 더 모을지 결정한다:
+
+| `content-ensemble` vs `content-ppmi` | 조치 |
+|---|---|
+| Recall/NDCG가 >5% 우세 | 현 user data 충분. 그대로 진행. |
+| 거의 동일 (<2% 차이) | `outputs/game_vecs_user_signal_stats.json`의 cold-start 비율 확인. 50%↑면 user 풀 확장 (M9) |
+| ensemble이 더 낮음 | `ensemble_alpha`를 0.9로 올리거나 Item2Vec 자체 비활성화 |
+
+user 풀 확장 절차 (M9, 선택적): `steam_reviews.py`로 새 9000 게임의 리뷰 수집 → 새 steamid에 대해 `user_reviews.py` 재크롤 → `user_scores` + `item2vec` 재학습. 약 7-12시간 작업이라 benchmark 결과 보고 가치 확실할 때만 진행.
+
 ---
 
 ## 의식적으로 빼는 것

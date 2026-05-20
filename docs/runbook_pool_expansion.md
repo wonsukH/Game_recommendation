@@ -79,7 +79,27 @@ python -m data_collection.crawlers.steamspy --target-count 10000 ; `
 python -m data_collection.crawlers.steam_appdetails --input outputs/steamspy_games.csv
 ```
 
-총 5-6시간. 자고 일어나면 끝.
+총 5-6시간 (steamspy ~3h + appdetails ~3h). 자고 일어나면 끝.
+
+## 누락된 게임 재시도
+
+Steam Store appdetails는 burst 시 HTTP 429를 던지며, 그러면 그 게임은
+`available=False`로 들어간다. 코드에 60초+exp backoff retry가 있지만
+완전히 다 잡지는 못한다. 1차 크롤링 끝난 뒤 누락분만 다시 받기:
+
+```powershell
+python -m data_collection.crawlers.steam_appdetails `
+  --input outputs/steamspy_games.csv --retry-missing
+```
+
+`--retry-missing` 옵션은:
+- 기존 `outputs/steam_appdetails.csv`를 읽어
+- `available=True`인 appid는 skip (재크롤 안 함)
+- `available=False`인 것만 다시 시도
+- 결과를 같은 파일에 누적 저장
+
+429가 또 나도 그 게임은 그대로 False로 남고, 또 다음에 `--retry-missing`
+재실행하면 그것만 또 시도. 멱등적.
 
 ## 작은 풀로 시작하고 싶다면
 
