@@ -11,6 +11,8 @@ data:
   game_weights:
     gamma: 0.5
     score_col: s_round10_rec
+    weighting: bayesian        # one of: mean | bayesian | variance
+    prior_strength: 10         # Bayesian shrinkage k (only used if weighting=bayesian)
 
 models:
   tag_embeddings:
@@ -23,13 +25,38 @@ models:
     kappa: 1.0
     alpha: 0.5
     eta: 0.2
+    ensemble_alpha: 0.7        # weight of PPMI vec; 1-alpha goes to Item2Vec vec
   text_alignment:
     lambda_reg: 0.01
     text_model: solar-embedding-1-large
+  item2vec:
+    vector_size: 128
+    window: 10
+    min_count: 2
+    epochs: 5
+    sg: 1                       # skip-gram (1) vs CBOW (0)
+    score_threshold: 7         # s_round10_rec >= this counts as "favorite"
 
 retriever:
   top_k_default: 200
   expand_top_k: 5
 
 rerank:
-  novelty_default: 0.5
+  presets:
+    beginner:
+      relevance: 9
+      diversity: 4
+      novelty: 2
+      serendipity: 1
+    balanced:
+      relevance: 5
+      diversity: 5
+      novelty: 5
+      serendipity: 5
+
+    heavy:
+      relevance: 5
+      diversity: 7
+      novelty: 8
+      serendipity: 8
+  mmr_lambda: 0.5              # MMR trade-off (0=full diversity, 1=full relevance)
