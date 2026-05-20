@@ -163,6 +163,7 @@ python -m pipelines.build_offline --skip-text-alignment --skip-faiss
 개별 단계 직접 실행 (각각 `--help`로 인자 확인 가능):
 
 ```powershell
+python -m game_rec.data.user_scores
 python -m game_rec.data.tag_vocab
 python -m game_rec.data.game_tag_matrix
 python -m game_rec.data.game_weights
@@ -173,6 +174,20 @@ python -m game_rec.models.text_alignment
 python -m game_rec.evaluation.metadata --version v2 --backup
 python -m game_rec.evaluation.quality
 python -m game_rec.index.faiss_index
+```
+
+### 크롤링 / EDA
+
+크롤러와 EDA 스크립트는 별도로 실행. 자세한 흐름은 `README_PIPELINE.md` 참조.
+
+```powershell
+# 크롤링 (Metacritic 타이틀 -> Steam appid/리뷰/태그 -> 유저 리뷰)
+python crawlers/steam_reviews.py
+python crawlers/steam_tags_parallel.py
+python crawlers/user_reviews.py
+
+# EDA (Steam 리뷰 + 유저-게임 매트릭스 통계 + 시각화)
+python eda/game_analysis.py
 ```
 
 각 단계의 기본 하이퍼파라미터는 `config/default.yaml`에 있으며 CLI 인자로 override 가능.
@@ -199,6 +214,7 @@ Game_recommendation/
   game_rec/                         # 라이브러리 패키지
     config.py / io.py / log.py / prompts.py
     data/                           # 오프라인 데이터 준비
+      user_scores.py                # user_all_reviews -> percent-rank + 가중 점수
       tag_vocab.py
       game_tag_matrix.py
       game_weights.py
@@ -226,8 +242,16 @@ Game_recommendation/
     main.py / graph.py / ui.py
     data/                           # 앱이 읽는 산출물 사본
 
-  crawlers/                         # Steam / Metacritic 크롤러
+  crawlers/                         # Metacritic / Steam / steamcommunity 크롤러
+    metacritic.ipynb                # PC userscore 1~75 페이지 -> 타이틀 1800개
+    steam_reviews.py                # Steam search API + appreviews API
+    steam_tags.py                   # Selenium으로 Steam 상점 페이지에서 태그 수집
+    steam_tags_parallel.py          # 5개 Chrome 드라이버 병렬판
+    user_reviews.py                 # steamcommunity 프로필 HTML 파싱
   eda/                              # 탐색적 분석 + 시각화
+    game_analysis.py
+    plots/                          # 리뷰 길이/추천률/플레이타임 분포
+    similarity_plots/               # 게임 유사도 히트맵/클러스터링/네트워크/감성지도
   outputs/                          # 파이프라인 산출물 (gitignored)
   config/                           # default.yaml
   prompts/                          # parser.txt, response_generator.txt

@@ -1,8 +1,8 @@
-# 오프라인 파이프라인 상세
+# 데이터 / 모델 파이프라인 상세
 
-`pipelines/build_offline.py`가 차례로 호출하는 9개 모듈의 입출력 / 핵심 알고리즘 / 파라미터 정리. 각 단계의 디폴트는 `config/default.yaml`에서 오고 CLI 인자로 override 가능.
+크롤링 -> EDA -> 메인 파이프라인 -> 앱 데이터 동기화까지의 흐름을 정리. 각 단계의 디폴트는 `config/default.yaml`에서 오고 CLI 인자로 override 가능.
 
-전체 실행:
+메인 파이프라인 전체 실행:
 
 ```powershell
 python -m pipelines.build_offline
@@ -10,18 +10,130 @@ python -m pipelines.build_offline
 
 ---
 
-## 데이터 흐름
+## 0. 전체 데이터 흐름
 
 ```
-crawlers/  ->  outputs/  ->  game_rec.data  ->  game_rec.models  ->  game_rec.index  ->  app/data/
-                              + .index            + .evaluation
-```
+[Metacritic 페이지]
+        |  crawlers/metacritic.ipynb
+        v
+metacritic_pc_userscore_green.csv  (1800 game titles)
+        |  crawlers/steam_reviews.py (Steam search API -> appreviews API)
+        v
+steam_reviews.csv                  (~348K rows: appid + steamid + voted_up
+                                    + playtime_forever + review text)
+        |
+        +----+ crawlers/user_reviews.py (steamcommunity HTML)
+        |    |
+        |    v
+        |  user_all_reviews.csv     (~1.19M rows: per-user review history)
+        |
+        +----+ eda/game_analysis.py (aggregate per-game stats)
+        |    |
+        |    v
+        |  game_info_with_names.csv (~1082 rows: per-game review/playtime stats)
+        |  + game_similarity_matrix.csv (공통 플레이어 기반 유사도)
+        |  + EDA 플롯들 (eda/plots, eda/similarity_plots)
+        |
+        +----+ crawlers/steam_tags_parallel.py
+             |   (Selenium으로 Steam 상점 페이지에서 게임당 태그 수집)
+             v
+        steam_games_tags.csv       (1031 rows: appid -> 콤마 구분 태그)
 
-입력 CSV는 `outputs/`에 있다고 가정 (`steam_games_tags.csv`, `user_game_scores.csv`, `user_all_reviews.csv`).
+
+outputs/ 입력 3종:
+  user_all_reviews.csv             (-> 메인 파이프라인의 user_scores 첫 단계 입력)
+  steam_games_tags.csv             (-> tag_vocab, game_tag_matrix 입력)
+  user_game_scores.csv             (-> 메인 파이프라인이 user_scores로 직접 생성)
+
+           v
+        game_rec.data.*     -> tag_vocab.json, X_game_tag_csr.npz, game_weight.npy
+        game_rec.models.*   -> tag_vecs.npy, tag_beta.npy, game_vecs.npy, W_align.npy
+        game_rec.index.*    -> faiss_index.faiss
+        game_rec.evaluation -> quality_report.json, metadata_v*.json
+           v
+        scripts/sync_data.py -> app/data/   (Streamlit 앱이 읽는 사본)
+```
 
 ---
 
-## 각 단계
+## 1. 크롤링 단계 (`crawlers/`)
+
+순서대로 실행해야 한다. 각 단계의 출력이 다음 단계의 입력.
+
+### 1-1. Metacritic 타이틀 수집 (`crawlers/metacritic.ipynb`)
+
+- **무엇을**: Metacritic의 PC userscore 페이지 1~75를 Selenium으로 순회
+- **출력**: `outputs/metacritic_pc_userscore_green.csv` (1800개 게임 타이틀 단순 리스트)
+- **외부 의존**: Selenium + ChromeDriver
+- **노트북**: ad-hoc 디스커버리 용도. cwd가 `crawlers/`라고 가정하고 `../outputs/`에 저장
+
+### 1-2. Steam 리뷰 수집 (`crawlers/steam_reviews.py`)
+
+- **입력**: `outputs/metacritic_pc_userscore_green.csv`
+- **알고리즘**:
+  1. 각 타이틀을 Steam storesearch API로 검색 -> appid 매핑 (정확 일치 우선)
+  2. 각 appid의 appreviews API에서 영문 리뷰 최대 200개 수집 (cursor 페이지네이션)
+- **출력**: `outputs/steam_reviews.csv` (~348K rows). 컬럼: appid, recommendationid, author_steamid, review, voted_up, votes_up, votes_funny, weighted_vote_score, comment_count, steam_purchase, received_for_free, written_during_early_access, game_title
+- **rate limiting**: 0.5~2초 jitter, 10개마다 중간 저장
+- **외부 의존**: `requests`
+
+### 1-3. 유저별 전체 리뷰 수집 (`crawlers/user_reviews.py`)
+
+- **입력**: `outputs/steam_reviews.csv` (unique steamid 추출용)
+- **알고리즘**: 각 steamid에 대해 `steamcommunity.com/profiles/{steamid}/reviews/` HTML을 aiohttp로 비동기 fetch -> BeautifulSoup으로 review_box 파싱 (voted_up, playtime, 다른 appid들)
+- **출력**: `outputs/user_all_reviews.csv` (~1.19M rows: steamid, appid, voted_up, playtime_forever)
+- **체크포인트**: 100명마다 중간 저장 (`*_checkpoint.csv`)
+- **외부 의존**: `aiohttp`, `beautifulsoup4`. TCPConnector limit=10
+
+### 1-4. Steam 태그 수집 (`crawlers/steam_tags.py` 또는 `steam_tags_parallel.py`)
+
+- **입력**: `outputs/game_info_with_names.csv` (EDA 단계 출력의 appid 컬럼)
+- **알고리즘**: Selenium headless Chrome으로 `store.steampowered.com/app/{appid}/` 방문. 연령 제한 페이지 자동 통과 (생년 2000년 선택). `.app_tag` 요소를 모두 추출 + "+ 더보기" 버튼 클릭
+- **출력**: `outputs/steam_games_tags.csv` (1031 rows: appid, game_title, tags 콤마 구분, tag_count)
+- **병렬판**: `steam_tags_parallel.py`는 5개 드라이버 동시 (ThreadPoolExecutor)
+- **외부 의존**: Selenium + ChromeDriver
+
+---
+
+## 2. EDA 단계 (`eda/game_analysis.py`)
+
+- **입력**: `outputs/steam_reviews.csv`, `outputs/user_game_matrix.csv`
+- **무엇을**:
+  - 게임별 리뷰 수 / 긍정 비율 / 플레이타임 통계 집계 -> `outputs/game_info_with_names.csv`
+  - 유저별 게임 취향 분포 분석
+  - 게임 간 공통 플레이어 기반 유사도 행렬 -> `outputs/game_similarity_matrix.csv`
+  - 시각화 4종 (`eda/similarity_plots/`): 유사도 히트맵 / 클러스터링 / 네트워크 / 감성지도
+- **부가 출력**: `eda/plots/` 안에 리뷰 길이 / 추천률-플레이타임 / 리뷰-추천 산점도
+- **한글 폰트**: Windows의 맑은 고딕을 자동 감지. 못 찾으면 DejaVu Sans fallback (한글 깨짐 경고 출력)
+- **메인 파이프라인과의 연결**: 이 단계의 `game_info_with_names.csv`가 1-4 태그 크롤링의 입력. 즉 EDA -> 태그 크롤링 -> 메인 파이프라인 순서.
+
+---
+
+## 3. 메인 파이프라인 진입
+
+여기서부터는 `pipelines/build_offline.py`가 차례로 호출하는 모듈들. 입력 3개 CSV가 `outputs/`에 있다고 가정:
+
+- `outputs/user_all_reviews.csv`  (크롤링 1-3에서 생성)
+- `outputs/steam_games_tags.csv`  (크롤링 1-4에서 생성)
+- 그 외 `game_info_with_names.csv` 등 EDA/크롤링 산출물
+
+`game_rec.data.user_scores`가 `user_all_reviews.csv`를 받아 `user_game_scores.csv`를 만든 뒤, 나머지 8개 모듈이 그것과 `steam_games_tags.csv`를 입력으로 임베딩 / 인덱스 / 평가 결과를 차례로 만든다.
+
+---
+
+## 4. 메인 파이프라인 모듈
+
+### `game_rec.data.user_scores`
+
+- **목적**: 유저-게임 리뷰 행을 게임당 분위수 + 추천/비추천 가중 점수로 변환
+- **입력**: `outputs/user_all_reviews.csv`
+- **출력**: `outputs/user_game_scores.csv` (컬럼 추가: `ptile`, `s_round10`, `vote_factor`, `s_round10_rec`)
+- **알고리즘**:
+  - 각 게임 안에서 playtime percent-rank `ptile = (rank-1)/(n-1)`
+  - `s_round10 = round(ptile * 10)` (0~10 정수)
+  - vote 가중치: 추천이면 `x(1 + α_pos)`, 비추천이면 `linear` 모드에서 `x(1 - α_neg * s/10)`
+  - 최종 `s_round10_rec = clip(s_round10 * vote_factor, 0, 10)`
+- **파라미터**: 환경변수 `UGS_ALPHA10_POS` (기본 0.3), `UGS_ALPHA10_NEG` (기본 0.5), `UGS_PENALTY_MODE` (기본 `linear`)
 
 ### `game_rec.data.tag_vocab`
 
