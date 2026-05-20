@@ -1,0 +1,28 @@
+{
+  "regression_info": {
+    "r2_score": 0.38765572208140864,
+    "intercept": 5.943250662709938,
+    "num_coefficients": 393
+  },
+  "coefficient_stats": {
+    "max": 0.06313864667900124,
+    "min": -0.03864353096278308,
+    "mean": -0.00014617179037426374,
+    "std": 0.013694352898318652
+  },
+  "parameters": {
+    "alpha": 1.0,
+    "score_column": "s_round10_rec",
+    "random_state": 42
+  },
+  "data_info": {
+    "num_games": 1029,
+    "num_tags": 393,
+    "target_stats": {
+      "mean": 5.914331851385799,
+      "std": 0.2950809170834342,
+      "min": 4.3,
+      "max": 10.0
+    }
+  }
+}

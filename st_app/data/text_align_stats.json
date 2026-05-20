@@ -1,0 +1,26 @@
+{
+  "text_embedding_info": {
+    "model": "all-MiniLM-L6-v2",
+    "text_embedding_dim": 384,
+    "num_tags": 393
+  },
+  "alignment_info": {
+    "alignment_matrix_shape": [
+      384,
+      128
+    ],
+    "lambda_reg": 0.01
+  },
+  "sample_tag_texts": {
+    "+ add your own tags": "+ add your own tags",
+    "1980s": "1980s",
+    "1990's": "1990's",
+    "2.5d": "2.5d",
+    "2d": "2d",
+    "2d fighter": "2d fighter",
+    "2d platformer": "2d platformer",
+    "3d": "3d",
+    "3d fighter": "3d fighter",
+    "3d platformer": "3d platformer"
+  }
+}

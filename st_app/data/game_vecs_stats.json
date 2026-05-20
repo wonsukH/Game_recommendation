@@ -1,0 +1,37 @@
+{
+  "game_vectors_info": {
+    "shape": [
+      1031,
+      128
+    ],
+    "embedding_dim": 128,
+    "num_games": 1031
+  },
+  "synthesis_parameters": {
+    "kappa": 1.0,
+    "alpha": 0.5,
+    "eta": 0.2,
+    "tag_count_compensation": true,
+    "beta_axis_steering": true
+  },
+  "vector_stats": {
+    "mean_norm": 1.0,
+    "std_norm": 1.199759342966307e-16,
+    "min_norm": 0.9999999999999996,
+    "max_norm": 1.0000000000000002,
+    "zero_vectors": 0
+  },
+  "input_info": {
+    "matrix_shape": [
+      1031,
+      393
+    ],
+    "tag_vecs_shape": [
+      393,
+      128
+    ],
+    "tag_beta_shape": [
+      393
+    ]
+  }
+}
