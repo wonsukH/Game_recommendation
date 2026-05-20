@@ -13,5 +13,5 @@ dynamic = ["dependencies"]
 dependencies = {file = "requirements.txt"}
 
 [tool.setuptools.packages.find]
-include = ["utils*", "st_app*"]
+include = ["game_rec*", "st_app*"]
 exclude = ["archive*", "outputs*", "images*", "EDA*", "Crawling*", "FE*"]

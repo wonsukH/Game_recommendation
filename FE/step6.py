@@ -9,9 +9,9 @@ from scipy.sparse import csr_matrix
 from sklearn.preprocessing import StandardScaler
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from utils.io import load_index_maps, load_csr, load_vectors, save_stats  # noqa: E402
-from utils.config import load_config  # noqa: E402
-from utils.logging import get_logger  # noqa: E402
+from game_rec.io import load_index_maps, load_csr, load_vectors, save_stats  # noqa: E402
+from game_rec.config import load_config  # noqa: E402
+from game_rec.log import get_logger  # noqa: E402
 
 log = get_logger("fe.step6")
 

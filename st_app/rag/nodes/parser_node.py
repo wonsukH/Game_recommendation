@@ -7,8 +7,8 @@ from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
-from utils.prompts import load_prompt  # noqa: E402
-from utils.logging import get_logger  # noqa: E402
+from game_rec.prompts import load_prompt  # noqa: E402
+from game_rec.log import get_logger  # noqa: E402
 
 log = get_logger("rag.parser")
 

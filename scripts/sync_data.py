@@ -23,7 +23,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
-from utils.logging import get_logger  # noqa: E402
+from game_rec.log import get_logger  # noqa: E402
 
 log = get_logger("scripts.sync_data")
 

@@ -10,8 +10,8 @@ from sklearn.metrics.pairwise import cosine_similarity
 from langchain_upstage import UpstageEmbeddings
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from utils.io import load_tag_vocab, load_vectors  # noqa: E402
-from utils.logging import get_logger  # noqa: E402
+from game_rec.io import load_tag_vocab, load_vectors  # noqa: E402
+from game_rec.log import get_logger  # noqa: E402
 
 log = get_logger("rag.retriever")
 

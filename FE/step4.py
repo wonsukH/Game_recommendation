@@ -9,8 +9,8 @@ from scipy.sparse import csr_matrix
 from sklearn.decomposition import TruncatedSVD
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from utils.io import load_index_maps, load_csr, save_stats  # noqa: E402
-from utils.config import load_config  # noqa: E402
+from game_rec.io import load_index_maps, load_csr, save_stats  # noqa: E402
+from game_rec.config import load_config  # noqa: E402
 
 
 def _parse_args() -> argparse.Namespace:

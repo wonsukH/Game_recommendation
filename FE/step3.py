@@ -7,8 +7,8 @@ import argparse
 from sklearn.preprocessing import MinMaxScaler
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from utils.io import save_stats  # noqa: E402
-from utils.config import load_config  # noqa: E402
+from game_rec.io import save_stats  # noqa: E402
+from game_rec.config import load_config  # noqa: E402
 
 
 def _parse_args() -> argparse.Namespace:
