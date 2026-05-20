@@ -29,11 +29,10 @@ Steam    데이터  임베딩  웹앱
 │   ├── steam_review_pipeline.py      # Steam 리뷰 수집
 │   ├── steam_tags_crawler.py         # Steam 태그 수집
 │   ├── steam_tags_crawler_parallel.py # 병렬 태그 수집
-│   ├── user_reviews_crawler_simple.py # 사용자 리뷰 수집
+│   ├── user_reviews_crawler_simple2.py # 사용자 리뷰 수집 (steamcommunity HTML)
 │   └── user_game_scores_penalty.py   # 게임 점수 계산
 ├── EDA/                        # 탐색적 데이터 분석
 │   ├── game_analysis.py             # 게임 데이터 분석
-│   ├── visualize_review_length.py   # 리뷰 길이 시각화
 │   └── eda_plots/                   # 분석 결과 플롯
 ├── FE/                         # 특성 엔지니어링
 │   ├── step1.py                     # 태그 정규화
