@@ -62,7 +62,52 @@ def _parse_args() -> argparse.Namespace:
         default=cfg["eta"],
         help=f"β-axis steering eta (default from config: {cfg['eta']})"
     )
+    parser.add_argument(
+        "--user-signal", type=str,
+        default=str(Path("outputs/game_vecs_user_signal.npy")),
+        help="Optional Item2Vec game vectors to ensemble. If missing, PPMI-only.",
+    )
+    parser.add_argument(
+        "--ensemble-alpha", type=float,
+        default=cfg.get("ensemble_alpha", 0.7),
+        help=f"Weight of PPMI vec; 1-alpha goes to Item2Vec vec (default from config: {cfg.get('ensemble_alpha', 0.7)})",
+    )
+    parser.add_argument(
+        "--ppmi-only-output", type=str,
+        default=str(Path("outputs/game_vecs_ppmi.npy")),
+        help="Where to also save the un-ensembled PPMI-only vectors (for ablation).",
+    )
     return parser.parse_args()
+
+
+def ensemble_game_vectors(
+    ppmi_vecs: np.ndarray,
+    user_signal_vecs: np.ndarray,
+    alpha: float,
+) -> np.ndarray:
+    """L2-normalize both inputs, then alpha-weighted sum, then re-normalize.
+
+    Games whose Item2Vec vec is all zeros (cold-start: never in any user's
+    favorites) fall back to pure PPMI — `alpha=1` effective for those rows.
+    """
+    if ppmi_vecs.shape != user_signal_vecs.shape:
+        raise ValueError(
+            f"shape mismatch: ppmi={ppmi_vecs.shape} vs user_signal={user_signal_vecs.shape}"
+        )
+
+    def _l2(v):
+        n = np.linalg.norm(v, axis=1, keepdims=True)
+        return np.divide(v, n, out=np.zeros_like(v), where=n > 0)
+
+    p = _l2(ppmi_vecs.astype(np.float32))
+    u = _l2(user_signal_vecs.astype(np.float32))
+
+    # Per-row alpha: if user_signal row is all-zero, force alpha=1 for that row
+    u_has_signal = np.linalg.norm(u, axis=1) > 0
+    row_alpha = np.where(u_has_signal, alpha, 1.0).reshape(-1, 1).astype(np.float32)
+
+    combined = row_alpha * p + (1.0 - row_alpha) * u
+    return _l2(combined)
 
 
 def softmax_kappa(x: np.ndarray, kappa: float = 1.0) -> np.ndarray:
@@ -200,12 +245,13 @@ def synthesize_game_vectors(X: csr_matrix, tag_vecs: np.ndarray, tag_beta: np.nd
 
 
 def main(matrix_path: str, index_path: str, tag_vecs_path: str, tag_beta_path: str,
-         output_path: str, stats_path: str, kappa: float, alpha: float, eta: float):
-    log.info("Step 6 starting — matrix=%s index=%s tag_vecs=%s tag_beta=%s",
+         output_path: str, stats_path: str, kappa: float, alpha: float, eta: float,
+         user_signal_path: str | None = None, ensemble_alpha: float = 0.7,
+         ppmi_only_path: str | None = None):
+    log.info("game_vectors starting — matrix=%s index=%s tag_vecs=%s tag_beta=%s",
              matrix_path, index_path, tag_vecs_path, tag_beta_path)
     log.info("synthesis params — kappa=%s alpha=%s eta=%s", kappa, alpha, eta)
-    
-    # 데이터 로드
+
     X = load_csr(matrix_path)
     tag_vecs = load_vectors(tag_vecs_path, dtype="float64")
     tag_beta = np.load(tag_beta_path)
@@ -214,31 +260,56 @@ def main(matrix_path: str, index_path: str, tag_vecs_path: str, tag_beta_path: s
     tag2idx = index_maps['tag2idx']
     idx2tag = index_maps['idx2tag']
     row2appid = index_maps['row2appid']
-    
+
     log.info("loaded shapes — X=%s tag_vecs=%s tag_beta=%s tags=%d",
              X.shape, tag_vecs.shape, tag_beta.shape, len(tag2idx))
 
-    # 크기 일치 확인
     if X.shape[1] != tag_vecs.shape[0] or X.shape[1] != len(tag_beta):
         log.error("tag count mismatch — X.shape[1]=%d tag_vecs[0]=%d tag_beta=%d",
                   X.shape[1], tag_vecs.shape[0], len(tag_beta))
-        print(f"[ERROR] 태그 수가 일치하지 않습니다:")
-        print(f"   - CSR 행렬 태그 수: {X.shape[1]}")
-        print(f"   - 태그 벡터 태그 수: {tag_vecs.shape[0]}")
-        print(f"   - 태그 효과 태그 수: {len(tag_beta)}")
         return
-    
-    # 게임 벡터 합성
-    game_vecs = synthesize_game_vectors(X, tag_vecs, tag_beta, kappa, alpha, eta)
-    
-    # 출력 폴더 생성
+
+    # PPMI-based game vectors (the original signal)
+    game_vecs_ppmi = synthesize_game_vectors(X, tag_vecs, tag_beta, kappa, alpha, eta)
+
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     Path(stats_path).parent.mkdir(parents=True, exist_ok=True)
-    
-    # 게임 벡터 저장
+
+    # Always also save the PPMI-only version for ablation
+    if ppmi_only_path:
+        np.save(ppmi_only_path, game_vecs_ppmi)
+        log.info("saved PPMI-only vectors to %s", ppmi_only_path)
+
+    # Optionally ensemble with Item2Vec user-signal vectors
+    ensemble_info: dict = {}
+    if user_signal_path and Path(user_signal_path).exists():
+        log.info("ensembling with user-signal vectors from %s (alpha=%.2f)",
+                 user_signal_path, ensemble_alpha)
+        user_signal_vecs = load_vectors(user_signal_path, dtype="float64")
+        if user_signal_vecs.shape != game_vecs_ppmi.shape:
+            log.warning(
+                "user_signal shape %s != ppmi shape %s — skipping ensemble, saving PPMI-only",
+                user_signal_vecs.shape, game_vecs_ppmi.shape,
+            )
+            game_vecs = game_vecs_ppmi
+            ensemble_info = {"applied": False, "reason": "shape_mismatch"}
+        else:
+            game_vecs = ensemble_game_vectors(game_vecs_ppmi, user_signal_vecs, ensemble_alpha)
+            n_with_signal = int((np.linalg.norm(user_signal_vecs, axis=1) > 0).sum())
+            ensemble_info = {
+                "applied": True,
+                "alpha": ensemble_alpha,
+                "user_signal_path": user_signal_path,
+                "n_games_with_user_signal": n_with_signal,
+                "n_games_fallback_to_ppmi": int(game_vecs_ppmi.shape[0] - n_with_signal),
+            }
+    else:
+        log.info("no user_signal at %s — saving PPMI-only as final output", user_signal_path)
+        game_vecs = game_vecs_ppmi
+        ensemble_info = {"applied": False, "reason": "file_missing"}
+
     np.save(output_path, game_vecs)
     
-    # 통계 정보 저장
     stats = {
         "game_vectors_info": {
             "shape": game_vecs.shape,
@@ -252,6 +323,7 @@ def main(matrix_path: str, index_path: str, tag_vecs_path: str, tag_beta_path: s
             "tag_count_compensation": alpha > 0,
             "beta_axis_steering": eta > 0
         },
+        "ensemble": ensemble_info,
         "vector_stats": {
             "mean_norm": float(np.mean(np.linalg.norm(game_vecs, axis=1))),
             "std_norm": float(np.std(np.linalg.norm(game_vecs, axis=1))),
@@ -300,4 +372,7 @@ def main(matrix_path: str, index_path: str, tag_vecs_path: str, tag_beta_path: s
 if __name__ == "__main__":
     args = _parse_args()
     main(args.matrix, args.indexes, args.tag_vecs, args.tag_beta,
-         args.output, args.stats, args.kappa, args.alpha, args.eta)
+         args.output, args.stats, args.kappa, args.alpha, args.eta,
+         user_signal_path=args.user_signal,
+         ensemble_alpha=args.ensemble_alpha,
+         ppmi_only_path=args.ppmi_only_output)
