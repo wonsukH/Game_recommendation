@@ -1,16 +1,11 @@
-
-import sys
 import json
-from pathlib import Path
 
 from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
-from game_rec.prompts import load_prompt  # noqa: E402
-from game_rec.log import get_logger  # noqa: E402
+from game_rec.prompts import load_prompt
+from game_rec.log import get_logger
 
-log = get_logger("rag.parser")
+log = get_logger("game_rec.agent.parser")
 
 
 def llm_parser_node(state, llm):

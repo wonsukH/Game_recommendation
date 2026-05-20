@@ -1,11 +1,7 @@
-import sys
-from pathlib import Path
-
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
-from game_rec.prompts import load_prompt  # noqa: E402
+from game_rec.prompts import load_prompt
 
 
 def generate_response_node(state, llm):

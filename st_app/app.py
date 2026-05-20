@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 from langchain_upstage import ChatUpstage
 from langchain.schema.messages import HumanMessage, AIMessage
 
-from rag.retriever import VectorBasedRecommender
+from game_rec.agent.retriever import VectorBasedRecommender
 from graph import build_graph
 from ui import render_sidebar, render_history, stream_and_render, render_final_response
 

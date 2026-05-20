@@ -1,14 +1,8 @@
-
-import sys
-import json
-import os
-from pathlib import Path
 from typing import List, Dict, Any
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
-from game_rec.log import get_logger  # noqa: E402
+from game_rec.log import get_logger
 
-log = get_logger("rag.normalizer")
+log = get_logger("game_rec.agent.normalizer")
 
 
 def jaccard_similarity(s1: str, s2: str) -> float:

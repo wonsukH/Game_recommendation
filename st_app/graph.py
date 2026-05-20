@@ -13,7 +13,7 @@ from typing import Any, TypedDict, List
 import numpy as np
 from langgraph.graph import StateGraph, END
 
-from rag.nodes import (
+from game_rec.agent.nodes import (
     llm_parser_node,
     similar_node,
     vibe_node,

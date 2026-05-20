@@ -1,5 +1,4 @@
 
-import sys
 import copy
 from pathlib import Path
 
@@ -9,11 +8,10 @@ import faiss
 from sklearn.metrics.pairwise import cosine_similarity
 from langchain_upstage import UpstageEmbeddings
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from game_rec.io import load_tag_vocab, load_vectors  # noqa: E402
-from game_rec.log import get_logger  # noqa: E402
+from game_rec.io import load_tag_vocab, load_vectors
+from game_rec.log import get_logger
 
-log = get_logger("rag.retriever")
+log = get_logger("game_rec.agent.retriever")
 
 
 class VectorBasedRecommender:
