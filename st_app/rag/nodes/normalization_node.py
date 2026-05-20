@@ -1,7 +1,15 @@
 
+import sys
 import json
 import os
+from pathlib import Path
 from typing import List, Dict, Any
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from utils.logging import get_logger  # noqa: E402
+
+log = get_logger("rag.normalizer")
+
 
 def jaccard_similarity(s1: str, s2: str) -> float:
     """Calculates Jaccard similarity between two strings based on character bigrams."""
@@ -57,6 +65,6 @@ def game_name_normalizer_node(state: Dict[str, Any], recommender) -> Dict[str, A
     
     state['parsed_json']['games'] = normalized_games
     
-    print(f"Normalized game names: {game_names_to_normalize} -> {normalized_games}")
+    log.info("normalized game names: %s -> %s", game_names_to_normalize, normalized_games)
     
     return state

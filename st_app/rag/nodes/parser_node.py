@@ -8,6 +8,9 @@ from langchain.chains import LLMChain
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 from utils.prompts import load_prompt  # noqa: E402
+from utils.logging import get_logger  # noqa: E402
+
+log = get_logger("rag.parser")
 
 
 def llm_parser_node(state, llm):
@@ -34,9 +37,7 @@ def llm_parser_node(state, llm):
             parsed_json = {"mode": "general"}
             
     except json.JSONDecodeError as e:
-        # Handle cases where the extracted string is still not valid JSON
-        print(f"Failed to parse JSON: {e}")
-        # Fallback or error state
+        log.warning("LLM output was not valid JSON, falling back to mode=general: %s", e)
         parsed_json = {"mode": "general"}
 
     state['parsed_json'] = parsed_json

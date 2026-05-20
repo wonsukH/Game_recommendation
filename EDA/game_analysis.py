@@ -50,9 +50,9 @@ def setup_korean_font():
                     font_prop = fm.FontProperties(fname=font_path)
                     plt.rcParams['font.family'] = font_prop.get_name()
                     plt.rcParams['axes.unicode_minus'] = False
-                    print(f"✅ 한글 폰트 설정 완료 (파일 경로): {font_path}")
+                    print(f"한글 폰트 설정 완료 (파일 경로): {font_path}")
                     return True
-                except:
+                except Exception:
                     continue
     
     # 한글 폰트를 찾지 못한 경우 기본 설정
@@ -417,10 +417,10 @@ class SteamGameAnalyzer:
             test_font = plt.rcParams['font.family']
             if 'DejaVu' in test_font or 'unknown' in test_font.lower():
                 use_korean = False
-                print("⚠️ 한글 폰트를 사용할 수 없어 영어로 표시합니다.")
+                print("한글 폰트를 사용할 수 없어 영어로 표시합니다.")
             else:
                 use_korean = True
-        except:
+        except Exception:
             use_korean = False
         
         # 1. 게임 유사도 히트맵

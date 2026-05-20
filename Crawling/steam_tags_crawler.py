@@ -81,7 +81,7 @@ def get_game_tags(driver, appid):
         # 게임 제목 추출
         try:
             game_title = driver.find_element(By.CLASS_NAME, "apphub_AppName").text
-        except:
+        except NoSuchElementException:
             game_title = "Unknown"
         
         # 태그 영역 찾기
@@ -107,7 +107,7 @@ def get_game_tags(driver, appid):
                         time.sleep(1)  # 태그 로딩 대기
                         show_more_clicked = True
                         break
-                except:
+                except NoSuchElementException:
                     continue
                     
         except Exception as e:

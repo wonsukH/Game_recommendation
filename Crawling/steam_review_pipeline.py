@@ -24,7 +24,8 @@ def get_appid(game_name):
         if r.status_code != 200:
             return None
         data = r.json()
-    except:
+    except Exception as e:
+        print(f"[WARN] get_appid({game_name}) failed: {type(e).__name__}: {e}")
         return None
     
     items = data.get("items", [])
@@ -49,7 +50,8 @@ def get_reviews(appid, max_reviews=200, lang="english"):
             if r.status_code != 200:
                 break
             data = r.json()
-        except:
+        except Exception as e:
+            print(f"[WARN] get_reviews(appid={appid}) request failed: {type(e).__name__}: {e}")
             break
 
         reviews = data.get("reviews", [])

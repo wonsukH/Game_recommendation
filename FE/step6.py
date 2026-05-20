@@ -11,6 +11,9 @@ from sklearn.preprocessing import StandardScaler
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from utils.io import load_index_maps, load_csr, load_vectors, save_stats  # noqa: E402
 from utils.config import load_config  # noqa: E402
+from utils.logging import get_logger  # noqa: E402
+
+log = get_logger("fe.step6")
 
 
 def _parse_args() -> argparse.Namespace:
@@ -200,12 +203,9 @@ def synthesize_game_vectors(X: csr_matrix, tag_vecs: np.ndarray, tag_beta: np.nd
 
 def main(matrix_path: str, index_path: str, tag_vecs_path: str, tag_beta_path: str,
          output_path: str, stats_path: str, kappa: float, alpha: float, eta: float):
-    print(f"[INFO] 입력 파일 로드:")
-    print(f"   - CSR 행렬: {matrix_path}")
-    print(f"   - 인덱스 맵: {index_path}")
-    print(f"   - 태그 벡터: {tag_vecs_path}")
-    print(f"   - 태그 효과: {tag_beta_path}")
-    print(f"   - kappa: {kappa}, alpha: {alpha}, eta: {eta}")
+    log.info("Step 6 starting — matrix=%s index=%s tag_vecs=%s tag_beta=%s",
+             matrix_path, index_path, tag_vecs_path, tag_beta_path)
+    log.info("synthesis params — kappa=%s alpha=%s eta=%s", kappa, alpha, eta)
     
     # 데이터 로드
     X = load_csr(matrix_path)
@@ -217,14 +217,13 @@ def main(matrix_path: str, index_path: str, tag_vecs_path: str, tag_beta_path: s
     idx2tag = index_maps['idx2tag']
     row2appid = index_maps['row2appid']
     
-    print(f"[INFO] 데이터 크기:")
-    print(f"   - 게임×태그 행렬: {X.shape}")
-    print(f"   - 태그 벡터: {tag_vecs.shape}")
-    print(f"   - 태그 효과: {tag_beta.shape}")
-    print(f"   - 태그 수: {len(tag2idx)}")
-    
+    log.info("loaded shapes — X=%s tag_vecs=%s tag_beta=%s tags=%d",
+             X.shape, tag_vecs.shape, tag_beta.shape, len(tag2idx))
+
     # 크기 일치 확인
     if X.shape[1] != tag_vecs.shape[0] or X.shape[1] != len(tag_beta):
+        log.error("tag count mismatch — X.shape[1]=%d tag_vecs[0]=%d tag_beta=%d",
+                  X.shape[1], tag_vecs.shape[0], len(tag_beta))
         print(f"[ERROR] 태그 수가 일치하지 않습니다:")
         print(f"   - CSR 행렬 태그 수: {X.shape[1]}")
         print(f"   - 태그 벡터 태그 수: {tag_vecs.shape[0]}")
