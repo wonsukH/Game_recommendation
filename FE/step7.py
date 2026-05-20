@@ -13,8 +13,11 @@ from langchain_upstage import UpstageEmbeddings
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from utils.io import load_index_maps, save_stats  # noqa: E402
+from utils.config import load_config  # noqa: E402
+
 
 def _parse_args() -> argparse.Namespace:
+    cfg = load_config()["fe"]["step7"]
     parser = argparse.ArgumentParser(description="Step 7: Text-to-tag alignment matrix")
     parser.add_argument(
         "--tag-vecs", type=str,
@@ -28,13 +31,13 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--model", type=str,
-        default="all-MiniLM-L6-v2",
-        help="Sentence transformer model (default: all-MiniLM-L6-v2)"
+        default=cfg["text_model"],
+        help=f"Embedding model — supports SentenceTransformer or Upstage Solar (default from config: {cfg['text_model']})"
     )
     parser.add_argument(
         "--lambda-reg", type=float,
-        default=1e-2,
-        help="Regularization lambda (default: 1e-2)"
+        default=cfg["lambda_reg"],
+        help=f"Regularization lambda (default from config: {cfg['lambda_reg']})"
     )
     parser.add_argument(
         "--tag-text", type=str,

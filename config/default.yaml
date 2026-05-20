@@ -1,0 +1,33 @@
+# Default hyperparameters for the offline FE pipeline and the online
+# retriever. CLI flags on individual step scripts still take precedence;
+# this file just sets the fallback defaults so they live in one place.
+#
+# History: previously each step had its own argparse default. This led
+# to drift (params_v1.json captured an old sentence_transformer value
+# that no longer matched what step7 actually used). This file is now
+# the single source of truth.
+
+fe:
+  step3:
+    gamma: 0.5
+    score_col: s_round10_rec
+  step4:
+    embedding_dim: 128
+    random_state: 42
+  step5:
+    ridge_alpha: 1.0
+    score_col: s_round10_rec
+  step6:
+    kappa: 1.0
+    alpha: 0.5
+    eta: 0.2
+  step7:
+    lambda_reg: 0.01
+    text_model: solar-embedding-1-large
+
+retriever:
+  top_k_default: 200
+  expand_top_k: 5
+
+rerank:
+  novelty_default: 0.5

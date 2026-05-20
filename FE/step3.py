@@ -8,9 +8,11 @@ from sklearn.preprocessing import MinMaxScaler
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from utils.io import save_stats  # noqa: E402
+from utils.config import load_config  # noqa: E402
 
 
 def _parse_args() -> argparse.Namespace:
+    cfg = load_config()["fe"]["step3"]
     parser = argparse.ArgumentParser(description="Step 3: Normalize game scores with min-max and gamma correction")
     parser.add_argument(
         "--input", type=str,
@@ -19,13 +21,13 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--score-col", type=str,
-        default="s_round10_rec",
-        help="Score column to normalize (default: s_round10_rec)"
+        default=cfg["score_col"],
+        help=f"Score column to normalize (default from config: {cfg['score_col']})"
     )
     parser.add_argument(
         "--gamma", type=float,
-        default=0.5,
-        help="Gamma correction value (default: 0.5)"
+        default=cfg["gamma"],
+        help=f"Gamma correction value (default from config: {cfg['gamma']})"
     )
     parser.add_argument(
         "--output", type=str,

@@ -11,9 +11,11 @@ from sklearn.preprocessing import StandardScaler
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from utils.io import load_index_maps, load_csr, save_stats  # noqa: E402
+from utils.config import load_config  # noqa: E402
 
 
 def _parse_args() -> argparse.Namespace:
+    cfg = load_config()["fe"]["step5"]
     parser = argparse.ArgumentParser(description="Step 5: Ridge regression to learn tag effects β")
     parser.add_argument(
         "--matrix", type=str,
@@ -32,13 +34,13 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--score-col", type=str,
-        default="s_round10_rec",
-        help="Score column to use (default: s_round10_rec)"
+        default=cfg["score_col"],
+        help=f"Score column to use (default from config: {cfg['score_col']})"
     )
     parser.add_argument(
         "--alpha", type=float,
-        default=1.0,
-        help="Ridge regularization strength (default: 1.0)"
+        default=cfg["ridge_alpha"],
+        help=f"Ridge regularization strength (default from config: {cfg['ridge_alpha']})"
     )
     parser.add_argument(
         "--output", type=str,

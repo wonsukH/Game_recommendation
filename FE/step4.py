@@ -10,9 +10,11 @@ from sklearn.decomposition import TruncatedSVD
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from utils.io import load_index_maps, load_csr, save_stats  # noqa: E402
+from utils.config import load_config  # noqa: E402
 
 
 def _parse_args() -> argparse.Namespace:
+    cfg = load_config()["fe"]["step4"]
     parser = argparse.ArgumentParser(description="Step 4: Tag embedding learning with PPMI + SVD")
     parser.add_argument(
         "--matrix", type=str,
@@ -36,8 +38,8 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--dim", type=int,
-        default=128,
-        help="Embedding dimension (default: 128)"
+        default=cfg["embedding_dim"],
+        help=f"Embedding dimension (default from config: {cfg['embedding_dim']})"
     )
     parser.add_argument(
         "--stats", type=str,

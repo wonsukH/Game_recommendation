@@ -10,9 +10,11 @@ from sklearn.preprocessing import StandardScaler
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from utils.io import load_index_maps, load_csr, load_vectors, save_stats  # noqa: E402
+from utils.config import load_config  # noqa: E402
 
 
 def _parse_args() -> argparse.Namespace:
+    cfg = load_config()["fe"]["step6"]
     parser = argparse.ArgumentParser(description="Step 6: Synthesize game vectors from tag vectors with β weights")
     parser.add_argument(
         "--matrix", type=str,
@@ -46,18 +48,18 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--kappa", type=float,
-        default=1.0,
-        help="Softmax kappa parameter (default: 1.0)"
+        default=cfg["kappa"],
+        help=f"Softmax kappa parameter (default from config: {cfg['kappa']})"
     )
     parser.add_argument(
         "--alpha", type=float,
-        default=0.5,
-        help="Tag count compensation alpha (default: 0.5)"
+        default=cfg["alpha"],
+        help=f"Tag count compensation alpha (default from config: {cfg['alpha']})"
     )
     parser.add_argument(
         "--eta", type=float,
-        default=0.2,
-        help="β-axis steering eta (default: 0.2)"
+        default=cfg["eta"],
+        help=f"β-axis steering eta (default from config: {cfg['eta']})"
     )
     return parser.parse_args()
 
