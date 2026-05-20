@@ -10,6 +10,7 @@ from langchain_upstage import UpstageEmbeddings
 
 from pipeline.game_rec.io import load_tag_vocab, load_vectors
 from pipeline.game_rec.log import get_logger
+from pipeline.game_rec.agent.scoring import minmax as _minmax
 
 log = get_logger("game_rec.agent.retriever")
 
@@ -29,6 +30,14 @@ class VectorBasedRecommender:
             self.tag_vecs = load_vectors(f"{self.data_path}/tag_vecs.npy")
             self.W_align = load_vectors(f"{self.data_path}/W_align.npy")
 
+            # Popularity for Novelty/Serendipity (optional — falls back to uniform)
+            pop_path = Path(self.data_path) / "game_popularity.npy"
+            if pop_path.exists():
+                self.popularity = np.load(pop_path).astype(np.float64)
+            else:
+                log.info("game_popularity.npy missing — using uniform popularity for rerank")
+                self.popularity = np.ones(len(self.game_vecs), dtype=np.float64)
+
             tag_list = load_tag_vocab(f"{self.data_path}/tag_vocab.json")
 
             self.tag_to_idx = {tag: i for i, tag in enumerate(tag_list)}
@@ -39,6 +48,7 @@ class VectorBasedRecommender:
         except FileNotFoundError as e:
             log.warning("Could not find data file %s. Some features may not work.", e)
             self.faiss_index = None
+            self.popularity = None
 
     def expand_query_tags(self, parsed_json, top_k=5):
         if self.tag_vecs is None: return parsed_json
@@ -192,16 +202,87 @@ class VectorBasedRecommender:
         return {"candidates": candidate_appids[:top_k], "query_vector": query_vector}
 
     def rerank_candidates(self, candidate_appids, query_vector, weights, top_n=10):
-        if not candidate_appids: return pd.DataFrame()
-        total_weight = weights.get('tag_match', 0) + weights.get('novelty', 0)
-        if total_weight == 0: total_weight = 1
-        alpha = weights.get('tag_match', 0) / total_weight
-        beta = weights.get('novelty', 0) / total_weight
-        candidates_df = self.games_df.loc[candidate_appids].copy()
-        candidate_indices = [self.appid_to_idx[appid] for appid in candidate_appids]
-        candidate_vectors = self.game_vecs[candidate_indices]
-        tag_match_scores = cosine_similarity(query_vector, candidate_vectors)[0]
-        candidates_df['tag_match_score'] = np.clip(tag_match_scores, 0, 1)
-        candidates_df['novelty_score'] = 0.5
-        candidates_df['final_score'] = (alpha * candidates_df['tag_match_score'] + beta * candidates_df['novelty_score'])
-        return candidates_df.sort_values(by='final_score', ascending=False).head(top_n)
+        """Rerank candidate games with a weighted MMR over 4 signals.
+
+        weights: dict with keys among {relevance, diversity, novelty,
+        serendipity, tag_match}. `tag_match` is treated as a synonym
+        for `relevance` for backward compatibility with the older UI.
+        Values 0..10. Re-normalized internally.
+
+        Returns top-N rows of self.games_df augmented with per-signal
+        scores and the final composite score.
+        """
+        if not candidate_appids:
+            return pd.DataFrame()
+
+        # Back-compat: old UI used "tag_match" instead of "relevance"
+        w_rel = float(weights.get("relevance", weights.get("tag_match", 5)))
+        w_div = float(weights.get("diversity", 5))
+        w_nov = float(weights.get("novelty", 2))
+        w_ser = float(weights.get("serendipity", 1))
+        mmr_lambda = float(weights.get("mmr_lambda", 0.5))
+
+        cand_rows = [self.appid_to_idx[a] for a in candidate_appids if a in self.appid_to_idx]
+        cand_appids = [self.idx_to_appid[r] for r in cand_rows]
+        if not cand_rows:
+            return pd.DataFrame()
+
+        V = self.game_vecs[cand_rows].astype(np.float32)
+        qv = np.asarray(query_vector).reshape(-1).astype(np.float32)
+        qn = float(np.linalg.norm(qv))
+        if qn > 0:
+            qv = qv / qn
+
+        # Relevance: cosine to query
+        rel_raw = V @ qv
+        rel = _minmax(rel_raw)
+
+        # Novelty: -log2(P(item)) over the *candidate pool*'s popularities
+        if self.popularity is not None:
+            pop = self.popularity[cand_rows]
+            probs = np.maximum(pop / max(pop.sum(), 1e-12), 1e-12)
+            nov_raw = -np.log2(probs)
+        else:
+            nov_raw = np.full(len(cand_rows), 0.5)
+        nov = _minmax(nov_raw)
+
+        # Serendipity proxy: relevant AND non-popular
+        if self.popularity is not None:
+            pop = self.popularity[cand_rows]
+            pct = np.argsort(np.argsort(pop)) / max(len(pop) - 1, 1)
+            ser_raw = rel * (1.0 - pct)
+        else:
+            ser_raw = np.zeros(len(cand_rows))
+        ser = _minmax(ser_raw)
+
+        # Composite "base" score (no diversity yet — diversity enters via MMR)
+        total_w = max(w_rel + w_nov + w_ser, 1e-9)
+        base = (w_rel * rel + w_nov * nov + w_ser * ser) / total_w
+
+        # MMR selection: pick top_n greedily balancing base vs novelty-of-pick
+        # diversity weight modulates the (1 - lambda) penalty
+        div_weight = w_div / max(w_rel + w_div + w_nov + w_ser, 1e-9)
+        selected: list[int] = []
+        remaining = list(range(len(cand_rows)))
+        while remaining and len(selected) < top_n:
+            if not selected:
+                pick = max(remaining, key=lambda i: base[i])
+            else:
+                sel_V = V[selected]
+                sim_to_sel = (V[remaining] @ sel_V.T).max(axis=1)
+                mmr_score = mmr_lambda * base[remaining] - (1 - mmr_lambda) * div_weight * sim_to_sel
+                pick = remaining[int(np.argmax(mmr_score))]
+            selected.append(pick)
+            remaining.remove(pick)
+
+        # Build output DF
+        out_appids = [cand_appids[i] for i in selected]
+        out = self.games_df.loc[out_appids].copy()
+        out["relevance_score"] = rel[selected]
+        out["novelty_score"] = nov[selected]
+        out["serendipity_score"] = ser[selected]
+        out["base_score"] = base[selected]
+        # Preserve old column name for back-compat with the existing UI
+        out["tag_match_score"] = rel[selected]
+        out["final_score"] = base[selected]
+        return out

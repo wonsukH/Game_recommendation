@@ -12,14 +12,47 @@ from langchain.schema.messages import HumanMessage, SystemMessage, AIMessage
 
 
 def render_sidebar() -> dict:
-    """Sidebar weight sliders. Returns the dict consumed by rerank_node."""
+    """Sidebar weight sliders (4 axes) + preset buttons.
+
+    Returns the dict consumed by rerank_candidates / rerank_node:
+    {"relevance", "diversity", "novelty", "serendipity"} each 0-10.
+    """
+    from pipeline.game_rec.config import load_config
+    presets = load_config()["rerank"]["presets"]
+
+    # session_state holds the live slider values; presets just update them
+    defaults = presets["beginner"]
+    for k in ("relevance", "diversity", "novelty", "serendipity"):
+        st.session_state.setdefault(f"w_{k}", defaults[k])
+
     with st.sidebar:
-        st.header("재정렬 가중치 설정")
-        st.caption("각 요소의 중요도를 0~10점으로 평가해주세요.")
-        return {
-            "tag_match": st.slider("TagMatch (쿼리-게임 유사도)", 0, 10, 8),
-            "novelty": st.slider("Novelty (새로움)", 0, 10, 2),
+        st.header("재정렬 가중치")
+        st.caption("0-10 점수. 4개 신호를 어떻게 균형 잡을지 정합니다.")
+
+        st.markdown("**프리셋**")
+        c1, c2, c3 = st.columns(3)
+        if c1.button("입문자", use_container_width=True):
+            _apply_preset(presets["beginner"])
+        if c2.button("균형", use_container_width=True):
+            _apply_preset(presets["balanced"])
+        if c3.button("헤비", use_container_width=True):
+            _apply_preset(presets["heavy"])
+
+        st.markdown("---")
+        weights = {
+            "relevance":   st.slider("Relevance — 쿼리 일치", 0, 10, key="w_relevance"),
+            "diversity":   st.slider("Diversity — 다양성",     0, 10, key="w_diversity"),
+            "novelty":     st.slider("Novelty — 새로움",       0, 10, key="w_novelty"),
+            "serendipity": st.slider("Serendipity — 의외성",   0, 10, key="w_serendipity"),
         }
+        return weights
+
+
+def _apply_preset(preset: dict) -> None:
+    """Sync session state with a preset's values, then rerun for redraw."""
+    for k, v in preset.items():
+        st.session_state[f"w_{k}"] = v
+    st.rerun()
 
 
 def render_history(messages: list) -> None:
