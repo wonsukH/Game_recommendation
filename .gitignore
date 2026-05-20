@@ -5,6 +5,10 @@ __pycache__/
 *.csv
 !serving/data/steam_games_tags.csv
 
+# Generated pipeline artifacts (recomputable from build_offline)
+outputs/
+!outputs/.gitkeep
+
 # C extensions
 *.so
 
