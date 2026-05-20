@@ -1,16 +1,21 @@
-import pandas as pd
-import time
-import random
 import csv
 import os
+import random
+import time
+from pathlib import Path
+
+import pandas as pd
+from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
-from bs4 import BeautifulSoup
 from tqdm import tqdm
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+OUTPUTS_DIR = REPO_ROOT / "outputs"
 
 def sleep_jitter(min_s=1.0, max_s=2.0):
     """요청 사이에 랜덤 지연"""
@@ -205,12 +210,9 @@ def save_tags_data(tags_data, output_path):
     print(f"✅ 태그 데이터 저장 완료: {csv_path}")
 
 def main():
-    # 출력 디렉토리 생성
-    os.makedirs("outputs", exist_ok=True)
-    
-    # 설정 - game_info_with_names.csv에서 appid 추출
-    input_csv = "outputs/game_info_with_names.csv"
-    output_csv = "outputs/steam_games_tags.csv"
+    OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
+    input_csv = str(OUTPUTS_DIR / "game_info_with_names.csv")
+    output_csv = str(OUTPUTS_DIR / "steam_games_tags.csv")
     
     # 고유한 appid 목록 로드
     print("📂 고유한 게임 ID 추출 중...")

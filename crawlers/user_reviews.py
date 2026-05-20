@@ -1,14 +1,20 @@
 import asyncio
-import aiohttp
-from aiohttp import ClientSession
-from bs4 import BeautifulSoup
-import pandas as pd
+import os
+import sys
 import time
 from datetime import timedelta
-import os # 중간저장 기능을 위한 추가
-import sys
+from pathlib import Path
+
+import aiohttp
+import pandas as pd
+from aiohttp import ClientSession
+from bs4 import BeautifulSoup
+
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+OUTPUTS_DIR = REPO_ROOT / "outputs"
 
 # ---- 유저 리뷰 크롤링 ----
 async def fetch_user_reviews(session: ClientSession, steamid: str):
@@ -76,10 +82,10 @@ async def fetch_user_reviews(session: ClientSession, steamid: str):
 
 
 # ---- 메인 ----
-async def main_async(input_csv="./outputs/steam_reviews.csv",
-                     out_csv="./outputs/user_all_reviews.csv",
+async def main_async(input_csv=str(OUTPUTS_DIR / "steam_reviews.csv"),
+                     out_csv=str(OUTPUTS_DIR / "user_all_reviews.csv"),
                      test=False,
-                     checkpoint_interval=100):  # 중간저장 간격
+                     checkpoint_interval=100):
 
     df = pd.read_csv(input_csv)
 

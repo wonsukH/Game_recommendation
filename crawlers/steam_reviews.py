@@ -1,10 +1,15 @@
-import pandas as pd
-import requests
-import time
-import random
-import urllib.parse
 import csv
 import os
+import random
+import time
+import urllib.parse
+from pathlib import Path
+
+import pandas as pd
+import requests
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+OUTPUTS_DIR = REPO_ROOT / "outputs"
 
 # HTTP 요청 헤더
 HEADERS = {
@@ -83,9 +88,9 @@ def get_reviews(appid, max_reviews=200, lang="english"):
     return out
 
 def main():
-    os.makedirs("../outputs", exist_ok=True)
-    meta_csv = "../outputs/metacritic_pc_userscore_green.csv"  # 네 CSV 경로
-    out_csv = "../outputs/steam_reviews.csv"
+    OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
+    meta_csv = OUTPUTS_DIR / "metacritic_pc_userscore_green.csv"
+    out_csv = OUTPUTS_DIR / "steam_reviews.csv"
     
     df = pd.read_csv(meta_csv)
     all_reviews = []
