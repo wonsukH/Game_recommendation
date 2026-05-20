@@ -45,6 +45,7 @@ STAGES: tuple[Stage, ...] = (
     Stage("pipeline.game_rec.models.game_vectors",   "PPMI + Item2Vec ensemble -> game_vecs.npy"),
     Stage("pipeline.game_rec.models.text_alignment", "Ridge W_align -> W_align.npy"),
     Stage("pipeline.game_rec.index.faiss_index",     "build FAISS IndexFlatL2"),
+    Stage("pipeline.game_rec.index.tag_projection",  "UMAP 2D + cluster tags (for tag map page)"),
     Stage("pipeline.game_rec.evaluation.quality",    "quality_report.json"),
 )
 

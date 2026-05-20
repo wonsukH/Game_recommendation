@@ -31,6 +31,7 @@ log = get_logger("scripts.sync_data")
 # Files the live Streamlit app needs at runtime. Versioned siblings
 # (*_v1.*) and one-off stats are intentionally excluded.
 WHITELIST: tuple[str, ...] = (
+    # Core embeddings + indices
     "tag_vocab.json",
     "index_maps.json",
     "steam_games_tags.csv",
@@ -40,6 +41,12 @@ WHITELIST: tuple[str, ...] = (
     "W_align.npy",
     "X_game_tag_csr.npz",
     "faiss_index.faiss",
+    # Rerank inputs (Novelty/Serendipity)
+    "game_popularity.npy",
+    # Tag map visualization
+    "tag_2d.npy",
+    "tag_clusters.npy",
+    "tag_neighbors.json",
 )
 
 
