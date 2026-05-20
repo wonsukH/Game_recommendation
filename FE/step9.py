@@ -1,10 +1,15 @@
+import sys
+import json
+from pathlib import Path
+
 import pandas as pd
 import numpy as np
 import argparse
-from pathlib import Path
-import json
 from sklearn.metrics.pairwise import cosine_similarity
 from scipy.stats import entropy
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from utils.io import load_index_maps, save_stats  # noqa: E402
 
 
 def _parse_args() -> argparse.Namespace:
@@ -247,12 +252,10 @@ def main(tag_vecs_path: str, game_vecs_path: str, index_path: str, tag_beta_path
     tag_vecs = np.load(tag_vecs_path)
     game_vecs = np.load(game_vecs_path)
     tag_beta = np.load(tag_beta_path)
-    
-    with open(index_path, 'r', encoding='utf-8') as f:
-        index_maps = json.load(f)
-    
-    idx2tag = {int(k): v for k, v in index_maps['idx2tag'].items()}
-    row2appid = {int(k): v for k, v in index_maps['row2appid'].items()}
+
+    index_maps = load_index_maps(index_path)
+    idx2tag = index_maps['idx2tag']
+    row2appid = index_maps['row2appid']
     
     print(f"[INFO] 데이터 크기:")
     print(f"   - 태그 벡터: {tag_vecs.shape}")
@@ -297,8 +300,7 @@ def main(tag_vecs_path: str, game_vecs_path: str, index_path: str, tag_beta_path
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     
     # 결과 저장
-    with open(output_path, 'w', encoding='utf-8') as f:
-        json.dump(quality_report, f, ensure_ascii=False, indent=2)
+    save_stats(quality_report, output_path)
     
     print(f"\n✅ 품질 점검 완료!")
     print(f"   - 보고서 저장: {output_path}")

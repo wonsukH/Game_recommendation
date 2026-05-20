@@ -1,10 +1,15 @@
+import sys
+import json
+from pathlib import Path
+
 import pandas as pd
 import numpy as np
 import argparse
-from pathlib import Path
-from scipy.sparse import csr_matrix, load_npz
+from scipy.sparse import csr_matrix
 from sklearn.preprocessing import StandardScaler
-import json
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from utils.io import load_index_maps, load_csr, load_vectors, save_stats  # noqa: E402
 
 
 def _parse_args() -> argparse.Namespace:
@@ -201,16 +206,14 @@ def main(matrix_path: str, index_path: str, tag_vecs_path: str, tag_beta_path: s
     print(f"   - kappa: {kappa}, alpha: {alpha}, eta: {eta}")
     
     # 데이터 로드
-    X = load_npz(matrix_path)
-    tag_vecs = np.load(tag_vecs_path)
+    X = load_csr(matrix_path)
+    tag_vecs = load_vectors(tag_vecs_path, dtype="float64")
     tag_beta = np.load(tag_beta_path)
-    
-    with open(index_path, 'r', encoding='utf-8') as f:
-        index_maps = json.load(f)
-    
+
+    index_maps = load_index_maps(index_path)
     tag2idx = index_maps['tag2idx']
-    idx2tag = {int(k): v for k, v in index_maps['idx2tag'].items()}
-    row2appid = {int(k): v for k, v in index_maps['row2appid'].items()}
+    idx2tag = index_maps['idx2tag']
+    row2appid = index_maps['row2appid']
     
     print(f"[INFO] 데이터 크기:")
     print(f"   - 게임×태그 행렬: {X.shape}")
@@ -264,8 +267,7 @@ def main(matrix_path: str, index_path: str, tag_vecs_path: str, tag_beta_path: s
         }
     }
     
-    with open(stats_path, 'w', encoding='utf-8') as f:
-        json.dump(stats, f, ensure_ascii=False, indent=2)
+    save_stats(stats, stats_path)
     
     print(f"✅ 저장 완료:")
     print(f"   - 게임 벡터: {output_path}")

@@ -1,8 +1,13 @@
+import sys
+from pathlib import Path
+
 import pandas as pd
 import numpy as np
 import argparse
-from pathlib import Path
 from sklearn.preprocessing import MinMaxScaler
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from utils.io import save_stats  # noqa: E402
 
 
 def _parse_args() -> argparse.Namespace:
@@ -100,7 +105,6 @@ def main(input_csv: str, score_col: str, gamma: float, output_path: str, stats_p
     np.save(output_path, normalized_scores)
     
     # 통계 정보 저장
-    import json
     stats = {
         "original_stats": {
             "min": float(game_scores[score_col].min()),
@@ -121,9 +125,7 @@ def main(input_csv: str, score_col: str, gamma: float, output_path: str, stats_p
         },
         "game_ids": game_scores['appid'].tolist()
     }
-    
-    with open(stats_path, 'w', encoding='utf-8') as f:
-        json.dump(stats, f, ensure_ascii=False, indent=2)
+    save_stats(stats, stats_path)
     
     print(f"✅ 저장 완료:")
     print(f"   - 게임 가중치: {output_path}")

@@ -1,13 +1,18 @@
+import sys
+import os
+import json
+from pathlib import Path
+
 import pandas as pd
 import numpy as np
 import argparse
-from pathlib import Path
-import json
 from sentence_transformers import SentenceTransformer
 from sklearn.linear_model import Ridge
-import os
 from dotenv import load_dotenv
 from langchain_upstage import UpstageEmbeddings
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from utils.io import load_index_maps, save_stats  # noqa: E402
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Step 7: Text-to-tag alignment matrix")
@@ -108,12 +113,10 @@ def main(tag_vecs_path: str, index_path: str, model_name: str, lambda_reg: float
     
     # 데이터 로드
     tag_vecs = np.load(tag_vecs_path)
-    
-    with open(index_path, 'r', encoding='utf-8') as f:
-        index_maps = json.load(f)
-    
+
+    index_maps = load_index_maps(index_path)
     tag2idx = index_maps['tag2idx']
-    idx2tag = {int(k): v for k, v in index_maps['idx2tag'].items()}
+    idx2tag = index_maps['idx2tag']
     
     # 태그 이름 정렬
     tag_names = [idx2tag[i] for i in range(len(idx2tag))]
@@ -185,8 +188,7 @@ def main(tag_vecs_path: str, index_path: str, model_name: str, lambda_reg: float
         }
     }
     
-    with open(stats_path, 'w', encoding='utf-8') as f:
-        json.dump(stats, f, ensure_ascii=False, indent=2)
+    save_stats(stats, stats_path)
     
     print(f"✅ 저장 완료:")
     print(f"   - 태그 텍스트 벡터: {tag_text_path}")

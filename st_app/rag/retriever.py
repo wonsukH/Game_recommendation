@@ -1,11 +1,17 @@
 
+import sys
+import copy
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import faiss
-import json
-import copy
 from sklearn.metrics.pairwise import cosine_similarity
 from langchain_upstage import UpstageEmbeddings
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from utils.io import load_tag_vocab, load_vectors  # noqa: E402
+
 
 class VectorBasedRecommender:
     def __init__(self, data_path, embedding_model="solar-embedding-1-large"):
@@ -18,14 +24,12 @@ class VectorBasedRecommender:
         try:
             self.faiss_index = faiss.read_index(f"{self.data_path}/faiss_index.faiss")
             self.games_df = pd.read_csv(f"{self.data_path}/steam_games_tags.csv").set_index('appid')
-            self.game_vecs = np.load(f"{self.data_path}/game_vecs.npy").astype('float32')
-            self.tag_vecs = np.load(f"{self.data_path}/tag_vecs.npy").astype('float32')
-            self.W_align = np.load(f"{self.data_path}/W_align.npy").astype('float32')
+            self.game_vecs = load_vectors(f"{self.data_path}/game_vecs.npy")
+            self.tag_vecs = load_vectors(f"{self.data_path}/tag_vecs.npy")
+            self.W_align = load_vectors(f"{self.data_path}/W_align.npy")
 
-            with open(f"{self.data_path}/tag_vocab.json", 'r') as f:
-                tag_vocab = json.load(f)
-                tag_list = tag_vocab['tags']
-            
+            tag_list = load_tag_vocab(f"{self.data_path}/tag_vocab.json")
+
             self.tag_to_idx = {tag: i for i, tag in enumerate(tag_list)}
             self.idx_to_tag = {i: tag for i, tag in enumerate(tag_list)}
             self.appid_to_idx = {appid: i for i, appid in enumerate(self.games_df.index)}
