@@ -1,4 +1,3 @@
-import sys
 from pathlib import Path
 
 import pandas as pd
@@ -6,13 +5,12 @@ import numpy as np
 import argparse
 from sklearn.preprocessing import MinMaxScaler
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from game_rec.io import save_stats  # noqa: E402
-from game_rec.config import load_config  # noqa: E402
+from game_rec.io import save_stats
+from game_rec.config import load_config
 
 
 def _parse_args() -> argparse.Namespace:
-    cfg = load_config()["fe"]["step3"]
+    cfg = load_config()["data"]["game_weights"]
     parser = argparse.ArgumentParser(description="Step 3: Normalize game scores with min-max and gamma correction")
     parser.add_argument(
         "--input", type=str,

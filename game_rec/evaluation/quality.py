@@ -1,4 +1,3 @@
-import sys
 import json
 from pathlib import Path
 
@@ -8,8 +7,7 @@ import argparse
 from sklearn.metrics.pairwise import cosine_similarity
 from scipy.stats import entropy
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from game_rec.io import load_index_maps, save_stats  # noqa: E402
+from game_rec.io import load_index_maps, save_stats
 
 
 def _parse_args() -> argparse.Namespace:

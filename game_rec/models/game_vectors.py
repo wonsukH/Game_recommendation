@@ -1,4 +1,3 @@
-import sys
 import json
 from pathlib import Path
 
@@ -8,16 +7,15 @@ import argparse
 from scipy.sparse import csr_matrix
 from sklearn.preprocessing import StandardScaler
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from game_rec.io import load_index_maps, load_csr, load_vectors, save_stats  # noqa: E402
-from game_rec.config import load_config  # noqa: E402
-from game_rec.log import get_logger  # noqa: E402
+from game_rec.io import load_index_maps, load_csr, load_vectors, save_stats
+from game_rec.config import load_config
+from game_rec.log import get_logger
 
-log = get_logger("fe.step6")
+log = get_logger("game_rec.models.game_vectors")
 
 
 def _parse_args() -> argparse.Namespace:
-    cfg = load_config()["fe"]["step6"]
+    cfg = load_config()["models"]["game_vectors"]
     parser = argparse.ArgumentParser(description="Step 6: Synthesize game vectors from tag vectors with β weights")
     parser.add_argument(
         "--matrix", type=str,

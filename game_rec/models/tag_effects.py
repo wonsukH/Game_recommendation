@@ -1,4 +1,3 @@
-import sys
 import json
 from pathlib import Path
 
@@ -9,13 +8,12 @@ from scipy.sparse import csr_matrix
 from sklearn.linear_model import Ridge
 from sklearn.preprocessing import StandardScaler
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from game_rec.io import load_index_maps, load_csr, save_stats  # noqa: E402
-from game_rec.config import load_config  # noqa: E402
+from game_rec.io import load_index_maps, load_csr, save_stats
+from game_rec.config import load_config
 
 
 def _parse_args() -> argparse.Namespace:
-    cfg = load_config()["fe"]["step5"]
+    cfg = load_config()["models"]["tag_effects"]
     parser = argparse.ArgumentParser(description="Step 5: Ridge regression to learn tag effects β")
     parser.add_argument(
         "--matrix", type=str,

@@ -1,4 +1,3 @@
-import sys
 import os
 import json
 from pathlib import Path
@@ -11,13 +10,12 @@ from sklearn.linear_model import Ridge
 from dotenv import load_dotenv
 from langchain_upstage import UpstageEmbeddings
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from game_rec.io import load_index_maps, save_stats  # noqa: E402
-from game_rec.config import load_config  # noqa: E402
+from game_rec.io import load_index_maps, save_stats
+from game_rec.config import load_config
 
 
 def _parse_args() -> argparse.Namespace:
-    cfg = load_config()["fe"]["step7"]
+    cfg = load_config()["models"]["text_alignment"]
     parser = argparse.ArgumentParser(description="Step 7: Text-to-tag alignment matrix")
     parser.add_argument(
         "--tag-vecs", type=str,

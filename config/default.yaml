@@ -1,27 +1,29 @@
-# Default hyperparameters for the offline FE pipeline and the online
-# retriever. CLI flags on individual step scripts still take precedence;
+# Default hyperparameters for the offline pipeline and the online
+# retriever. CLI flags on individual scripts still take precedence;
 # this file just sets the fallback defaults so they live in one place.
 #
 # History: previously each step had its own argparse default. This led
 # to drift (params_v1.json captured an old sentence_transformer value
-# that no longer matched what step7 actually used). This file is now
-# the single source of truth.
+# that no longer matched what the alignment training actually used).
+# This file is now the single source of truth.
 
-fe:
-  step3:
+data:
+  game_weights:
     gamma: 0.5
     score_col: s_round10_rec
-  step4:
+
+models:
+  tag_embeddings:
     embedding_dim: 128
     random_state: 42
-  step5:
+  tag_effects:
     ridge_alpha: 1.0
     score_col: s_round10_rec
-  step6:
+  game_vectors:
     kappa: 1.0
     alpha: 0.5
     eta: 0.2
-  step7:
+  text_alignment:
     lambda_reg: 0.01
     text_model: solar-embedding-1-large
 
