@@ -1,7 +1,7 @@
 """Build a FAISS IndexFlatL2 over game vectors.
 
 Reads game_vecs.npy and writes faiss_index.faiss alongside it. Defaults
-point at st_app/data/ (the live app data dir) but both paths are
+point at app/data/ (the live app data dir) but both paths are
 overridable via CLI flags or function arguments.
 """
 
@@ -18,7 +18,7 @@ from game_rec.log import get_logger
 log = get_logger("game_rec.index.faiss_index")
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_DATA_DIR = REPO_ROOT / "st_app" / "data"
+DEFAULT_DATA_DIR = REPO_ROOT / "app" / "data"
 
 
 def build_index(vectors_path: Path, index_path: Path) -> None:

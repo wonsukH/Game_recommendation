@@ -3,7 +3,7 @@ __pycache__/
 *.py[codz]
 *$py.class
 *.csv
-!st_app/data/steam_games_tags.csv
+!app/data/steam_games_tags.csv
 
 # C extensions
 *.so

@@ -1,10 +1,10 @@
-"""I/O helpers reused across the offline FE pipeline and the online retriever.
+"""I/O helpers reused across the offline pipeline and the online retriever.
 
-The offline pipeline (FE/step*.py) and the online retriever (st_app/rag/
-retriever.py) load the same artifacts — index maps, tag vocabulary,
-sparse Game x Tag matrix, dense vectors. Centralising these calls keeps
-the conversion conventions (e.g. int keys for JSON-loaded dicts, float32
-for vectors) in one place.
+The offline pipeline (game_rec.data / .models / .index / .evaluation)
+and the online retriever (game_rec.agent.retriever) load the same
+artifacts: index maps, tag vocabulary, sparse Game x Tag matrix, dense
+vectors. Centralising these calls keeps the conversion conventions
+(int keys for JSON-loaded dicts, float32 for vectors) in one place.
 """
 
 from __future__ import annotations
