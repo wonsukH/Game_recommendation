@@ -34,6 +34,7 @@ class Stage:
 
 
 STAGES: tuple[Stage, ...] = (
+    Stage("game_rec.data.user_scores",      "user_all_reviews -> user_game_scores"),
     Stage("game_rec.data.tag_vocab",        "normalize tags -> tag_vocab.json"),
     Stage("game_rec.data.game_tag_matrix",  "build Game x Tag CSR + index_maps"),
     Stage("game_rec.data.game_weights",     "MinMax + gamma -> game_weight.npy"),

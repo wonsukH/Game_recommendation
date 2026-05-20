@@ -23,20 +23,19 @@ user_game_score_with_penalty.py
                 비추천 → ×(1-α_neg * (s_round10/10))  # 오래했는데 비추면 더 크게 깎음
 """
 
-from pathlib import Path
 import argparse
 import os
-import pandas as pd
+from pathlib import Path
+
 import numpy as np
+import pandas as pd
 
-# =========================== CONFIG ===========================
-SCRIPT_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = SCRIPT_DIR.parent
-INPUT_CSV  = Path(os.getenv("UGS_INPUT",   PROJECT_ROOT / "outputs" / "user_all_reviews.csv"))
-OUTPUT_CSV = Path(os.getenv("UGS_OUTPUT",  PROJECT_ROOT / "outputs" / "user_game_scores.csv"))
+REPO_ROOT = Path(__file__).resolve().parents[2]
+INPUT_CSV = Path(os.getenv("UGS_INPUT", REPO_ROOT / "outputs" / "user_all_reviews.csv"))
+OUTPUT_CSV = Path(os.getenv("UGS_OUTPUT", REPO_ROOT / "outputs" / "user_game_scores.csv"))
 
-ALPHA10_POS = float(os.getenv("UGS_ALPHA10_POS", "0.3"))  # 추천(👍) 보너스 강도
-ALPHA10_NEG = float(os.getenv("UGS_ALPHA10_NEG", "0.5"))  # 비추천(👎) 패널티 강도
+ALPHA10_POS = float(os.getenv("UGS_ALPHA10_POS", "0.3"))   # recommendation bonus strength
+ALPHA10_NEG = float(os.getenv("UGS_ALPHA10_NEG", "0.5"))   # negative-vote penalty strength
 PENALTY_MODE = os.getenv("UGS_PENALTY_MODE", "linear").strip().lower()  # 'fixed' | 'linear'
 # ==============================================================
 
