@@ -409,7 +409,7 @@ class SteamGameAnalyzer:
         
         # 시각화 저장 폴더 생성
         output_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        viz_dir = os.path.join(output_dir, 'EDA', 'game_similarity_visualizations')
+        viz_dir = os.path.join(output_dir, 'eda', 'similarity_plots')
         os.makedirs(viz_dir, exist_ok=True)
         
         # 한글 폰트 사용 가능 여부 확인
