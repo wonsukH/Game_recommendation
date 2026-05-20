@@ -8,6 +8,8 @@
 # This file is now the single source of truth.
 
 data:
+  tag_vocab:
+    min_votes: 5               # SteamSpy: drop tags with fewer votes (filters noise)
   game_weights:
     gamma: 0.5
     score_col: s_round10_rec
