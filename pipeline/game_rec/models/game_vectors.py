@@ -19,8 +19,9 @@ def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Step 6: Synthesize game vectors from tag vectors with β weights")
     parser.add_argument(
         "--matrix", type=str,
-        default=str(Path("outputs/X_game_tag_csr.npz")),
-        help="Input CSR matrix path (default: outputs/X_game_tag_csr.npz)"
+        default=str(Path("outputs/X_game_tag_weighted.npz")),
+        help="Input CSR matrix path. Default uses vote-count weighted X "
+             "for consistency with tag_embeddings PPMI training.",
     )
     parser.add_argument(
         "--indexes", type=str,

@@ -44,14 +44,22 @@ STAGES: tuple[Stage, ...] = (
     Stage("pipeline.game_rec.models.item2vec",       "Item2Vec -> game_vecs_user_signal.npy"),
     Stage("pipeline.game_rec.models.game_vectors",   "PPMI + Item2Vec ensemble -> game_vecs.npy"),
     Stage("pipeline.game_rec.models.text_alignment", "Ridge W_align -> W_align.npy"),
-    Stage("pipeline.game_rec.index.faiss_index",     "build FAISS IndexFlatL2"),
+    Stage("pipeline.game_rec.index.faiss_index",     "build FAISS IndexFlatL2 (reads outputs/, writes outputs/)"),
     Stage("pipeline.game_rec.index.tag_projection",  "UMAP 2D + cluster tags (for tag map page)"),
     Stage("pipeline.game_rec.evaluation.quality",    "quality_report.json"),
+    # Promote outputs/ -> serving/data so Streamlit picks up the new artifacts.
+    # Must come last so all training stages have written first.
+    Stage("scripts.sync_data",                       "sync outputs/ -> serving/data/"),
 )
 
 
 def run_stage(stage: Stage, extra_args: list[str]) -> int:
-    cmd = [sys.executable, "-m", stage.module, *stage.args, *extra_args]
+    # scripts/ is not a package (no __init__.py), so it can't be `-m`-imported.
+    # Special-case sync_data by invoking it as a script path instead.
+    if stage.module == "scripts.sync_data":
+        cmd = [sys.executable, str(REPO_ROOT / "scripts" / "sync_data.py"), *stage.args, *extra_args]
+    else:
+        cmd = [sys.executable, "-m", stage.module, *stage.args, *extra_args]
     log.info("--- %s (%s)", stage.module, stage.description)
     log.info("    $ %s", " ".join(cmd))
     proc = subprocess.run(cmd, cwd=REPO_ROOT)

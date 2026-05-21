@@ -8,7 +8,7 @@ import argparse
 from sentence_transformers import SentenceTransformer
 from sklearn.linear_model import Ridge
 from dotenv import load_dotenv
-from langchain_upstage import UpstageEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 from pipeline.game_rec.io import load_index_maps, save_stats
 from pipeline.game_rec.config import load_config
@@ -30,7 +30,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--model", type=str,
         default=cfg["text_model"],
-        help=f"Embedding model — supports SentenceTransformer or Upstage Solar (default from config: {cfg['text_model']})"
+        help=f"Embedding model — supports SentenceTransformer or Google Gemini (default from config: {cfg['text_model']})"
     )
     parser.add_argument(
         "--lambda-reg", type=float,
@@ -134,18 +134,18 @@ def main(tag_vecs_path: str, index_path: str, model_name: str, lambda_reg: float
     print(f"[INFO] 문장 임베딩 모델 로드 중: {model_name}")
     
     # 모델 종류에 따라 분기
-    if "solar" in model_name:
-        print("[INFO] Upstage API 모델을 사용합니다.")
+    if "gemini" in model_name.lower() or model_name.startswith("models/"):
+        print("[INFO] Google Gemini API 모델을 사용합니다.")
         load_dotenv()
-        api_key = os.environ.get("UPSTAGE_API_KEY")
+        api_key = os.environ.get("GEMINI_API_KEY")
         if not api_key:
-            raise ValueError("UPSTAGE_API_KEY가 .env 파일에 설정되어야 합니다.")
-        
-        model = UpstageEmbeddings(model=model_name, api_key=api_key)
-        
-        print("[INFO] 태그 텍스트 임베딩 중 (Upstage API)...")
+            raise ValueError("GEMINI_API_KEY가 .env 파일에 설정되어야 합니다.")
+
+        model = GoogleGenerativeAIEmbeddings(model=model_name, google_api_key=api_key)
+
+        print("[INFO] 태그 텍스트 임베딩 중 (Gemini API)...")
         T = np.array(model.embed_documents(tag_texts))
-        
+
         print("[INFO] 정렬 행렬 테스트용 임베딩...")
         test_embedding = np.array(model.embed_query("action adventure game"))
 

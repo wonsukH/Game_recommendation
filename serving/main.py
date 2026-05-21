@@ -8,7 +8,7 @@ import os
 
 import streamlit as st
 from dotenv import load_dotenv
-from langchain_upstage import ChatUpstage
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.schema.messages import HumanMessage, AIMessage
 
 from pipeline.game_rec.agent.retriever import VectorBasedRecommender
@@ -18,26 +18,31 @@ from ui import render_sidebar, render_history, stream_and_render, render_final_r
 
 load_dotenv()
 
-UPSTAGE_API_KEY = os.environ.get("UPSTAGE_API_KEY")
-if not UPSTAGE_API_KEY:
-    st.error("Upstage API 키가 필요합니다. .env 파일에 UPSTAGE_API_KEY를 설정해주세요.")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+if not GEMINI_API_KEY:
+    st.error("Gemini API 키가 필요합니다. .env 파일에 GEMINI_API_KEY를 설정해주세요.")
     st.stop()
 
 
 @st.cache_resource
 def init_recommender() -> VectorBasedRecommender:
     data_path = os.path.join(os.path.dirname(__file__), 'data')
-    embedding_model = os.environ.get("UPSTAGE_EMBEDDING_MODEL", "solar-embedding-1-large")
+    embedding_model = os.environ.get("GEMINI_EMBEDDING_MODEL", "models/text-embedding-004")
     return VectorBasedRecommender(data_path=data_path, embedding_model=embedding_model)
 
 
 @st.cache_resource
-def init_llm() -> ChatUpstage:
-    return ChatUpstage(api_key=UPSTAGE_API_KEY)
+def init_llm() -> ChatGoogleGenerativeAI:
+    chat_model = os.environ.get("GEMINI_CHAT_MODEL", "gemini-2.5-pro")
+    # Low temperature: response_generator must mention ALL games in the list
+    # (parser also benefits from deterministic structured output).
+    return ChatGoogleGenerativeAI(
+        model=chat_model, google_api_key=GEMINI_API_KEY, temperature=0.2,
+    )
 
 
 @st.cache_resource
-def init_graph(_recommender: VectorBasedRecommender, _llm: ChatUpstage):
+def init_graph(_recommender: VectorBasedRecommender, _llm: ChatGoogleGenerativeAI):
     # Underscored args tell Streamlit not to try hashing them.
     return build_graph(_recommender, _llm)
 

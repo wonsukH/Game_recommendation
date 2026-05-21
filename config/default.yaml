@@ -30,7 +30,7 @@ models:
     ensemble_alpha: 0.7        # weight of PPMI vec; 1-alpha goes to Item2Vec vec
   text_alignment:
     lambda_reg: 0.01
-    text_model: solar-embedding-1-large
+    text_model: models/gemini-embedding-2
   item2vec:
     vector_size: 128
     window: 10

@@ -55,9 +55,22 @@ def load_vectors(path: str | Path, dtype: str = "float32") -> np.ndarray:
     return np.load(str(path)).astype(dtype)
 
 
+def _json_default(o):
+    """JSON encoder fallback for numpy scalars (float32, int64, etc.)."""
+    if hasattr(o, "item"):
+        return o.item()
+    if isinstance(o, np.ndarray):
+        return o.tolist()
+    raise TypeError(f"Object of type {o.__class__.__name__} is not JSON serializable")
+
+
 def save_stats(stats: dict, path: str | Path) -> None:
-    """Write a stats dict to JSON, creating parent dirs if needed."""
+    """Write a stats dict to JSON, creating parent dirs if needed.
+
+    Handles numpy scalar/array types transparently — the weighted X
+    matrix path produces float32 values that the default encoder rejects.
+    """
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
     with open(p, "w", encoding="utf-8") as f:
-        json.dump(stats, f, ensure_ascii=False, indent=2)
+        json.dump(stats, f, ensure_ascii=False, indent=2, default=_json_default)

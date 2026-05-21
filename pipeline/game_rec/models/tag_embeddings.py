@@ -16,8 +16,10 @@ def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Step 4: Tag embedding learning with PPMI + SVD")
     parser.add_argument(
         "--matrix", type=str,
-        default=str(Path("outputs/X_game_tag_csr.npz")),
-        help="Input CSR matrix path (default: outputs/X_game_tag_csr.npz)"
+        default=str(Path("outputs/X_game_tag_weighted.npz")),
+        help="Input CSR matrix path. Default uses vote-count weighted X "
+             "so PPMI reflects 'main tag vs side tag' distinction. "
+             "Pass outputs/X_game_tag_csr.npz to fall back to binary.",
     )
     parser.add_argument(
         "--indexes", type=str,

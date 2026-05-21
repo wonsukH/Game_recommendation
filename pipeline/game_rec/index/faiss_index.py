@@ -1,8 +1,9 @@
 """Build a FAISS IndexFlatL2 over game vectors.
 
 Reads game_vecs.npy and writes faiss_index.faiss alongside it. Defaults
-point at serving/data/ (the live app data dir) but both paths are
-overridable via CLI flags or function arguments.
+point at outputs/ (where the training stages write); sync_data.py later
+promotes the index to serving/data. Both paths are overridable via CLI
+flags or function arguments.
 
 Windows + non-ASCII path note: faiss-cpu's FileIOWriter uses the narrow
 ANSI API and chokes on paths with characters outside the system code
@@ -25,7 +26,10 @@ from pipeline.game_rec.log import get_logger
 log = get_logger("game_rec.index.faiss_index")
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_DATA_DIR = REPO_ROOT / "serving" / "data"
+# Training stages write to outputs/. sync_data.py promotes to serving/data
+# at the end. Defaulting here to outputs/ keeps faiss_index in lockstep
+# with the newly-trained game_vecs.npy in the same dir.
+DEFAULT_DATA_DIR = REPO_ROOT / "outputs"
 
 
 def _safe_write_index(index, target_path: Path) -> None:

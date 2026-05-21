@@ -1,5 +1,7 @@
 
 import copy
+import os
+import re
 import shutil
 import tempfile
 from pathlib import Path
@@ -8,11 +10,31 @@ import numpy as np
 import pandas as pd
 import faiss
 from sklearn.metrics.pairwise import cosine_similarity
-from langchain_upstage import UpstageEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
+
+
+# Matches " II", " III", " 2", " 3", ": Anything..." — series markers we
+# slice off to recover the franchise prefix ("DARK SOULS II" -> "dark souls").
+_SERIES_SUFFIX_RE = re.compile(r"\s+(?:[ivx]+|\d+)(?:\s|:|$)|\s*:\s*")
+
+
+def _series_prefix(title: str) -> str:
+    """Extract the franchise prefix from a game title.
+
+    Examples:
+        'DARK SOULS II'                            -> 'dark souls'
+        'DARK SOULS: REMASTERED'                   -> 'dark souls'
+        'DARK SOULS III'                           -> 'dark souls'
+        'The Witcher 3: Wild Hunt'                 -> 'the witcher'
+        'Hollow Knight'                            -> 'hollow knight'  (no marker)
+    """
+    t = str(title).lower().strip()
+    parts = _SERIES_SUFFIX_RE.split(t, maxsplit=1)
+    return parts[0].strip() if parts else t
 
 from pipeline.game_rec.io import load_tag_vocab, load_vectors
 from pipeline.game_rec.log import get_logger
-from pipeline.game_rec.agent.scoring import minmax as _minmax
+from pipeline.game_rec.agent.scoring import minmax as _minmax, sigmoid_modifier as _sigmoid_mod
 
 log = get_logger("game_rec.agent.retriever")
 
@@ -32,8 +54,9 @@ def _safe_read_index(path: Path):
 
 
 class VectorBasedRecommender:
-    def __init__(self, data_path, embedding_model="solar-embedding-1-large"):
-        self.embeddings = UpstageEmbeddings(model=embedding_model)
+    def __init__(self, data_path, embedding_model="models/gemini-embedding-2"):
+        api_key = os.environ.get("GEMINI_API_KEY")
+        self.embeddings = GoogleGenerativeAIEmbeddings(model=embedding_model, google_api_key=api_key)
         self.data_path = data_path
         self._load_data()
 
@@ -147,12 +170,14 @@ class VectorBasedRecommender:
         seed_game_titles = parsed_json.get('games', [])
         if not seed_game_titles: return {"error": "No seed games"}
         seed_vectors, seed_appids = [], set()
+        canonical_titles: list[str] = []
         for title in seed_game_titles:
             game_row = self.games_df[self.games_df['game_title'].str.lower() == title.lower()]
             if not game_row.empty:
                 appid = game_row.index[0]
                 seed_appids.add(appid)
                 seed_vectors.append(self.game_vecs[self.appid_to_idx[appid]])
+                canonical_titles.append(str(game_row.iloc[0]['game_title']))
         if not seed_vectors: return {"error": f"Seed games not found: {seed_game_titles}"}
         query_vector = np.mean(seed_vectors, axis=0).reshape(1, -1)
 
@@ -161,8 +186,32 @@ class VectorBasedRecommender:
         if norm > 0:
             query_vector = query_vector / norm
 
-        distances, indices = self.faiss_index.search(query_vector, top_k + len(seed_appids))
-        candidate_appids = [self.idx_to_appid[i] for i in indices[0] if self.idx_to_appid[i] not in seed_appids]
+        # Expand exclusion to the whole franchise. Without this, when the
+        # user asks for "Dark Souls 시리즈 말고", only the seed (e.g. DS II)
+        # is dropped and other entries (DS III, Remastered, Scholar, etc.)
+        # crowd the top-5, leaving the LLM to filter them out post-hoc and
+        # often returning <5 games. Filtering at the candidate stage lets
+        # the recommender surface real *non-franchise* alternatives.
+        excluded = set(seed_appids)
+        prefixes = {p for p in (_series_prefix(t) for t in canonical_titles) if len(p) >= 4}
+        if prefixes:
+            title_lower = self.games_df['game_title'].astype(str).str.lower()
+            mask = pd.Series(False, index=self.games_df.index)
+            for p in prefixes:
+                mask |= title_lower.str.contains(p, na=False, regex=False)
+            franchise_appids = set(self.games_df.index[mask].tolist())
+            log.info("franchise filter: prefixes=%s -> %d titles excluded",
+                     prefixes, len(franchise_appids))
+            excluded |= franchise_appids
+
+        # Search with extra headroom since we're filtering out more.
+        distances, indices = self.faiss_index.search(
+            query_vector, top_k + len(excluded)
+        )
+        candidate_appids = [
+            self.idx_to_appid[i] for i in indices[0]
+            if self.idx_to_appid[i] not in excluded
+        ]
         return {"candidates": candidate_appids[:top_k], "query_vector": query_vector}
 
     def recommend_vibe(self, parsed_json, top_k=200):
@@ -218,15 +267,20 @@ class VectorBasedRecommender:
         return {"candidates": candidate_appids[:top_k], "query_vector": query_vector}
 
     def rerank_candidates(self, candidate_appids, query_vector, weights, top_n=10):
-        """Rerank candidate games with a weighted MMR over 4 signals.
+        """Rerank candidate games with a signed-modifier scheme.
 
         weights: dict with keys among {relevance, diversity, novelty,
-        serendipity, tag_match}. `tag_match` is treated as a synonym
-        for `relevance` for backward compatibility with the older UI.
-        Values 0..10. Re-normalized internally.
+        serendipity, tag_match}. `tag_match` is a back-compat alias for
+        `relevance`. Each slider is 0..10.
 
-        Returns top-N rows of self.games_df augmented with per-signal
-        scores and the final composite score.
+        Semantics:
+          - relevance: positive-only importance. 0 = ignore cosine, 10 = max weight.
+          - novelty / diversity / serendipity: SIGNED via sigmoid modifier.
+            Slider 5 = neutral (no effect). >5 = push that signal up
+            (more niche / more diverse / more serendipitous). <5 = push
+            the opposite direction (popular / clustered / expected).
+
+        Returns top-N rows of self.games_df augmented with per-signal scores.
         """
         if not candidate_appids:
             return pd.DataFrame()
@@ -234,9 +288,8 @@ class VectorBasedRecommender:
         # Back-compat: old UI used "tag_match" instead of "relevance"
         w_rel = float(weights.get("relevance", weights.get("tag_match", 5)))
         w_div = float(weights.get("diversity", 5))
-        w_nov = float(weights.get("novelty", 2))
-        w_ser = float(weights.get("serendipity", 1))
-        mmr_lambda = float(weights.get("mmr_lambda", 0.5))
+        w_nov = float(weights.get("novelty", 5))
+        w_ser = float(weights.get("serendipity", 5))
 
         cand_rows = [self.appid_to_idx[a] for a in candidate_appids if a in self.appid_to_idx]
         cand_appids = [self.idx_to_appid[r] for r in cand_rows]
@@ -249,44 +302,50 @@ class VectorBasedRecommender:
         if qn > 0:
             qv = qv / qn
 
-        # Relevance: cosine to query
+        # Raw per-signal scores in [0, 1]
         rel_raw = V @ qv
         rel = _minmax(rel_raw)
 
-        # Novelty: -log2(P(item)) over the *candidate pool*'s popularities
         if self.popularity is not None:
             pop = self.popularity[cand_rows]
             probs = np.maximum(pop / max(pop.sum(), 1e-12), 1e-12)
             nov_raw = -np.log2(probs)
-        else:
-            nov_raw = np.full(len(cand_rows), 0.5)
-        nov = _minmax(nov_raw)
-
-        # Serendipity proxy: relevant AND non-popular
-        if self.popularity is not None:
-            pop = self.popularity[cand_rows]
             pct = np.argsort(np.argsort(pop)) / max(len(pop) - 1, 1)
             ser_raw = rel * (1.0 - pct)
         else:
-            ser_raw = np.zeros(len(cand_rows))
+            nov_raw = np.full(len(cand_rows), 0.5, dtype=np.float32)
+            ser_raw = np.zeros(len(cand_rows), dtype=np.float32)
+        nov = _minmax(nov_raw)
         ser = _minmax(ser_raw)
 
-        # Composite "base" score (no diversity yet — diversity enters via MMR)
-        total_w = max(w_rel + w_nov + w_ser, 1e-9)
-        base = (w_rel * rel + w_nov * nov + w_ser * ser) / total_w
+        # Center novelty/serendipity to [-1, +1]: niche/serendipitous = +1, popular = -1
+        nov_centered = (2.0 * nov - 1.0).astype(np.float32)
+        ser_centered = (2.0 * ser - 1.0).astype(np.float32)
 
-        # MMR selection: pick top_n greedily balancing base vs novelty-of-pick
-        # diversity weight modulates the (1 - lambda) penalty
-        div_weight = w_div / max(w_rel + w_div + w_nov + w_ser, 1e-9)
+        # Slider -> signed modifier in (-1, +1). 5 = neutral.
+        nov_mod = _sigmoid_mod(w_nov)
+        ser_mod = _sigmoid_mod(w_ser)
+        div_mod = _sigmoid_mod(w_div)
+
+        # Relevance keeps positive-only semantics (slider scales how strongly
+        # cosine fit matters). Novelty/serendipity contribute signed terms
+        # whose direction depends on whether the slider is above or below 5.
+        rel_contrib = (w_rel / 10.0) * rel
+        base = rel_contrib + 0.5 * nov_mod * nov_centered + 0.5 * ser_mod * ser_centered
+
+        # Diversity via MMR: only kicks in when div slider is above 5
+        # (positive modifier). Below 5 -> no penalty (pure base ordering).
+        # The penalty strength is proportional to div_mod, capped at 0.5.
+        sim_penalty = max(div_mod, 0.0) * 0.5
         selected: list[int] = []
         remaining = list(range(len(cand_rows)))
         while remaining and len(selected) < top_n:
-            if not selected:
+            if not selected or sim_penalty <= 0:
                 pick = max(remaining, key=lambda i: base[i])
             else:
                 sel_V = V[selected]
                 sim_to_sel = (V[remaining] @ sel_V.T).max(axis=1)
-                mmr_score = mmr_lambda * base[remaining] - (1 - mmr_lambda) * div_weight * sim_to_sel
+                mmr_score = (1 - sim_penalty) * base[remaining] - sim_penalty * sim_to_sel
                 pick = remaining[int(np.argmax(mmr_score))]
             selected.append(pick)
             remaining.remove(pick)

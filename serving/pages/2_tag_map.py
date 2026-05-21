@@ -25,6 +25,7 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 import plotly.express as px
+from scipy.sparse import load_npz
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
@@ -35,7 +36,7 @@ DATA_DIR = REPO_ROOT / "serving" / "data"
 
 st.set_page_config(page_title="태그 의미 지도", page_icon=None, layout="wide")
 st.title("태그 의미 지도")
-st.caption("Steam user-tag 393개를 PPMI+SVD 임베딩 + UMAP으로 2D 투영. 클러스터별로 색칠.")
+st.caption("Steam user-tag를 PPMI+SVD 임베딩(128d) + UMAP으로 2D 투영. 클러스터별로 색칠. 점에 hover 시 해당 태그의 인기 게임 Top 5 표시.")
 
 
 @st.cache_data(show_spinner=False)
@@ -74,6 +75,62 @@ def load_games_df():
     return pd.read_csv(path)
 
 
+@st.cache_data(show_spinner=False)
+def load_top_games_per_tag(k: int = 5) -> dict[str, list[str]]:
+    """Per tag, find top-k popular games that carry it.
+
+    Uses X_game_tag_csr (binary game x tag) + game_popularity to rank,
+    then maps row indices to game_title via index_maps + steam_games_tags.
+    """
+    x_path = DATA_DIR / "X_game_tag_csr.npz"
+    pop_path = DATA_DIR / "game_popularity.npy"
+    imap_path = DATA_DIR / "index_maps.json"
+    games_path = DATA_DIR / "steam_games_tags.csv"
+
+    if not all(p.exists() for p in [x_path, pop_path, imap_path, games_path]):
+        return {}
+
+    X = load_npz(x_path).tocsc()
+    pop = np.load(pop_path).astype(float)
+    imap = json.loads(imap_path.read_text(encoding="utf-8"))
+    games = pd.read_csv(games_path)
+
+    row2appid = imap.get("row2appid", {})
+    if isinstance(row2appid, dict):
+        ordered_appids = [
+            v for _, v in sorted(((int(k_), v) for k_, v in row2appid.items()), key=lambda x: x[0])
+        ]
+    else:
+        ordered_appids = list(row2appid)
+
+    appid_to_title = dict(zip(games["appid"].astype(int), games["game_title"]))
+    tag2idx = imap.get("tag2idx", {})
+
+    out: dict[str, list[str]] = {}
+    for tag_name, col_idx in tag2idx.items():
+        col_idx = int(col_idx)
+        if col_idx >= X.shape[1]:
+            out[tag_name] = []
+            continue
+        game_rows = X[:, col_idx].indices
+        if len(game_rows) == 0:
+            out[tag_name] = []
+            continue
+        # Guard against popularity length mismatch
+        valid_rows = game_rows[game_rows < len(pop)]
+        if len(valid_rows) == 0:
+            out[tag_name] = []
+            continue
+        order = np.argsort(pop[valid_rows])[::-1][:k]
+        titles: list[str] = []
+        for r in valid_rows[order]:
+            if r < len(ordered_appids):
+                appid = int(ordered_appids[r])
+                titles.append(appid_to_title.get(appid, f"appid={appid}"))
+        out[tag_name] = titles
+    return out
+
+
 data = load_projection()
 if data is None:
     st.warning(
@@ -85,6 +142,17 @@ if data is None:
 
 tag_df, neighbors = data
 games_df = load_games_df()
+top_games = load_top_games_per_tag(k=5)
+
+
+def _format_top_games(tag_name: str) -> str:
+    titles = top_games.get(tag_name, [])
+    if not titles:
+        return "<i>인기 게임 데이터 없음</i>"
+    return "<br>".join(f"&nbsp;{i+1}. {t}" for i, t in enumerate(titles))
+
+
+tag_df["top_games_str"] = tag_df["tag"].apply(_format_top_games)
 
 
 # ----- Controls --------------------------------------------------------------
@@ -131,17 +199,26 @@ plot_df = tag_df.copy()
 plot_df["highlighted"] = plot_df["tag"].isin(highlight_tags)
 plot_df["color"] = plot_df["cluster"].astype(str)
 
+HOVER_TEMPLATE = (
+    "<b>%{customdata[0]}</b>"
+    "<br><br><b>인기 게임 Top 5</b><br>%{customdata[1]}"
+    "<extra></extra>"
+)
+
 fig = px.scatter(
     plot_df,
     x="x", y="y",
     color="color",
-    hover_data={"tag": True, "x": False, "y": False, "color": False, "highlighted": False},
+    custom_data=["tag", "top_games_str"],
     text="tag" if show_labels else None,
     labels={"color": "Cluster"},
     height=720,
     title=None,
 )
-fig.update_traces(marker=dict(size=8, opacity=0.65))
+fig.update_traces(
+    marker=dict(size=8, opacity=0.65),
+    hovertemplate=HOVER_TEMPLATE,
+)
 
 # Layer the highlighted points on top in bigger red markers
 if highlight_tags:
@@ -153,7 +230,8 @@ if highlight_tags:
         text=sub["tag"],
         textposition="top center",
         name="강조",
-        hovertext=sub["tag"],
+        customdata=np.column_stack([sub["tag"].values, sub["top_games_str"].values]),
+        hovertemplate=HOVER_TEMPLATE,
     )
 
 fig.update_layout(
