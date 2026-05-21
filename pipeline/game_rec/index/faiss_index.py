@@ -3,11 +3,18 @@
 Reads game_vecs.npy and writes faiss_index.faiss alongside it. Defaults
 point at serving/data/ (the live app data dir) but both paths are
 overridable via CLI flags or function arguments.
+
+Windows + non-ASCII path note: faiss-cpu's FileIOWriter uses the narrow
+ANSI API and chokes on paths with characters outside the system code
+page (e.g. Korean). We write to a tempdir (ASCII under user profile)
+and then move the file into place.
 """
 
 from __future__ import annotations
 
 import argparse
+import shutil
+import tempfile
 from pathlib import Path
 
 import faiss
@@ -19,6 +26,26 @@ log = get_logger("game_rec.index.faiss_index")
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_DATA_DIR = REPO_ROOT / "serving" / "data"
+
+
+def _safe_write_index(index, target_path: Path) -> None:
+    """faiss.write_index that survives non-ASCII paths on Windows."""
+    target_str = str(target_path)
+    try:
+        target_str.encode("ascii")
+        faiss.write_index(index, target_str)
+        return
+    except UnicodeEncodeError:
+        pass
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_path = Path(tmpdir) / "faiss_index.faiss"
+        faiss.write_index(index, str(tmp_path))
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+        if target_path.exists():
+            target_path.unlink()
+        shutil.move(str(tmp_path), target_str)
+        log.info("wrote via tempdir (non-ASCII path workaround)")
 
 
 def build_index(vectors_path: Path, index_path: Path) -> None:
@@ -35,7 +62,7 @@ def build_index(vectors_path: Path, index_path: Path) -> None:
     log.info("index built with %d vectors, writing to %s", index.ntotal, index_path)
 
     index_path.parent.mkdir(parents=True, exist_ok=True)
-    faiss.write_index(index, str(index_path))
+    _safe_write_index(index, index_path)
 
 
 def _parse_args() -> argparse.Namespace:

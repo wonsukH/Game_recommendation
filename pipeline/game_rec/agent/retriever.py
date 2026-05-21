@@ -1,5 +1,7 @@
 
 import copy
+import shutil
+import tempfile
 from pathlib import Path
 
 import numpy as np
@@ -15,6 +17,20 @@ from pipeline.game_rec.agent.scoring import minmax as _minmax
 log = get_logger("game_rec.agent.retriever")
 
 
+def _safe_read_index(path: Path):
+    """faiss.read_index that survives non-ASCII paths on Windows."""
+    p = str(path)
+    try:
+        p.encode("ascii")
+        return faiss.read_index(p)
+    except UnicodeEncodeError:
+        pass
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_path = Path(tmpdir) / "faiss_index.faiss"
+        shutil.copy2(path, tmp_path)
+        return faiss.read_index(str(tmp_path))
+
+
 class VectorBasedRecommender:
     def __init__(self, data_path, embedding_model="solar-embedding-1-large"):
         self.embeddings = UpstageEmbeddings(model=embedding_model)
@@ -24,7 +40,7 @@ class VectorBasedRecommender:
     def _load_data(self):
         """데이터 아티팩트를 로드하고, 조회용 매핑을 생성합니다."""
         try:
-            self.faiss_index = faiss.read_index(f"{self.data_path}/faiss_index.faiss")
+            self.faiss_index = _safe_read_index(Path(self.data_path) / "faiss_index.faiss")
             self.games_df = pd.read_csv(f"{self.data_path}/steam_games_tags.csv").set_index('appid')
             self.game_vecs = load_vectors(f"{self.data_path}/game_vecs.npy")
             self.tag_vecs = load_vectors(f"{self.data_path}/tag_vecs.npy")
