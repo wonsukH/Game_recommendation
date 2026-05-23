@@ -973,9 +973,68 @@ vibe 모드의 niche cluster bias **사실상 해소**. mainstream 정통작이 
 
 ---
 
+## Issue #15: Serendipity slider redundancy (M11에서 제거)
+
+### Symptom
+
+사용자가 4-axis rerank scheme (Relevance/Diversity/Novelty/Serendipity)을 검토하다 의문:
+> "Serendipity는 Novelty와 너무 비슷한 신호 아니야? 둘 다 popularity 기반인데."
+
+### Diagnosis
+
+`Serendipity = Relevance × (1 - popularity_percentile)`의 식 분해:
+- Relevance: Relevance 축에 이미 들어있음
+- (1 - popularity_percentile): popularity 기반 — Novelty와 같은 source
+
+→ Serendipity는 본질적으로 **Relevance × Novelty의 곱셈 변형**. 독립 신호 X.
+
+또 학계 reference:
+- Adamopoulos & Tuzhilin (2014): "Serendipity should not be directly optimized; it emerges from relevance + unexpectedness"
+- Kotkov et al. (2016): "Serendipity = relevance + novelty + unexpectedness의 함수"
+
+→ 학계 일반적 user-facing control은 **3-axis** (Rel/Div/Nov), Serendipity는 측정 metric용.
+
+### Root Cause
+
+원본 baseline이 4-metric 평가 framework (`pipeline/game_rec/evaluation/metrics.py`)을 만들었고, 그 4개를 그대로 user-facing slider로 옮긴 게 4-axis가 된 원인. **measurement metric**과 **user control axis** 구분 안 함.
+
+### Fix
+
+`pipeline/game_rec/agent/retriever.py:rerank_candidates`에서 Serendipity 계산 부분 제거:
+- `ser_raw / ser / ser_centered / ser_mod` 변수 제거
+- `base = rel_contrib + 0.5 × nov_mod × nov_centered + 0.5 × ser_mod × ser_centered` → `0.5 × nov_mod × nov_centered`만 남김
+
+UI/config/평가 코드 3축으로:
+- `serving/ui.py`: 4 slider → 3
+- `config/default.yaml`: presets 3축
+- `pipeline/orchestration/llm_vs_system.py` PRESETS: 3축
+- `pipeline/game_rec/evaluation/metrics.py`: Serendipity@K 함수 **유지** (측정용)
+
+또 입문자 프리셋 `novelty: 2 → 1` 보정 (Serendipity 1 (음수 modifier)이 제공하던 popular boost를 nov로 약간 보강).
+
+### Verification
+
+label-free 30 query 평가 (`outputs/llm_vs_system_final3.csv`):
+
+| 메트릭 | 4-axis (final) | 3-axis (final3) | pre_m9a (baseline) |
+|---|---|---|---|
+| overlap@5 | 0.087 | 0.067 | 0.060 |
+| vibe_overlap@5 | 0.093 | 0.080 | 0.040 |
+| vibe_our_avg_pop | 9.58M | 7.38M | 7.19M |
+
+3-axis가 4-axis 대비 약간 부진 (Serendipity가 popular boost에 기여하고 있었음). 그래도 baseline 대비 명확 우세 (vibe_overlap +100%).
+
+### Lesson
+
+- **measurement metric ≠ user control axis**. 측정에 유용한 metric 4개라고 해서 user에게 4개 slider 줄 필요 X. control axis 설계 시 신호 간 redundancy 검토 필요.
+- 학계 표준 follow하는 게 일반적으로 안전. 단 정량 측정으로 검증.
+- 정량 vs UX 트레이드오프: 4-axis가 정량 best였지만 UX/학계 표준은 3-axis. 사용자/팀의 우선순위에 따라 결정. 본 시스템은 **simplicity + standard** 우선 → 3-axis.
+
+---
+
 ## 정리 — 발견 패턴
 
-위 14건의 issue를 카테고리로 분류:
+위 15건의 issue를 카테고리로 분류:
 
 | 카테고리 | Issues | 패턴 |
 |---|---|---|

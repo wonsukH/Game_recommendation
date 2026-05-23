@@ -74,17 +74,18 @@ YBIGTA 27기 신입기수 팀 프로젝트로 만든 시스템을, 마치고 나
 
 `config/default.yaml`의 `rerank.presets`:
 
-| 프리셋 | Relevance | Diversity | Novelty | Serendipity |
-|---|---|---|---|---|
-| **입문자** | 9 | 4 | 2 | 1 |
-| **균형** | 5 | 5 | 5 | 5 |
-| **헤비** | 5 | 7 | 8 | 8 |
+| 프리셋 | Relevance | Diversity | Novelty |
+|---|---|---|---|
+| **입문자** | 9 | 4 | 1 |
+| **균형** | 5 | 5 | 5 |
+| **헤비** | 5 | 7 | 8 |
 
-신호의 출처:
-- **Relevance**: cosine similarity between query vector and game_vecs (top 200 candidates)
-- **Novelty**: $-\log_2 P(\text{game})$ where P ∝ popularity
-- **Serendipity**: relevance × (1 − popularity percentile)
-- **Diversity**: MMR penalty on selected vs candidate similarity
+신호의 출처 (3-axis, M11에서 Serendipity 제거):
+- **Relevance**: cosine similarity between query vector and game_vecs (top 200 candidates). positive-only weight.
+- **Novelty**: $-\log_2 P(\text{game})$ where P ∝ popularity. signed sigmoid (5=neutral, <5=popular 우대, >5=niche 우대).
+- **Diversity**: MMR penalty on selected vs candidate similarity. signed sigmoid (>5에서만 활성).
+
+Serendipity slider는 Novelty와 popularity-기반 redundant라 학계 표준대로 user control에서 제외 (Adamopoulos & Tuzhilin 2014, Kotkov 2016). Serendipity@K **metric**은 `evaluation/metrics.py`에 측정용으로 유지.
 
 game_vecs 자체는 **PPMI(game, tag) + Truncated SVD only** (M9.C 결정 — `ensemble_alpha=1.0`). 옛날 Item2Vec ensemble은 user data sparsity 때문에 noise였음, 비활성.
 
@@ -299,13 +300,14 @@ ablation: benchmark 표에서 `content-ppmi` vs `content-ensemble` 비교로 ens
 
 | variant | 설명 | overlap@5 | `our_avg_pop` | `vibe_overlap@5` | `vibe_our_avg_pop` | `our_ild` |
 |---|---|---|---|---|---|---|
-| `pre_m9a` | 옛 W_align, α=0.7, η=0.2 — **초기 baseline** | 0.060 | 6.22M | 0.040 | 7.19M | 0.070 |
-| `a07` | 새 W_align (M9.A), α=0.7, η=0.2 | 0.053 | 3.95M | 0.040 | **4.64M ↓** | 0.071 |
-| `a05` | 새 W_align, α=0.5 | 0.013 | 1.35M | 0.000 | 1.35M | 0.066 |
-| `a09` | 새 W_align, α=0.9 | 0.047 | 5.91M | 0.027 | 5.86M | 0.044 |
-| `a10` | 새 W_align, α=1.0 (Item2Vec OFF) | 0.087 | 6.62M | 0.080 | 6.08M | 0.042 |
-| `eta0` | 새 W_align, η=0 (β-축 OFF) | 0.053 | 3.78M | 0.040 | 4.79M | 0.076 |
-| **`final`** ⭐ | **M9.A revert, α=1.0, η=0** (채택) | **0.087** | **7.91M** | **0.093** | **9.58M** | 0.055 |
+| `pre_m9a` | 옛 W_align, α=0.7, η=0.2, 4-axis — **초기 baseline** | 0.060 | 6.22M | 0.040 | 7.19M | 0.070 |
+| `a07` | 새 W_align (M9.A), α=0.7, η=0.2, 4-axis | 0.053 | 3.95M | 0.040 | **4.64M ↓** | 0.071 |
+| `a05` | 새 W_align, α=0.5, 4-axis | 0.013 | 1.35M | 0.000 | 1.35M | 0.066 |
+| `a09` | 새 W_align, α=0.9, 4-axis | 0.047 | 5.91M | 0.027 | 5.86M | 0.044 |
+| `a10` | 새 W_align, α=1.0 (Item2Vec OFF), 4-axis | 0.087 | 6.62M | 0.080 | 6.08M | 0.042 |
+| `eta0` | 새 W_align, η=0 (β-축 OFF), 4-axis | 0.053 | 3.78M | 0.040 | 4.79M | 0.076 |
+| `final` | M9.A revert, α=1.0, η=0, 4-axis (이전 채택) | 0.087 | 7.91M | 0.093 | 9.58M | 0.055 |
+| **`final3`** ⭐ | **M11: Serendipity slider 제거, 3-axis (채택)** | **0.067** | 5.71M | **0.080** | 7.38M | 0.050 |
 
 #### 핵심 발견 3가지
 
@@ -323,14 +325,26 @@ ablation: benchmark 표에서 `content-ppmi` vs `content-ensemble` 비교로 ens
 
 - **결정**: `eta: 0.2 → 0`.
 
-#### 최종 (`final`) vs baseline (`pre_m9a`)
+#### 최종 (`final3`, 3-axis) vs baseline (`pre_m9a`, 4-axis)
 
-- `overlap@5`: 0.060 → **0.087** (+45%)
-- `our_avg_pop`: 6.22M → **7.91M** (+27%)
-- `vibe_overlap@5`: 0.040 → **0.093** (+133%)
-- `vibe_our_avg_pop`: 7.19M → **9.58M** (+33%)
-- `llm_existence_rate`: **0.987 유지** (hallucination 0%)
-- vibe 모드의 niche cluster bias 사실상 해소 — mainstream 정통작이 자연스럽게 진입
+- `overlap@5`: 0.060 → **0.067** (+12%)
+- `our_avg_pop`: 6.22M → 5.71M (-8%)
+- `vibe_overlap@5`: 0.040 → **0.080** (+100%)
+- `vibe_our_avg_pop`: 7.19M → 7.38M (+3%)
+- `llm_existence_rate`: **0.987 → 0.980** (hallucination 거의 0%)
+- vibe 모드의 niche cluster bias 완화 — `My Beautiful Paper Smile` 같은 반복 등장 줄어듦
+
+#### 3-axis (`final3`) vs 옛 4-axis (`final`) 트레이드오프
+
+| 메트릭 | 4-axis (final) | 3-axis (final3, 채택) |
+|---|---|---|
+| `overlap@5` | 0.087 | 0.067 |
+| `vibe_our_avg_pop` | 9.58M | 7.38M |
+| UX 슬라이더 수 | 4개 | **3개** |
+| 학계 표준 | 다이렉트 Serendipity control은 일반적 X | ✅ Rel/Div/Nov 표준 |
+| Serendipity@K 측정 | 가능 | **가능 (metric 유지)** |
+
+→ 정량 지표는 4-axis가 약간 우세, **UX 단순화 + 학계 표준 + 의미 분리**는 3-axis가 우세. 후자 우선 채택. baseline 대비는 명확히 개선.
 
 #### 의의
 

@@ -366,8 +366,19 @@ LLM이 5개 다 받았는데 3개만 응답에 등장하던 문제 → prompt에
 | W_align 학습 방식 | tag wrapper만 | **그대로 유지 (M9.A revert)** |
 | `ensemble_alpha` | 0.7 | **1.0** (Item2Vec OFF) |
 | `eta` (β-축) | 0.2 | **0** (β-축 OFF, 효과 미미) |
+| 사용자 슬라이더 | 4-axis (Rel/Div/Nov/**Ser**) | **3-axis** (Rel/Div/Nov) — M11 |
 
 결과: vibe 모드의 niche cluster bias 사실상 해소. 시스템 정체성 (태그 의미 기반 추천) 그대로.
+
+### M11 — Serendipity slider 제거 (학계 표준 + UX 단순화)
+
+Serendipity = Relevance × (1 - popularity_percentile). Novelty와 popularity 기반 redundant. 사용자 control 다이얼로는 두 슬라이더가 거의 같은 효과 (200 후보가 이미 cosine top이라 rel 곱이 미미).
+
+학계 표준 (Adamopoulos & Tuzhilin 2014, Kotkov 2016 등): "Serendipity should not be directly optimized; it emerges from relevance + novelty combination". measurement metric으로만 사용하고 user-facing axis로는 두지 않는 게 일반적.
+
+→ Serendipity slider 제거, 3-axis(Rel/Div/Nov)로 단순화. Serendipity@K **metric**은 `evaluation/metrics.py`에 측정용으로 그대로 유지.
+
+정량 트레이드오프: 4-axis 대비 vibe_our_avg_pop 9.58M → 7.38M (입문자에서 popular boost 약간 약해짐). 다만 baseline(pre_m9a) 대비는 여전히 명확히 우세 (vibe_overlap 0.040 → 0.080, +100%). 학계 표준 + UX 깔끔함 우선.
 
 ## 7. 다음 방향 (이번 plan 범위 밖)
 
