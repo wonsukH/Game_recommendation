@@ -126,10 +126,17 @@ python -m data_collection.crawlers.steamspy --target-count 3000
 
 ## 다음 단계
 
-본 단계 끝나면 메인 파이프라인에 통합:
+본 단계 끝나면 retriever용 CSV 변환 + 메인 파이프라인 통합:
 
 ```powershell
+# 1. SteamSpy raw (tags_json dict) → retriever용 normalized CSV
+#    M3.1에서 빠진 단계 보완 (ISSUES.md Issue #9 참조)
+python scripts/build_games_tags_csv.py
+
+# 2. 전체 파이프라인 실행 (build_offline 마지막에 sync_data 자동)
 python -m pipeline.orchestration.build_offline
 ```
 
 새 풀로 임베딩 재학습. 자세한 통합 로직은 `pipeline/game_rec/data/`의 모듈들이 SteamSpy/appdetails CSV를 인식하도록 확장됨 (M3 commit 시리즈).
+
+`build_offline.py`는 stage 마지막에 `sync_data`가 자동 호출되어 `outputs/` → `serving/data/` 동기화까지 한 번에 (M-bonus-3 fix). Streamlit 재시작만 하면 새 산출물 반영됨 (`@st.cache_resource` 갱신 위해 process restart 필수, ISSUES.md Issue #13 참조).

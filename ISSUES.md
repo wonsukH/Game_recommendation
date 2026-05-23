@@ -1043,6 +1043,7 @@ label-free 30 query 평가 (`outputs/llm_vs_system_final3.csv`):
 | **알고리즘 / 학습 결과** | #3, #4, #7, #14 | 시스템이 "사람의 직관"과 다르게 동작 → spot check + label-free 평가로 발견 |
 | **LLM prompt 강제 부족** | #6, #8 | "Do not X" 만으론 부족, "Must do Y"도 명시 + temperature 낮춤 |
 | **인프라 / 운영** | #2, #10, #13 | 외부 의존성, JSON edge case, cache invalidation |
+| **User control 설계** | #15 | measurement metric ≠ user-facing control axis. 신호 redundancy 검토. 학계 표준 follow |
 
 ### 공통 디버깅 패턴
 
@@ -1057,3 +1058,5 @@ label-free 30 query 평가 (`outputs/llm_vs_system_final3.csv`):
 - **Label-free 평가 framework**(LLM vs 시스템)가 ground-truth 라벨 없이도 정량 측정 가능 → niche bias 같은 약점을 발견하게 해줌. 평가 인프라 자체가 자산.
 - 시스템 **정체성(태그 기반 추천)** 을 모든 변경의 1급 기준으로 사용 → "더 좋은 결과" 추구가 정체성 약화로 가지 않게.
 - 옛 산출물이 dead asset처럼 남아 있으면 silent mismatch 위험 (Issue #5, #9). 의존 관계 명시 + auto sync.
+- **Algorithm activation도 ablation으로 결정** (Issue #14의 M9.C/D). "더 많은 signal = 더 좋은 결과" 직관 의심. 약한 signal (Item2Vec, β-축)은 ablation으로 검증 후 비활성화. 단순함이 정량적으로 best일 때 있음.
+- **데이터 quality 부족은 알고리즘 비활성화로 해결되기도** (Issue #14). user_reviews 페이지네이션 fix가 정공법이지만, sentence 짧음 → Item2Vec 비활성이 임시 best. 데이터 fix 비용 큰 경우의 차선책.

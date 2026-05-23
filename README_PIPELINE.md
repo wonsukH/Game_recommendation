@@ -21,7 +21,7 @@
 
 > "게임 입문자는 `Soulslike`, `Roguelite`, `Cozy` 같은 태그를 자연어적으로 이해 못 한다. **태그 간 의미적 유사도** + **자연어 ↔ 태그 사상**이 정확하면 입문자도 평범한 말로 적합한 게임에 도달할 수 있다."
 
-→ 본 시스템의 1급 자산은 **태그 의미 임베딩** (`tag_vecs.npy`, 128d). 게임 임베딩(`game_vecs.npy`)은 그 위에서 합성. FAISS는 빠른 검색, MMR rerank는 4축 사용자 선호 반영, Streamlit은 UI.
+→ 본 시스템의 1급 자산은 **태그 의미 임베딩** (`tag_vecs.npy`, 128d). 게임 임베딩(`game_vecs.npy`)은 그 위에서 합성. FAISS는 빠른 검색, MMR rerank는 3축(Relevance/Diversity/Novelty) 사용자 선호 반영, Streamlit은 UI.
 
 ---
 
@@ -311,7 +311,7 @@ v_g^{\text{ppmi}} = \frac{\sum_t X_{gt}^{\alpha} \cdot \beta_t^{\eta} \cdot \tex
 $$
 
 - $\alpha$ (count compression, default 0.5): $X_{gt}^{\alpha}$로 vote count의 sharp 차이 완화
-- $\eta$ (β-axis steering, default 0.2): tag_beta를 $\beta^{\eta}$만큼 가중. $\eta=0$이면 β 무시
+- $\eta$ (β-axis steering, **default 0.0** — M9.D 결정으로 비활성, `tag_effects` R²=0.10인 약한 신호로 효과 미미): tag_beta를 $\beta^{\eta}$만큼 가중. $\eta=0$이면 β 무시
 - $\kappa$ (default 1.0): 추가 weight 조정
 
 코드:
@@ -328,7 +328,7 @@ v_g^{\text{ensemble}} = \alpha_{\text{ens}} \cdot \widehat{v_g^{\text{ppmi}}} + 
 $$
 
 - $\widehat{v}$ = L2-normalized $v$
-- $\alpha_{\text{ens}}$ = `ensemble_alpha` (default 0.7, PPMI 우세)
+- $\alpha_{\text{ens}}$ = `ensemble_alpha` (**default 1.0** — M9.C ablation 결정으로 Item2Vec 비활성. `user_reviews.py` 페이지네이션 issue로 sentence 짧아 Item2Vec 학습 noise였음. α=1.0 (PPMI only)이 모든 정량 지표 best였음)
 - Item2Vec vec가 zero (cold-start)면 per-row fallback: $v_g = \widehat{v_g^{\text{ppmi}}}$
 - 결합 후 다시 L2 정규화
 
@@ -690,11 +690,9 @@ rel = minmax(rel_raw)                             # [0, 1]
 probs = np.maximum(pop / pop.sum(), 1e-12)
 nov_raw = -np.log2(probs)
 nov = minmax(nov_raw)                             # [0, 1]
-
-pct_pop = np.argsort(np.argsort(pop)) / (len(pop) - 1)
-ser_raw = rel * (1.0 - pct_pop)
-ser = minmax(ser_raw)                             # [0, 1]
 ```
+
+(Note: M11에서 Serendipity slider 제거. Serendipity@K **metric**은 `evaluation/metrics.py`에 유지하지만 rerank의 user control axis에서는 제외.)
 
 **(b) Signed centering + sigmoid modifier**
 
@@ -710,17 +708,15 @@ def sigmoid_modifier(slider, k=3.0):
 
 ```python
 nov_centered = 2 * nov - 1                        # [-1, +1]; niche=+1, popular=-1
-ser_centered = 2 * ser - 1
 
 nov_mod = sigmoid_modifier(w_nov)                 # signed
-ser_mod = sigmoid_modifier(w_ser)
 div_mod = sigmoid_modifier(w_div)
 ```
 
-**(c) Base score** (rel = positive-only weight, nov/ser = signed):
+**(c) Base score** (3-axis: rel = positive-only weight, nov = signed):
 
 $$
-\text{base}_i = \frac{w_{\text{rel}}}{10} \cdot \text{rel}_i + 0.5 \cdot \text{nov\_mod} \cdot \text{nov\_centered}_i + 0.5 \cdot \text{ser\_mod} \cdot \text{ser\_centered}_i
+\text{base}_i = \frac{w_{\text{rel}}}{10} \cdot \text{rel}_i + 0.5 \cdot \text{nov\_mod} \cdot \text{nov\_centered}_i
 $$
 
 **(d) MMR selection** (greedy):
@@ -741,7 +737,7 @@ for _ in range(top_n):
     remaining.remove(pick)
 ```
 
-**출력**: DataFrame with columns `[game_title, tags, relevance_score, novelty_score, serendipity_score, base_score, tag_match_score, final_score]`, top-N rows.
+**출력**: DataFrame with columns `[game_title, tags, relevance_score, novelty_score, base_score, tag_match_score, final_score]`, top-N rows.
 
 ### 6.8. `response_generator_node` — 자연어 응답
 
@@ -825,8 +821,8 @@ models:
   game_vectors:
     kappa: 1.0
     alpha: 0.5                     # count compression
-    eta: 0.2                       # β-axis steering
-    ensemble_alpha: 0.7            # PPMI vs Item2Vec
+    eta: 0.0                       # β-axis steering (M9.D: 0.2→0, 효과 미미)
+    ensemble_alpha: 1.0            # PPMI vs Item2Vec (M9.C: 0.7→1.0, Item2Vec OFF)
   text_alignment:
     lambda_reg: 0.01
     text_model: models/gemini-embedding-2
@@ -843,10 +839,11 @@ retriever:
   expand_top_k: 5
 
 rerank:
+  # M11: 3-axis (Serendipity 제거 - Novelty와 popularity-기반 redundant)
   presets:
-    beginner:    {relevance: 9, diversity: 4, novelty: 2, serendipity: 1}
-    balanced:    {relevance: 5, diversity: 5, novelty: 5, serendipity: 5}
-    heavy:       {relevance: 5, diversity: 7, novelty: 8, serendipity: 8}
+    beginner:    {relevance: 9, diversity: 4, novelty: 1}
+    balanced:    {relevance: 5, diversity: 5, novelty: 5}
+    heavy:       {relevance: 5, diversity: 7, novelty: 8}
   mmr_lambda: 0.5
 ```
 
