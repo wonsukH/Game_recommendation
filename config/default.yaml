@@ -26,8 +26,8 @@ models:
   game_vectors:
     kappa: 1.0
     alpha: 0.5
-    eta: 0.2
-    ensemble_alpha: 0.7        # weight of PPMI vec; 1-alpha goes to Item2Vec vec
+    eta: 0.0                   # β-axis steering (M9.D ablation: eta=0.2 vs 0 — no meaningful gain, simplified)
+    ensemble_alpha: 1.0        # M9.C ablation: a10 (PPMI only) won all metrics. Item2Vec adds noise (short user-favorite sentences). Disabled.
   text_alignment:
     lambda_reg: 0.01
     text_model: models/gemini-embedding-2
