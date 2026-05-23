@@ -214,7 +214,19 @@ def main() -> int:
         "--limit", type=int, default=0,
         help="Limit to first N queries (0 = all)",
     )
+    parser.add_argument(
+        "--game-vecs-path", type=Path, default=None,
+        help="(M9.C ablation) Override game_vecs.npy with a variant. Rebuilds faiss in-memory.",
+    )
+    parser.add_argument(
+        "--label", type=str, default="",
+        help="Output label suffix (e.g. 'a05', 'eta0'). Affects default output filenames.",
+    )
     args = parser.parse_args()
+
+    if args.label:
+        args.output_csv = args.output_csv.with_stem(args.output_csv.stem + "_" + args.label)
+        args.output_md = args.output_md.with_stem(args.output_md.stem + "_" + args.label)
 
     load_dotenv(REPO_ROOT / ".env")
     api_key = os.environ.get("GEMINI_API_KEY")
@@ -227,6 +239,18 @@ def main() -> int:
 
     log.info("loading recommender from %s", DATA_DIR)
     recommender = VectorBasedRecommender(data_path=str(DATA_DIR))
+
+    if args.game_vecs_path is not None:
+        import faiss
+        new_vecs = np.load(args.game_vecs_path).astype(np.float32)
+        # Game vectors are saved L2-normalized; rebuild faiss IndexFlatL2 in-memory
+        idx = faiss.IndexFlatL2(new_vecs.shape[1])
+        idx.add(new_vecs)
+        recommender.game_vecs = new_vecs
+        recommender.faiss_index = idx
+        log.info("overrode game_vecs with %s (shape=%s) — rebuilt in-memory faiss",
+                 args.game_vecs_path, new_vecs.shape)
+
     games_df = recommender.games_df.reset_index()
 
     # Preset weights — same as config/default.yaml's rerank.presets

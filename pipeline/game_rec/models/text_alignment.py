@@ -275,7 +275,7 @@ def main(tag_vecs_path: str, index_path: str, model_name: str, lambda_reg: float
         if not (spy_p.exists() and meta_p.exists()):
             print(f"[WARN] description augmentation skipped: missing {spy_p} or {meta_p}")
         else:
-            print(f"[INFO] (M9.A) description augmentation 시작 — top-{description_top_k} vote 태그 가중평균을 target으로")
+            print(f"[INFO] (M9.A) description augmentation start - top-{description_top_k} vote tag weighted-mean as target")
             descriptions, Y_game = _build_description_targets(
                 spy_p, meta_p, tag_vecs, tag2idx, top_k=description_top_k
             )
@@ -298,7 +298,7 @@ def main(tag_vecs_path: str, index_path: str, model_name: str, lambda_reg: float
     else:
         Y_combined = tag_vecs
 
-    # 정렬 행렬 계산 — target은 tag space (단일 태그 또는 가중평균, 둘 다 128d)
+    # 정렬 행렬 계산 (target은 tag space)
     W = compute_alignment_matrix(T, Y_combined, lambda_reg)
     
     # 출력 폴더 생성
