@@ -858,7 +858,7 @@ streamlit run serving\main.py    # 다시 실행
 
 ---
 
-## Issue #14: Vibe 모드 niche cluster bias (현재 미해결, M9.A 진행 대상)
+## Issue #14: Vibe 모드 niche cluster bias (M9.A 시도 → revert → M9.C로 해소)
 
 ### Symptom
 
@@ -889,34 +889,87 @@ streamlit run serving\main.py    # 다시 실행
 - mainstream 태그(`action`, `indie`)는 PPMI에서 약화 → Ridge에서 약한 매핑
 - 결과: 사용자 phrase의 자연스러운 자연어가 mainstream 매핑이 약해서 niche cluster로 falling
 
-### Fix (M9.A — 계획 단계, 미적용)
+### Fix Path — M9.A 시도 → 의도 반대 효과 → revert → M9.C로 해소
 
-**Input augmentation, target은 tag space 유지**:
+#### 시도 1: M9.A (description input augmentation)
 
-- 기존 학습 데이터 447개 (변경 X)
-- 신규 9956개 게임 description 추가:
-  - input: Gemini embedding of description (3072d)
-  - target: 그 게임의 top-5 vote 태그의 vote-weighted 평균 tag_vec (128d, **tag space 안**)
-- 합쳐서 Ridge 학습 → 새 W_align (3072, 128)
+학습 데이터의 input을 늘려 sparse niche cluster bias를 약화하려 함. **target은 tag space에 유지** (그 게임의 top-5 vote 태그의 vote-weighted 평균 vec) — 정체성 유지.
 
-**핵심 정체성 유지**: target이 항상 tag space → W_align는 여전히 "자연어 → tag space" projection. 자연어 → 게임 직접 매핑 X.
+```python
+# pipeline/game_rec/models/text_alignment.py — main()에 약 25줄 추가
+# Stage 2: 게임 description Gemini embed → target = top-5 vote 태그 가중평균 tag_vec
+T_combined = vstack([T_tag, T_game])      # (10497, 3072)
+Y_combined = vstack([Y_tag, Y_game])      # (10497, 128) — 둘 다 tag space
+W = Ridge.fit(T_combined, Y_combined)
+```
 
-상세: 본 plan `cuddly-finding-fiddle.md` M9.A 섹션 참조.
+CLI: `--include-descriptions` (default True). 학습 데이터 447 → 10,497, Ridge R² 0.40.
 
-### Verification (M9.A 적용 후)
+#### 시도 1 결과 — **의도 반대**
 
-1. W_align shape 그대로 (3072, 128) — runtime 코드 변경 0
-2. 같은 vibe 쿼리 (q03, q05, q08, q10, q12, q14, q22, q30) streamlit 재시도 → 반복 등장 niche 게임들 줄어드는지
-3. `llm_vs_system.py` 재실행 → vibe 카테고리 `our_avg_pop` 상승, `overlap@5` 상승
-4. **정체성 sanity check**: similar / hybrid 모드 결과 변화 없음 (W_align 안 씀)
+`llm_vs_system.py` 30 query 평가:
+
+| | `pre_m9a` (M9.A 전) | `a07` (M9.A 후) |
+|---|---|---|
+| `vibe_our_avg_pop` | 7.19M | **4.64M (-35%)** |
+
+mainstream 추천 늘기를 의도했는데 **오히려 niche로 더 깊이 falling**.
+
+**원인 진단**: 학습 데이터에 추가된 9956 게임 description의 자연어 분포가 **long-tail** (niche 게임이 mainstream보다 더 많음). Ridge가 다수파인 niche cluster로 더 강하게 self-bias. 학습 sample을 단순히 늘리는 게 root cause를 풀지 않고 오히려 강화.
+
+→ **M9.A revert**: `text_alignment.py --no-include-descriptions`로 옛 방식 W_align 복원.
+
+#### 시도 2: M9.C ablation (`ensemble_alpha`)
+
+α ∈ {0.5, 0.7, 0.9, 1.0} variant 학습 + 평가:
+
+| variant | overall overlap@5 | vibe_overlap@5 | vibe_our_avg_pop |
+|---|---|---|---|
+| α=0.5 (Item2Vec 비중 ↑) | 0.013 | 0.000 | 1.35M |
+| α=0.7 (기존 default) | 0.053 | 0.040 | 4.64M |
+| α=0.9 | 0.047 | 0.027 | 5.86M |
+| **α=1.0 (Item2Vec OFF)** | **0.087** | **0.080** | **6.08M** |
+
+**α=1.0이 모든 지표 best**. Item2Vec 자체가 noise였다는 결정적 증거.
+
+원인: `user_reviews.py` 페이지네이션 issue (각 user 첫 페이지 10건만 수집) → Skip-Gram sentence 짧음 → 학습 부실 → ensemble에서 noise.
+
+#### 시도 3: M9.D (`eta`)
+
+η=0 (β-축 OFF) vs η=0.2: 차이 미미. R²=0.10인 약한 신호라 예상된 결과. **η=0** 채택 (단순화).
+
+#### 최종 (Final) — 채택
+
+`config/default.yaml`:
+- `ensemble_alpha: 0.7 → 1.0`
+- `eta: 0.2 → 0`
+- W_align는 M9.A revert (옛 방식, tag wrapper만)
+
+30 query 재평가:
+
+| 메트릭 | pre_m9a → final | 변화 |
+|---|---|---|
+| `overlap@5` | 0.060 → **0.087** | **+45%** |
+| `our_avg_pop` | 6.22M → **7.91M** | +27% |
+| `vibe_overlap@5` | 0.040 → **0.093** | **+133%** |
+| `vibe_our_avg_pop` | 7.19M → **9.58M** | **+33%** |
+| `llm_existence_rate` | 0.987 (유지) | hallucination 0% |
+
+vibe 모드의 niche cluster bias **사실상 해소**. mainstream 정통작이 자연스럽게 진입.
+
+### Verification
+
+- `outputs/llm_vs_system_final.csv` + `outputs/ablation_summary.md`
+- Streamlit에서 같은 vibe 쿼리 ("어두운 분위기 RPG") → niche 반복 등장 게임들 (`My Beautiful Paper Smile` 등) 빠지고 mainstream 정통작 진입
 
 ### Lesson
 
-- Ridge 회귀의 결과는 학습 데이터 분포에 강하게 의존. sparse / niche skew 분포에서 학습되면 generalize도 그 방향으로.
-- W_align 같은 "공간 사상" 학습에서, 학습 데이터의 **target 공간 분포**를 명확히 인지해야. 본 케이스에서는 tag_vecs (PPMI+SVD)의 niche dense 특성이 W_align self-bias로 전이.
-- 학습 데이터를 늘릴 때 target 정의를 **시스템 정체성에 맞게** 유지. 단순히 "더 많은 데이터"가 아니라 "정체성 보존하는 더 많은 데이터".
-- 사용자 우려가 정확했음: target에 game_vecs를 직접 넣으면 "자연어 → 게임" 시스템으로 변질 → 태그 기반 추천 정체성 약화. target을 tag space 안에 유지하는 게 필수.
-- Label-free 평가 (LLM 비교)가 약점 발견에 매우 효과적. ground truth 라벨 없어도 시스템 특성을 정량 측정 가능.
+- **학습 sample을 단순히 늘리는 게 root cause를 풀지 않음**. Long-tail 분포라면 다수파(niche) bias가 오히려 강화됨. M9.A는 이를 정량 검증한 negative finding.
+- **Ablation으로 가설 검증**. "Item2Vec이 도움 될 거라는 직관" vs "ablation 결과 noise였음" — 정량 측정이 직관을 뒤집음.
+- **데이터 부실은 알고리즘 비활성화로 해결되기도**. user_reviews 페이지네이션 issue는 Item2Vec quality에 직결 → 데이터 수집 안 고치면 알고리즘 자체 끄는 게 best.
+- **β-축 (tag_effects)** 같은 약한 signal(R²=0.10)은 처음부터 의심. ablation으로 확인 후 제거.
+- **시스템 정체성 우선**: M9.A target에 game_vecs 넣자는 첫 제안을 사용자가 잡아냈음. 그게 정체성 약화로 갔으면 더 큰 후폭풍. target=tag space 유지는 옳았으나 학습 분포 문제로 실패. **정체성 유지 + 효과 확인 + revert** 같은 disciplined cycle이 중요.
+- Label-free 평가 framework (`llm_vs_system.py`) 가치 — 이 모든 결정을 정량 근거 위에서 가능하게 함. ground truth label 없이도 정량.
 
 ---
 

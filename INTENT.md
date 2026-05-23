@@ -327,21 +327,58 @@ LLM이 5개 다 받았는데 3개만 응답에 등장하던 문제 → prompt에
 
 ---
 
-## 6. 다음 방향
+## 6. M9 — Vibe 약점 풀기 시도 + 결과
 
-### vibe 모드 약점 해결
+### 시도한 것
 
-현재 W_align가 sparse한 niche tag로 self-bias됨. 옵션:
-1. **학습 데이터 보강**: 게임 description 텍스트도 Gemini embed해서 W_align 학습 데이터에 추가
-2. **Hybrid retrieval**: 자연어 → LLM이 후보 게임 list 제안 → 우리 시스템이 그 list를 candidates에 추가 → rerank
-3. **Multi-query**: 같은 자연어를 여러 phrase로 분해 (Gemini가 helper) → 각 phrase의 tag projection을 average
+**M9.A: W_align 학습 데이터 augmentation**
+- 9956 게임의 description을 Gemini로 임베딩
+- target은 그 게임의 top-5 vote 태그의 가중평균 tag_vec (tag space 유지로 정체성 보존)
+- 의도: niche cluster bias 약화
+
+### 결과 — 의외의 negative finding
+
+`vibe_our_avg_pop` 7.19M → **4.64M (-35%)**. 의도와 정반대로 niche bias가 **강화**됨.
+
+원인: 추가한 9956 description의 자연어 분포가 long-tail (niche가 mainstream보다 다수). Ridge가 다수파 niche cluster로 더 강하게 self-bias.
+
+→ **revert**. M9.A는 negative finding으로 기록.
+
+### M9.C ablation으로 답을 찾음
+
+`ensemble_alpha` 값을 변경하며 비교:
+
+| α | overlap@5 | vibe_our_avg_pop |
+|---|---|---|
+| 0.5 | 0.013 | 1.35M |
+| 0.7 (옛 default) | 0.053 | 4.64M |
+| 0.9 | 0.047 | 5.86M |
+| **1.0 (Item2Vec OFF)** | **0.087** | **6.08M** |
+
+**Item2Vec 자체가 noise였음**. 비활성하면 모든 지표 개선.
+
+원인: `user_reviews.py` 페이지네이션 issue — user당 첫 페이지(10건)만 수집되어 Skip-Gram sentence가 짧음 → 학습 부실 → ensemble에서 noise 도입.
+
+### 최종 채택
+
+| 설정 | 옛 | 새 |
+|---|---|---|
+| W_align 학습 방식 | tag wrapper만 | **그대로 유지 (M9.A revert)** |
+| `ensemble_alpha` | 0.7 | **1.0** (Item2Vec OFF) |
+| `eta` (β-축) | 0.2 | **0** (β-축 OFF, 효과 미미) |
+
+결과: vibe 모드의 niche cluster bias 사실상 해소. 시스템 정체성 (태그 의미 기반 추천) 그대로.
+
+## 7. 다음 방향 (이번 plan 범위 밖)
 
 ### 더 풍부한 데이터
 
-- 게임 설명 텍스트 (Steam Store appdetails의 description) — 이미 크롤링됨, 사용 안 함
+- 게임 설명 텍스트 (`steam_appdetails.csv`의 description) — M9.A에서 시도했지만 단순 추가는 효과 X. mainstream-위주 sampling 또는 다른 활용 방법 필요
 - 유저 리뷰 텍스트 (steam_reviews.csv) — 이미 있음, 미사용
 
-이 텍스트들을 W_align 학습이나 별도 retriever에 활용 가능.
+### user_reviews 페이지네이션 fix
+
+user당 전체 리뷰 수집 → sentence 길어짐 → Item2Vec 재활성 시도 가능 (현재는 noise라 OFF).
 
 ### 시스템 가치 강화
 

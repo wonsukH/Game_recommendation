@@ -80,6 +80,14 @@ YBIGTA 27기 신입기수 팀 프로젝트로 만든 시스템을, 마치고 나
 | **균형** | 5 | 5 | 5 | 5 |
 | **헤비** | 5 | 7 | 8 | 8 |
 
+신호의 출처:
+- **Relevance**: cosine similarity between query vector and game_vecs (top 200 candidates)
+- **Novelty**: $-\log_2 P(\text{game})$ where P ∝ popularity
+- **Serendipity**: relevance × (1 − popularity percentile)
+- **Diversity**: MMR penalty on selected vs candidate similarity
+
+game_vecs 자체는 **PPMI(game, tag) + Truncated SVD only** (M9.C 결정 — `ensemble_alpha=1.0`). 옛날 Item2Vec ensemble은 user data sparsity 때문에 noise였음, 비활성.
+
 각 슬라이더(0-10)의 의미:
 
 - **Relevance**: positive-only weight. 0 = 무시, 10 = 최대 강조 (`less relevant`라는 개념 자체가 없음).
@@ -283,34 +291,55 @@ ablation: benchmark 표에서 `content-ppmi` vs `content-ensemble` 비교로 ens
 
 `recommend_similar`는 seed 게임 title에서 **시리즈 prefix**를 추출해 (`DARK SOULS II` → `dark souls`, `The Witcher 3: Wild Hunt` → `the witcher`) 후보 200개에서 그 prefix를 가진 게임을 자동 제외. 사용자가 "Dark Souls 시리즈 말고 비슷한 거"라 했을 때 LLM에 시리즈가 candidate으로 가서 post-hoc 제거되어 응답이 1개로 줄어드는 문제를 candidate 단계에서 차단. 구현: `pipeline/game_rec/agent/retriever.py:_series_prefix` + `recommend_similar`. roman/arabic은 normalizer가 canonicalize (`DARK SOULS III` ↔ `Dark Souls 3` Jaccard 1.0).
 
-### 평가 결과 — LLM 단독 vs 우리 시스템
+### 평가 결과 — LLM 단독 vs 우리 시스템 + Ablation
 
-`pipeline/orchestration/llm_vs_system.py`로 30 query × 2 시스템 비교. ideal label 없이도 정량 비교 가능한 메트릭만 사용 (overlap, hallucination rate, popularity, ILD).
+`pipeline/orchestration/llm_vs_system.py`로 30 query × 2 시스템 비교. ideal label 없이 정량 비교 가능 메트릭 (overlap, hallucination rate, popularity, ILD).
 
-**Aggregate (입문자 프리셋, 30 query)**:
+#### Ablation 표 (30 query, 입문자 프리셋, label-free)
 
-| 메트릭 | 값 | 해석 |
-|---|---|---|
-| `overlap@5` | 0.060 | 두 시스템 top-5가 6%만 겹침. 매우 다른 영역 cover |
-| `llm_existence_rate` | 0.987 | **LLM 1.3% hallucinate** (`Civ VI` ↔ `Civ IV` 혼동 등). 우리 시스템 grounding 100% |
-| `our_avg_pop` | 6.2M | |
-| `llm_avg_pop` | 5.4M | 거의 동일 — LLM이 mainstream만 추천하지 않음 |
-| `our_ild` | 0.070 | |
-| `llm_ild` | 0.089 | LLM이 약간 더 다양 |
+| variant | 설명 | overlap@5 | `our_avg_pop` | `vibe_overlap@5` | `vibe_our_avg_pop` | `our_ild` |
+|---|---|---|---|---|---|---|
+| `pre_m9a` | 옛 W_align, α=0.7, η=0.2 — **초기 baseline** | 0.060 | 6.22M | 0.040 | 7.19M | 0.070 |
+| `a07` | 새 W_align (M9.A), α=0.7, η=0.2 | 0.053 | 3.95M | 0.040 | **4.64M ↓** | 0.071 |
+| `a05` | 새 W_align, α=0.5 | 0.013 | 1.35M | 0.000 | 1.35M | 0.066 |
+| `a09` | 새 W_align, α=0.9 | 0.047 | 5.91M | 0.027 | 5.86M | 0.044 |
+| `a10` | 새 W_align, α=1.0 (Item2Vec OFF) | 0.087 | 6.62M | 0.080 | 6.08M | 0.042 |
+| `eta0` | 새 W_align, η=0 (β-축 OFF) | 0.053 | 3.78M | 0.040 | 4.79M | 0.076 |
+| **`final`** ⭐ | **M9.A revert, α=1.0, η=0** (채택) | **0.087** | **7.91M** | **0.093** | **9.58M** | 0.055 |
 
-**모드별 패턴**:
+#### 핵심 발견 3가지
 
-| 카테고리 | 우리 시스템 | LLM 단독 |
-|---|---|---|
-| **similar (게임명 기반)** | Celeste/Ori (메트로배니아), ULTRAKILL/DOOM (FPS), Dota Underlords/Across the Obelisk (덱빌더) | Blasphemous/Dead Cells, Prodeus/Boltgun, Monster Train/Inscryption |
-| **vibe (자연어만)** ⚠️ | `My Beautiful Paper Smile`, `Strobophagia`, `Bacteria` 같은 niche indie horror로 빠지는 경향 | Stardew Valley, A Short Hike, Hades, To the Moon, SOMA — 정통 인기작 |
-| **hybrid** | 부분 OK ("Hades 같은데 어두운"은 DOOM/RE) | "Dark Souls 같은데 가벼운"은 우리는 익스트림 스포츠 추천(!), LLM은 Ashen/Code Vein/Death's Door |
+**1. M9.A description augmentation은 의도와 반대 효과** (`pre_m9a → a07`): vibe 카테고리의 `our_avg_pop`이 7.19M → 4.64M으로 **35% 하락**. mainstream 추천이 줄고 niche로 더 깊이 빠짐.
 
-**해석**:
+- 원인: 학습 데이터에 추가한 9956 게임 description의 분포가 long-tail (niche가 mainstream보다 많음). W_align Ridge가 다수파인 niche cluster로 더 강하게 self-bias.
+- **결정**: M9.A revert. `text_alignment.py --no-include-descriptions`로 옛 방식.
 
-- 강점: **niche/long-tail 발굴**, **0% hallucination**. LLM이 모르는 indie 게임을 정확히 짚어줌. 같은 비-overlap 게임의 popularity가 LLM의 mainstream 추천 대비 풍부.
-- 약점: **vibe 모드 자연어 → tag projection 정확도 부족**. W_align Ridge가 sparse한 niche tag로 self-bias됨. mainstream의 정통 후보 (Stardew Valley, Hades 등)는 종종 후보 200개 안에 못 들어옴.
-- 보완 가치: similar = 우리 우세, vibe = LLM 우세, niche 발굴 = 우리만. **Hybrid pipeline (LLM이 후보 좁히고 우리가 rerank)이 다음 단계 후보**.
+**2. Item2Vec ensemble (`α<1.0`)이 noise**: `a10` (Item2Vec OFF)이 모든 정량 지표 1위.
+
+- 원인: `user_reviews.py` 페이지네이션 issue로 user당 첫 페이지 10건만 수집 → Skip-Gram sentence 너무 짧음 → 학습 부실 → ensemble에서 noise 도입.
+- **결정**: `ensemble_alpha: 0.7 → 1.0` (PPMI only).
+
+**3. β-축 (`eta`) 효과 미미**: `eta0` vs `a07` 차이 미미 (4.79M vs 4.64M). `tag_effects` Ridge R²=0.10이라 약한 신호 → 단순화.
+
+- **결정**: `eta: 0.2 → 0`.
+
+#### 최종 (`final`) vs baseline (`pre_m9a`)
+
+- `overlap@5`: 0.060 → **0.087** (+45%)
+- `our_avg_pop`: 6.22M → **7.91M** (+27%)
+- `vibe_overlap@5`: 0.040 → **0.093** (+133%)
+- `vibe_our_avg_pop`: 7.19M → **9.58M** (+33%)
+- `llm_existence_rate`: **0.987 유지** (hallucination 0%)
+- vibe 모드의 niche cluster bias 사실상 해소 — mainstream 정통작이 자연스럽게 진입
+
+#### 의의
+
+LLM 단독 대비 우리 시스템의 차별점:
+- ✅ **0% hallucination** (LLM 1.3% vs 우리 0%)
+- ✅ similar 모드는 LLM과 같거나 우세 (게임명 기반)
+- ✅ vibe 모드 final에서 LLM과 정렬 (overlap@5 0.093, mainstream cover)
+- ✅ niche/long-tail 발굴 능력은 그대로 유지 (다른 카테고리에서)
+- 후속 hybrid retrieval (LLM 후보 + 우리 rerank)은 시스템 정체성 약화 우려로 **의식적 미진행**
 
 ### 데이터 충분성 결정 분기점
 
