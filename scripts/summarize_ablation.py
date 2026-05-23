@@ -25,7 +25,8 @@ VARIANTS = [
     ("a09",     "M9.A W_align, α=0.9 (PPMI 비중 ↑)"),
     ("a10",     "M9.A W_align, α=1.0 (PPMI only, Item2Vec OFF)"),
     ("eta0",    "M9.A W_align, η=0 (β-축 OFF) — M9.D 후보"),
-    ("final",   "★ 최종 채택: M9.A revert, α=1.0, η=0 (Item2Vec/β-축 OFF)"),
+    ("final",   "4-axis: M9.A revert, α=1.0, η=0 (Item2Vec/β-축 OFF) — 옛 system"),
+    ("final3",  "★ 3-axis (M11): Serendipity slider 제거. nov=1 (입문자 보정)"),
 ]
 
 METRICS = [

@@ -44,21 +44,23 @@ retriever:
   expand_top_k: 5
 
 rerank:
+  # 3-axis system (M11: Serendipity removed - redundant with Novelty).
+  # Slider semantics:
+  #  - relevance: positive-only weight (0=ignore cosine, 10=max).
+  #  - diversity / novelty: signed sigmoid (5=neutral, >5=more, <5=less).
+  # Note: beginner.novelty=1 (was 2) compensates for the removed serendipity=1
+  # which also nudged toward popular games.
   presets:
     beginner:
       relevance: 9
       diversity: 4
-      novelty: 2
-      serendipity: 1
+      novelty: 1               # < 5 → popular 우대 (입문자에게 검증된 게임)
     balanced:
       relevance: 5
       diversity: 5
       novelty: 5
-      serendipity: 5
-
     heavy:
       relevance: 5
       diversity: 7
-      novelty: 8
-      serendipity: 8
+      novelty: 8               # > 5 → niche/long-tail 우대 (헤비 사용자)
   mmr_lambda: 0.5              # MMR trade-off (0=full diversity, 1=full relevance)

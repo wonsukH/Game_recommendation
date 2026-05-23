@@ -255,9 +255,10 @@ def main() -> int:
 
     # Preset weights — same as config/default.yaml's rerank.presets
     PRESETS = {
-        "beginner":  {"relevance": 9, "diversity": 4, "novelty": 2, "serendipity": 1},
-        "balanced":  {"relevance": 5, "diversity": 5, "novelty": 5, "serendipity": 5},
-        "heavy":     {"relevance": 5, "diversity": 7, "novelty": 8, "serendipity": 8},
+        # M11: 3-axis (Serendipity removed - redundant with Novelty).
+        "beginner":  {"relevance": 9, "diversity": 4, "novelty": 1},
+        "balanced":  {"relevance": 5, "diversity": 5, "novelty": 5},
+        "heavy":     {"relevance": 5, "diversity": 7, "novelty": 8},
     }
     weights = PRESETS[args.preset]
     log.info("using preset=%s weights=%s", args.preset, weights)

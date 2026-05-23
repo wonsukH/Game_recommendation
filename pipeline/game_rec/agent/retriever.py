@@ -270,15 +270,21 @@ class VectorBasedRecommender:
         """Rerank candidate games with a signed-modifier scheme.
 
         weights: dict with keys among {relevance, diversity, novelty,
-        serendipity, tag_match}. `tag_match` is a back-compat alias for
-        `relevance`. Each slider is 0..10.
+        tag_match}. `tag_match` is a back-compat alias for `relevance`.
+        Each slider is 0..10.
 
         Semantics:
           - relevance: positive-only importance. 0 = ignore cosine, 10 = max weight.
-          - novelty / diversity / serendipity: SIGNED via sigmoid modifier.
+          - novelty / diversity: SIGNED via sigmoid modifier.
             Slider 5 = neutral (no effect). >5 = push that signal up
-            (more niche / more diverse / more serendipitous). <5 = push
-            the opposite direction (popular / clustered / expected).
+            (more niche / more diverse). <5 = push the opposite
+            (popular / clustered).
+
+        Note (M9 follow-up): Serendipity slider was removed — it was
+        redundant with Novelty (both popularity-based, with rel * (1-pct)
+        just being a multiplicative variant). User control via Relevance
+        + Novelty already covers the "niche but relevant" case naturally.
+        Serendipity@K metric is kept in evaluation/metrics.py.
 
         Returns top-N rows of self.games_df augmented with per-signal scores.
         """
@@ -289,7 +295,6 @@ class VectorBasedRecommender:
         w_rel = float(weights.get("relevance", weights.get("tag_match", 5)))
         w_div = float(weights.get("diversity", 5))
         w_nov = float(weights.get("novelty", 5))
-        w_ser = float(weights.get("serendipity", 5))
 
         cand_rows = [self.appid_to_idx[a] for a in candidate_appids if a in self.appid_to_idx]
         cand_appids = [self.idx_to_appid[r] for r in cand_rows]
@@ -310,28 +315,22 @@ class VectorBasedRecommender:
             pop = self.popularity[cand_rows]
             probs = np.maximum(pop / max(pop.sum(), 1e-12), 1e-12)
             nov_raw = -np.log2(probs)
-            pct = np.argsort(np.argsort(pop)) / max(len(pop) - 1, 1)
-            ser_raw = rel * (1.0 - pct)
         else:
             nov_raw = np.full(len(cand_rows), 0.5, dtype=np.float32)
-            ser_raw = np.zeros(len(cand_rows), dtype=np.float32)
         nov = _minmax(nov_raw)
-        ser = _minmax(ser_raw)
 
-        # Center novelty/serendipity to [-1, +1]: niche/serendipitous = +1, popular = -1
+        # Center novelty to [-1, +1]: niche = +1, popular = -1
         nov_centered = (2.0 * nov - 1.0).astype(np.float32)
-        ser_centered = (2.0 * ser - 1.0).astype(np.float32)
 
         # Slider -> signed modifier in (-1, +1). 5 = neutral.
         nov_mod = _sigmoid_mod(w_nov)
-        ser_mod = _sigmoid_mod(w_ser)
         div_mod = _sigmoid_mod(w_div)
 
         # Relevance keeps positive-only semantics (slider scales how strongly
-        # cosine fit matters). Novelty/serendipity contribute signed terms
-        # whose direction depends on whether the slider is above or below 5.
+        # cosine fit matters). Novelty contributes a signed term whose
+        # direction depends on whether the slider is above or below 5.
         rel_contrib = (w_rel / 10.0) * rel
-        base = rel_contrib + 0.5 * nov_mod * nov_centered + 0.5 * ser_mod * ser_centered
+        base = rel_contrib + 0.5 * nov_mod * nov_centered
 
         # Diversity via MMR: only kicks in when div slider is above 5
         # (positive modifier). Below 5 -> no penalty (pure base ordering).
@@ -355,7 +354,6 @@ class VectorBasedRecommender:
         out = self.games_df.loc[out_appids].copy()
         out["relevance_score"] = rel[selected]
         out["novelty_score"] = nov[selected]
-        out["serendipity_score"] = ser[selected]
         out["base_score"] = base[selected]
         # Preserve old column name for back-compat with the existing UI
         out["tag_match_score"] = rel[selected]

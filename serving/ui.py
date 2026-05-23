@@ -12,22 +12,26 @@ from langchain.schema.messages import HumanMessage, SystemMessage, AIMessage
 
 
 def render_sidebar() -> dict:
-    """Sidebar weight sliders (4 axes) + preset buttons.
+    """Sidebar weight sliders (3 axes) + preset buttons.
 
     Returns the dict consumed by rerank_candidates / rerank_node:
-    {"relevance", "diversity", "novelty", "serendipity"} each 0-10.
+    {"relevance", "diversity", "novelty"} each 0-10.
+
+    Note: Serendipity slider was removed (M11) — it was redundant with
+    Novelty (both popularity-based). Relevance + Novelty combination
+    already covers the "niche but relevant" effect naturally.
     """
     from pipeline.game_rec.config import load_config
     presets = load_config()["rerank"]["presets"]
 
     # session_state holds the live slider values; presets just update them
     defaults = presets["beginner"]
-    for k in ("relevance", "diversity", "novelty", "serendipity"):
-        st.session_state.setdefault(f"w_{k}", defaults[k])
+    for k in ("relevance", "diversity", "novelty"):
+        st.session_state.setdefault(f"w_{k}", defaults.get(k, 5))
 
     with st.sidebar:
         st.header("재정렬 가중치")
-        st.caption("0-10 점수. 4개 신호를 어떻게 균형 잡을지 정합니다.")
+        st.caption("0-10 점수. 3개 신호 (관련도/다양성/새로움) 를 어떻게 균형 잡을지 정합니다. Diversity/Novelty는 5가 중립.")
 
         st.markdown("**프리셋**")
         c1, c2, c3 = st.columns(3)
@@ -43,15 +47,15 @@ def render_sidebar() -> dict:
             "relevance":   st.slider("Relevance — 쿼리 일치", 0, 10, key="w_relevance"),
             "diversity":   st.slider("Diversity — 다양성",     0, 10, key="w_diversity"),
             "novelty":     st.slider("Novelty — 새로움",       0, 10, key="w_novelty"),
-            "serendipity": st.slider("Serendipity — 의외성",   0, 10, key="w_serendipity"),
         }
         return weights
 
 
 def _apply_preset(preset: dict) -> None:
     """Sync session state with a preset's values, then rerun for redraw."""
-    for k, v in preset.items():
-        st.session_state[f"w_{k}"] = v
+    for k in ("relevance", "diversity", "novelty"):
+        if k in preset:
+            st.session_state[f"w_{k}"] = preset[k]
     st.rerun()
 
 
