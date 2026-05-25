@@ -25,12 +25,13 @@ from pipeline.game_rec.agent.nodes import (
 )
 
 
-class GraphState(TypedDict):
+class GraphState(TypedDict, total=False):
     user_query: str
     parsed_json: dict
     rerank_weights: dict
     candidate_appids: List[int]
     query_vector: np.ndarray
+    vibe_vector: np.ndarray   # hybrid 모드에서만 채워짐
     final_results: Any  # Can be DataFrame or final string
 
 
@@ -68,8 +69,10 @@ def build_graph(recommender, llm, top_n_rerank: int = 5):
         appids = state['candidate_appids']
         query_vec = state['query_vector']
         weights = state['rerank_weights']
+        vibe_vec = state.get('vibe_vector')   # hybrid에만 존재
         state['final_results'] = recommender.rerank_candidates(
-            appids, query_vec, weights, top_n=top_n_rerank
+            appids, query_vec, weights, top_n=top_n_rerank,
+            vibe_vector=vibe_vec,
         )
         return state
 

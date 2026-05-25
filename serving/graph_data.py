@@ -93,6 +93,27 @@ def _game_counts_per_tag() -> dict[str, int]:
     return out
 
 
+def _cluster_names(
+    tag_names: list[str],
+    clusters: np.ndarray,
+    counts: dict[str, int],
+) -> dict[int, str]:
+    """For each cluster, generate a short label from its top 2 tags by game count.
+
+    Returns e.g. {0: "Action · RPG", 1: "Indie · Casual", ...}.
+    """
+    by_cluster: dict[int, list[tuple[str, int]]] = {}
+    for tag, cid in zip(tag_names, clusters):
+        cid_int = int(cid)
+        by_cluster.setdefault(cid_int, []).append((tag, counts.get(tag, 0)))
+    out: dict[int, str] = {}
+    for cid, items in by_cluster.items():
+        items.sort(key=lambda x: -x[1])
+        top = [t for t, _ in items[:2]]
+        out[cid] = " · ".join(top) if top else f"Cluster {cid}"
+    return out
+
+
 def load_graph(top_k_games: int = 5, neighbor_k: int = 5) -> dict[str, Any]:
     """Return renderer-agnostic graph data.
 
@@ -100,8 +121,8 @@ def load_graph(top_k_games: int = 5, neighbor_k: int = 5) -> dict[str, Any]:
     -------
     {
         "nodes": [
-            {"id": tag, "cluster": int, "color": hex, "size": int,
-             "top_games": list[str], "n_games": int}, ...
+            {"id": tag, "cluster": int, "cluster_name": str, "color": hex,
+             "size": int, "top_games": list[str], "n_games": int}, ...
         ],
         "edges": [{"source": tag1, "target": tag2, "weight": float}, ...]
     }
@@ -124,6 +145,7 @@ def load_graph(top_k_games: int = 5, neighbor_k: int = 5) -> dict[str, Any]:
 
     top_games = _load_top_games(k=top_k_games)
     counts = _game_counts_per_tag()
+    cnames = _cluster_names(tag_names, clusters, counts)
 
     # Normalize sizes for visualization
     raw_counts = np.array([counts.get(t, 1) for t in tag_names], dtype=float)
@@ -138,6 +160,7 @@ def load_graph(top_k_games: int = 5, neighbor_k: int = 5) -> dict[str, Any]:
         nodes.append({
             "id": tag,
             "cluster": c,
+            "cluster_name": cnames.get(c, f"Cluster {c}"),
             "color": cluster_color(c),
             "size": float(norm[i]),
             "n_games": int(counts.get(tag, 0)),

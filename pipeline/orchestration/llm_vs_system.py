@@ -85,7 +85,10 @@ def run_our_system(
         return []
     candidates = result["candidates"]
     qv = result["query_vector"]
-    final = recommender.rerank_candidates(candidates, qv, weights, top_n=5)
+    vv = result.get("vibe_vector")   # hybrid 모드만 채워짐
+    final = recommender.rerank_candidates(
+        candidates, qv, weights, top_n=5, vibe_vector=vv,
+    )
     if final.empty:
         return []
     return [int(a) for a in final.index.tolist()]

@@ -10,6 +10,16 @@ The JSON object must have the following schema:
 
 If the user's query is a general conversation, the JSON should be `{{"mode": "general"}}`.
 
+**IMPORTANT — Genre Keyword Lock 원칙**:
+
+쿼리에 **장르명**(예: 로그라이크, 메트로배니아, FPS, 잠입, RPG, JRPG, 픽셀, 농장, 리듬, 호러, 오픈월드, 협동, 전략, 서바이벌, 픽셀 그래픽 등 — Steam에서 흔히 쓰이는 정규화 태그명에 해당하는 모든 한국어/영어 keyword)이 명시되면:
+
+1. 반드시 해당 canonical tag(소문자, 하이픈 형태 — 예: `rogue-like`, `souls-like`, `first-person-shooter`, `pixel-graphics`)를 `target_tags`에 **`"locked": true`** 와 함께 포함. weight는 1.0으로 두세요 (실제 가중치는 retriever가 다른 태그 수에 따라 동적으로 계산).
+2. 함께 등장한 vibe 부사구(예: "짧게 즐기는", "감성적인", "어두운", "귀여운")는 별도로 `phrases`에 포함하고, 그 분위기에 해당하는 `target_tags`는 locked 없이 weight 1.0으로 추가.
+3. 장르 신호와 vibe 신호를 둘 다 살리는 게 핵심 — locked tag는 retriever에서 (vibe 신호 합) × 비율(기본 2.0)로 가중치 부여되어 항상 vibe 신호의 2배가 됨.
+
+이 원칙의 근거: tag_vocab은 Steam community vote 기반 정규화 태그라 객관적 ground truth. lock은 사람이 임의 weight를 정하는 게 아니라 "장르 명시면 vibe보다 항상 2배 우세"라는 비율 원칙만 명시 — 실제 weight는 비례 계산.
+
 Here are some examples:
 
 ---
@@ -35,6 +45,32 @@ JSON:
   "phrases": ["dark fantasy mood"],
   "target_tags": [{{"name": "Dark Fantasy", "weight": 1.0}}],
   "avoid_tags": ["horror"],
+  "constraints": {{}}
+}}
+```
+---
+Question: 한 판 한 판 짧게 즐길 수 있는 로그라이크
+JSON:
+```json
+{{
+  "mode": "vibe",
+  "games": [],
+  "phrases": ["short bite-sized sessions"],
+  "target_tags": [{{"name": "rogue-like", "weight": 1.0, "locked": true}}, {{"name": "short", "weight": 1.0}}],
+  "avoid_tags": [],
+  "constraints": {{}}
+}}
+```
+---
+Question: 픽셀 RPG인데 감성적인 거
+JSON:
+```json
+{{
+  "mode": "vibe",
+  "games": [],
+  "phrases": ["emotional narrative"],
+  "target_tags": [{{"name": "pixel-graphics", "weight": 1.0, "locked": true}}, {{"name": "rpg", "weight": 1.0, "locked": true}}],
+  "avoid_tags": [],
   "constraints": {{}}
 }}
 ```

@@ -20,4 +20,5 @@ def hybrid_node(state, recommender):
     result = recommender.recommend_hybrid(expanded)
     state['candidate_appids'] = result.get("candidates", [])
     state['query_vector'] = result.get("query_vector")
+    state['vibe_vector'] = result.get("vibe_vector")
     return state

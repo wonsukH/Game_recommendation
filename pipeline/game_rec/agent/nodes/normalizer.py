@@ -76,25 +76,47 @@ def find_best_match(query: str, choices: List[str], threshold: float = 0.3) -> s
         return query
 
 def game_name_normalizer_node(state: Dict[str, Any], recommender) -> Dict[str, Any]:
-    """
-    Normalizes game names parsed from user query to their canonical titles
-    using fuzzy string matching.
+    """Normalize parser-emitted entities to canonical forms used inside the system.
+
+    Two responsibilities:
+      1. Game names — fuzzy-match parser output to canonical Steam titles
+         (e.g. "Dark Souls 3" → "DARK SOULS III"). Roman ↔ Arabic handled.
+      2. Tag names — map parser output to vocab entries (e.g. parser emits
+         "rogue-like" but vocab has "roguelike"). Without this normalize the
+         tag is silently dropped at lookup time and the lock has no effect.
+
+    Centralising both keeps the contract "after this node, all entities are
+    canonical" — downstream nodes (router, recommender) can rely on it.
     """
     parsed_json = state.get('parsed_json', {})
+
+    # 1) 게임명 normalize (기존 책임)
     game_names_to_normalize = parsed_json.get('games', [])
+    if game_names_to_normalize:
+        canonical_titles = recommender.games_df['game_title'].tolist()
+        normalized_games = [find_best_match(g, canonical_titles) for g in game_names_to_normalize]
+        parsed_json['games'] = normalized_games
+        log.info("normalized game names: %s -> %s", game_names_to_normalize, normalized_games)
 
-    if not game_names_to_normalize:
-        return state
+    # 2) 태그명 normalize (parser ↔ vocab format drift 안전망)
+    target_tags = parsed_json.get('target_tags', [])
+    if target_tags:
+        for tag_info in target_tags:
+            original = tag_info.get('name')
+            if not original:
+                continue
+            canonical = recommender._resolve_tag(original)
+            if canonical and canonical != original:
+                log.info("normalized tag: %s -> %s", original, canonical)
+                tag_info['name'] = canonical
 
-    canonical_titles = recommender.games_df['game_title'].tolist()
-    
-    normalized_games = []
-    for game_name in game_names_to_normalize:
-        best_match = find_best_match(game_name, canonical_titles)
-        normalized_games.append(best_match)
-    
-    state['parsed_json']['games'] = normalized_games
-    
-    log.info("normalized game names: %s -> %s", game_names_to_normalize, normalized_games)
-    
+    avoid_tags = parsed_json.get('avoid_tags', [])
+    if avoid_tags:
+        normalized_avoid = []
+        for tag_name in avoid_tags:
+            canonical = recommender._resolve_tag(tag_name)
+            normalized_avoid.append(canonical if canonical else tag_name)
+        parsed_json['avoid_tags'] = normalized_avoid
+
+    state['parsed_json'] = parsed_json
     return state

@@ -490,23 +490,28 @@ python -m pipeline.orchestration.llm_vs_system --preset beginner
    - **우리 시스템**: parser → normalizer → similar/vibe/hybrid → rerank → top 5 appids
    - **순수 LLM**: Gemini Pro에 "Recommend 5 Steam games for: {query}" prompt → 응답 파싱
    - LLM 응답의 게임 이름을 `find_best_match` (Jaccard 0.5 threshold)로 우리 데이터 appid에 매핑
-3. **메트릭** (전부 label-free):
+3. **내부 ablation용 메트릭** (label-free, 측정 가능):
    - `overlap@5` = $\frac{|A \cap B|}{5}$
-   - `llm_existence_rate` = $\frac{|\{a \in \text{LLM} : a \neq -1\}|}{5}$ (1.0 = no hallucination)
+   - `llm_existence_rate` = $\frac{|\{a \in \text{LLM} : a \neq -1\}|}{5}$ (1.0 - 이 값 = Pool Coverage Miss)
    - `our_avg_pop`, `llm_avg_pop`
    - `our_ild`, `llm_ild`
-4. **출력**: `outputs/llm_vs_system.csv` (per-query) + `.md` (aggregate + per-query)
+4. **외부 어필 metric** (`pipeline/orchestration/intuitive_metrics.py`):
+   - **Genre Precision**: 시스템 추천이 쿼리 카테고리 태그 보유 비율 (Steam vote 기반 객관)
+   - **True Hallucination**: `scripts/check_true_hallucination.py` — Pool Miss 게임을 Steam Storefront API로 cross-check
+5. **출력**: `outputs/llm_vs_system.csv` + `.md`, `outputs/intuitive_metrics.md`
 
-**30 query 결과 (입문자 프리셋, 본 레포 평가)**:
+**최신 결과 (balanced 프리셋, Hybrid 2-stage + parser lock 동적 weight + tag alias 매핑 적용 후)**:
 
-| 메트릭 | 값 |
-|---|---|
-| `overlap@5` | 0.060 |
-| `llm_existence_rate` | 0.987 |
-| `our_avg_pop` | 6.2M |
-| `llm_avg_pop` | 5.4M |
-| `our_ild` | 0.070 |
-| `llm_ild` | 0.089 |
+| 메트릭 | LLM 단독 | 시스템 |
+|---|---|---|
+| Pool Coverage Miss | 7.3% | **0.0%** |
+| True Hallucination | ~0% (Alan Wake 2 1건만 Steam API miss) | 0% |
+| Genre Precision | — | **90.7%** (76.7% → 90.7%, 3 fix 누적) |
+| 내부 — overlap@5 | baseline | 0.020 |
+| 내부 — our_avg_pop | 5.24M | 1.24M |
+| 내부 — our_ild | 0.088 | 0.069 |
+
+> LLM-as-Judge metric은 시도했지만 LLM이 niche indie game을 모를 때 unfair (시스템 추천 정통 roguelike 5개를 LLM에 직접 물어 검증 → 2/5 unknown). 별도 portfolio 어필 지표에서 의도적 제외 (`ISSUES.md` #16 참조).
 
 ---
 

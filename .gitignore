@@ -28,9 +28,15 @@ var/
 wheels/
 share/python-wheels/
 *.egg-info/
+game_recommendation.egg-info/
 .installed.cfg
 *.egg
 MANIFEST
+
+# Portfolio working folder — never commit (use PDF export for sharing externally)
+portfolio/
+*.pptx
+*.bak.pptx
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

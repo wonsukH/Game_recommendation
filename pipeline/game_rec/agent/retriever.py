@@ -89,28 +89,79 @@ class VectorBasedRecommender:
             self.faiss_index = None
             self.popularity = None
 
-    def expand_query_tags(self, parsed_json, top_k=5):
+    def _resolve_tag(self, name: str) -> str | None:
+        """Map parser-emitted tag name to actual vocab entry.
+
+        Handles hyphen variants (e.g. parser outputs `rogue-like` but vocab
+        has `roguelike`). Returns the canonical vocab name, or None if no
+        match. This makes the parser robust to small format drift.
+        """
+        if name in self.tag_to_idx:
+            return name
+        target = name.replace('-', '').replace('_', '').lower()
+        # Build cache on first call
+        if not hasattr(self, '_tag_alias_cache'):
+            self._tag_alias_cache = {
+                t.replace('-', '').replace('_', '').lower(): t
+                for t in self.tag_to_idx
+            }
+        return self._tag_alias_cache.get(target)
+
+    def expand_query_tags(self, parsed_json, top_k=5, lock_ratio: float = 2.0):
+        """Expand query with semantically near tags.
+
+        - phrase vectors (via W_align): weight 1.0 each (non-lock)
+        - non-locked target_tags: parser-given weight (default 1.0)
+        - locked target_tags: dynamic weight = max(non_lock_sum * lock_ratio, default)
+          → lock이 항상 비-lock 신호의 lock_ratio배 우세 보장 (비율 일정)
+        Each vector L2-normalized before weighted sum.
+        """
         if self.tag_vecs is None: return parsed_json
-        query_vectors = []
         existing_tags = {t.get('name') for t in parsed_json.get('target_tags', [])}
 
+        # Collect non-lock contributions first (phrase + non-locked target_tags)
+        non_lock_vecs = []  # list of (unit_vec, weight)
         if self.W_align is not None and parsed_json.get('phrases'):
             try:
                 text_embeddings = self.embeddings.embed_documents(parsed_json['phrases'])
                 for emb in text_embeddings:
                     projected_vec = np.dot(np.array(emb).astype('float32'), self.W_align)
-                    query_vectors.append(projected_vec)
+                    n = np.linalg.norm(projected_vec)
+                    if n > 0 and np.all(np.isfinite(projected_vec)):
+                        non_lock_vecs.append((projected_vec / n, 1.0))
             except Exception as e:
                 log.exception("phrase embedding or projection failed: %s", e)
 
+        lock_units = []  # list of unit_vec for locked tags
+        # Assumes normalizer node已 canonicalized tag names.
+        # _resolve_tag remains as belt-and-suspenders for direct callers
+        # (e.g. eval scripts that bypass the graph).
         for tag_info in parsed_json.get('target_tags', []):
-            tag_name = tag_info.get('name')
-            if tag_name in self.tag_to_idx:
-                query_vectors.append(self.tag_vecs[self.tag_to_idx[tag_name]])
+            name = self._resolve_tag(tag_info.get('name', ''))
+            if not name:
+                continue
+            tag_vec = self.tag_vecs[self.tag_to_idx[name]]
+            n = np.linalg.norm(tag_vec)
+            if n <= 0 or not np.all(np.isfinite(tag_vec)):
+                continue
+            unit = tag_vec / n
+            if bool(tag_info.get('locked')):
+                lock_units.append(unit)
+            else:
+                w = float(tag_info.get('weight', 1.0))
+                if np.isfinite(w) and w > 0:
+                    non_lock_vecs.append((unit, w))
 
-        if not query_vectors: return parsed_json
+        if not non_lock_vecs and not lock_units:
+            return parsed_json
 
-        final_query_vector = np.mean(query_vectors, axis=0).reshape(1, -1)
+        # Dynamic lock weight: 항상 비-lock 합의 lock_ratio배 (최소값 보장)
+        non_lock_sum = sum(w for _, w in non_lock_vecs)
+        per_lock_weight = max(non_lock_sum * lock_ratio, 2.0) if lock_units else 0.0
+
+        weighted_vecs = list(non_lock_vecs) + [(u, per_lock_weight) for u in lock_units]
+        combined = np.sum([v * w for v, w in weighted_vecs], axis=0)
+        final_query_vector = combined.reshape(1, -1)
         similarities = cosine_similarity(final_query_vector, self.tag_vecs)
         sorted_indices = np.argsort(similarities[0])[::-1]
         
@@ -128,37 +179,58 @@ class VectorBasedRecommender:
             
         return expanded_json
 
-    def _create_query_vector(self, parsed_json):
+    def _create_query_vector(self, parsed_json, lock_ratio: float = 2.0):
+        """Build a query vector as a weighted sum of L2-normalized tag vectors.
+
+        - non-locked target_tags: parser-given weight (default 1.0)
+        - locked target_tags: dynamic weight = max(non_lock_sum * lock_ratio, 2.0)
+          → 명시 lock이 다른 태그 합의 lock_ratio배 우세 (비율 일정)
+        """
         if self.tag_vecs is None: return np.zeros(1)
         final_vector = np.zeros(self.tag_vecs.shape[1], dtype=np.float32)
-        
+
         tag_infos = parsed_json.get('target_tags', [])
         if not tag_infos:
             return final_vector
 
-        for tag_info in tag_infos:
-            tag_name = tag_info.get('name')
-            if tag_name in self.tag_to_idx:
-                weight = tag_info.get('weight', 1.0)
-                # NaN/Inf check for weight
-                if not np.isfinite(weight):
-                    log.warning("invalid weight '%s' for tag '%s'. skipping.", weight, tag_name)
+        # Separate locked vs non-locked + collect units
+        non_lock_items = []   # (unit, weight)
+        lock_units = []       # unit
+        for ti in tag_infos:
+            name = self._resolve_tag(ti.get('name', ''))  # hyphen alias 매핑
+            if not name:
+                continue
+            tv = self.tag_vecs[self.tag_to_idx[name]]
+            if not np.all(np.isfinite(tv)):
+                continue
+            n = float(np.linalg.norm(tv))
+            if n <= 0:
+                continue
+            unit = tv / n
+            if bool(ti.get('locked')):
+                lock_units.append(unit)
+            else:
+                w = float(ti.get('weight', 1.0))
+                if not np.isfinite(w) or w <= 0:
                     continue
+                non_lock_items.append((unit, w))
 
-                tag_vector = self.tag_vecs[self.tag_to_idx[tag_name]]
+        # Dynamic lock weight = max(non_lock_sum * lock_ratio, floor)
+        non_lock_sum = sum(w for _, w in non_lock_items)
+        per_lock_weight = max(non_lock_sum * lock_ratio, 2.0) if lock_units else 0.0
 
-                # NaN/Inf check for tag vector
-                if not np.all(np.isfinite(tag_vector)):
-                    log.warning("invalid vector for tag '%s'. skipping.", tag_name)
-                    continue
-
-                final_vector += tag_vector * weight
+        for unit, w in non_lock_items:
+            final_vector += unit * w
+        for unit in lock_units:
+            final_vector += unit * per_lock_weight
 
         for tag_name in parsed_json.get('avoid_tags', []):
             if tag_name in self.tag_to_idx:
-                final_vector -= self.tag_vecs[self.tag_to_idx[tag_name]]
-        
-        # Final check on the resulting vector
+                av = self.tag_vecs[self.tag_to_idx[tag_name]]
+                an = float(np.linalg.norm(av))
+                if an > 0:
+                    final_vector -= av / an
+
         if not np.all(np.isfinite(final_vector)):
             log.error("final query vector contains NaN/Inf values. resetting to zero vector.")
             return np.zeros(self.tag_vecs.shape[1], dtype=np.float32)
@@ -242,31 +314,75 @@ class VectorBasedRecommender:
         return {"candidates": candidate_appids, "query_vector": query_vector}
 
     def recommend_hybrid(self, parsed_json, top_k=200):
-        if not self.faiss_index: return {"error": "Recommender not initialized"}
-        game_title = parsed_json.get('games', [])[0]
-        game_row = self.games_df[self.games_df['game_title'].str.lower() == game_title.lower()]
-        if game_row.empty: return {"error": f"Game '{game_title}' not found."}
-        game_appid = game_row.index[0]
-        base_game_vector = self.game_vecs[self.appid_to_idx[game_appid]]
+        """Hybrid retrieval.
 
-        # Apply expansion logic to the vibe component
+        Stage 1: seed 게임 벡터로 FAISS coarse search (`recommend_similar`과
+        동일한 시리즈 자동 제외 적용) -> Isaac 근처 후보 200개.
+        Stage 2 (rerank): 후보에 대해 rel = min(cos_seed, cos_vibe).
+        둘 다 가까운 게임이 top — vibe direction은 reranker로 전달되는
+        `vibe_vector`를 통해 반영.
+
+        가중 합(seed + vibe) 방식의 옛 hybrid는 vibe vector magnitude가
+        커지면 narrative-adventure 같은 다른 cluster로 끌려가는 문제가
+        있었음. 본 방식은 retrieval pool을 seed 정체성으로 한정하고
+        그 안에서만 vibe direction으로 정렬해 의도 일치도 ↑.
+        """
+        if not self.faiss_index: return {"error": "Recommender not initialized"}
+        seed_titles = parsed_json.get('games', [])
+        if not seed_titles: return {"error": "No seed games"}
+
+        seed_vectors, seed_appids, canonical_titles = [], set(), []
+        for title in seed_titles:
+            row = self.games_df[self.games_df['game_title'].str.lower() == str(title).lower()]
+            if not row.empty:
+                appid = row.index[0]
+                seed_appids.add(appid)
+                seed_vectors.append(self.game_vecs[self.appid_to_idx[appid]])
+                canonical_titles.append(str(row.iloc[0]['game_title']))
+        if not seed_vectors:
+            return {"error": f"Seed games not found: {seed_titles}"}
+
+        # Stage 1: seed로 FAISS coarse retrieval (similar과 동일 패턴)
+        query_vector = np.mean(seed_vectors, axis=0).reshape(1, -1)
+        qn = float(np.linalg.norm(query_vector))
+        if qn > 0:
+            query_vector = query_vector / qn
+
+        excluded = set(seed_appids)
+        prefixes = {p for p in (_series_prefix(t) for t in canonical_titles) if len(p) >= 4}
+        if prefixes:
+            title_lower = self.games_df['game_title'].astype(str).str.lower()
+            mask = pd.Series(False, index=self.games_df.index)
+            for p in prefixes:
+                mask |= title_lower.str.contains(p, na=False, regex=False)
+            excluded |= set(self.games_df.index[mask].tolist())
+            log.info("hybrid franchise filter: prefixes=%s -> %d titles excluded",
+                     prefixes, len(excluded) - len(seed_appids))
+
+        distances, indices = self.faiss_index.search(
+            query_vector, top_k + len(excluded)
+        )
+        candidate_appids = [
+            self.idx_to_appid[i] for i in indices[0]
+            if self.idx_to_appid[i] not in excluded
+        ][:top_k]
+
+        # vibe direction: rerank에서 rel = min(cos_seed, cos_vibe)에 사용
         expanded_json = copy.deepcopy(parsed_json)
         expanded_json = self.expand_query_tags(expanded_json)
-        vibe_vector = self._create_query_vector(expanded_json)
-        
-        weights = parsed_json.get('weights', {"similar_weight": 0.5, "vibe_weight": 0.5})
-        query_vector = (weights['similar_weight'] * base_game_vector + weights['vibe_weight'] * vibe_vector).reshape(1, -1)
+        vibe_vector = self._create_query_vector(expanded_json).reshape(1, -1)
+        vn = float(np.linalg.norm(vibe_vector))
+        if vn > 0:
+            vibe_vector = vibe_vector / vn
 
-        # L2 정규화 추가
-        norm = np.linalg.norm(query_vector)
-        if norm > 0:
-            query_vector = query_vector / norm
+        log.info("hybrid retrieval: %d candidates (seed pool, franchise excluded)", len(candidate_appids))
+        return {
+            "candidates": candidate_appids,
+            "query_vector": query_vector,
+            "vibe_vector": vibe_vector,
+        }
 
-        distances, indices = self.faiss_index.search(query_vector, top_k + 1)
-        candidate_appids = [self.idx_to_appid[i] for i in indices[0] if self.idx_to_appid[i] != game_appid]
-        return {"candidates": candidate_appids[:top_k], "query_vector": query_vector}
-
-    def rerank_candidates(self, candidate_appids, query_vector, weights, top_n=10):
+    def rerank_candidates(self, candidate_appids, query_vector, weights, top_n=10, *, vibe_vector=None):
         """Rerank candidate games with a signed-modifier scheme.
 
         weights: dict with keys among {relevance, diversity, novelty,
@@ -307,8 +423,19 @@ class VectorBasedRecommender:
         if qn > 0:
             qv = qv / qn
 
-        # Raw per-signal scores in [0, 1]
-        rel_raw = V @ qv
+        # Raw per-signal scores in [0, 1].
+        # Hybrid 모드는 vibe_vector가 함께 들어옴 — relevance를
+        # min(cos_seed, cos_vibe)으로 정의해 "둘 다 가까운" 후보가 top.
+        cos_seed = V @ qv
+        if vibe_vector is not None:
+            vv = np.asarray(vibe_vector).reshape(-1).astype(np.float32)
+            vn = float(np.linalg.norm(vv))
+            if vn > 0:
+                vv = vv / vn
+            cos_vibe = V @ vv
+            rel_raw = np.minimum(cos_seed, cos_vibe)
+        else:
+            rel_raw = cos_seed
         rel = _minmax(rel_raw)
 
         if self.popularity is not None:

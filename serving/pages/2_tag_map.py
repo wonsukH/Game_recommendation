@@ -36,7 +36,7 @@ DATA_DIR = REPO_ROOT / "serving" / "data"
 
 st.set_page_config(page_title="태그 의미 지도", page_icon=None, layout="wide")
 st.title("태그 의미 지도")
-st.caption("Steam user-tag를 PPMI+SVD 임베딩(128d) + UMAP으로 2D 투영. 클러스터별로 색칠. 점에 hover 시 해당 태그의 인기 게임 Top 5 표시.")
+st.caption("Steam user-tag를 PPMI+SVD 임베딩(128d) + UMAP으로 2D 투영. 클러스터별로 색칠. 점에 hover 시 해당 태그의 의미적 이웃 (가까운 태그) Top 5 표시.")
 
 
 @st.cache_data(show_spinner=False)
@@ -142,17 +142,34 @@ if data is None:
 
 tag_df, neighbors = data
 games_df = load_games_df()
-top_games = load_top_games_per_tag(k=5)
 
 
-def _format_top_games(tag_name: str) -> str:
-    titles = top_games.get(tag_name, [])
-    if not titles:
-        return "<i>인기 게임 데이터 없음</i>"
-    return "<br>".join(f"&nbsp;{i+1}. {t}" for i, t in enumerate(titles))
+def _format_neighbors(tag_name: str, k: int = 5) -> str:
+    """Format top-k semantic-neighbor tags as a hover HTML snippet.
+
+    Accepts both [(name, score), ...] and [{name/tag, score/cosine_similarity}, ...] forms.
+    """
+    raw = neighbors.get(tag_name, [])
+    if not raw:
+        return "<i>이웃 태그 데이터 없음</i>"
+    pairs: list[tuple[str, float]] = []
+    for nb in raw[:k]:
+        if isinstance(nb, (list, tuple)) and len(nb) >= 2:
+            pairs.append((str(nb[0]), float(nb[1])))
+        elif isinstance(nb, dict):
+            name = nb.get("tag") or nb.get("name") or ""
+            sim = nb.get("cosine_similarity") or nb.get("score") or 0.0
+            if name:
+                pairs.append((str(name), float(sim)))
+    if not pairs:
+        return "<i>이웃 태그 데이터 없음</i>"
+    return "<br>".join(
+        f"&nbsp;{i+1}. {name} <span style='opacity:0.55'>({sim:.2f})</span>"
+        for i, (name, sim) in enumerate(pairs)
+    )
 
 
-tag_df["top_games_str"] = tag_df["tag"].apply(_format_top_games)
+tag_df["neighbors_str"] = tag_df["tag"].apply(_format_neighbors)
 
 
 # ----- Controls --------------------------------------------------------------
@@ -201,7 +218,7 @@ plot_df["color"] = plot_df["cluster"].astype(str)
 
 HOVER_TEMPLATE = (
     "<b>%{customdata[0]}</b>"
-    "<br><br><b>인기 게임 Top 5</b><br>%{customdata[1]}"
+    "<br><br><b>가까운 태그 Top 5</b><br>%{customdata[1]}"
     "<extra></extra>"
 )
 
@@ -209,7 +226,7 @@ fig = px.scatter(
     plot_df,
     x="x", y="y",
     color="color",
-    custom_data=["tag", "top_games_str"],
+    custom_data=["tag", "neighbors_str"],
     text="tag" if show_labels else None,
     labels={"color": "Cluster"},
     height=720,
@@ -230,7 +247,7 @@ if highlight_tags:
         text=sub["tag"],
         textposition="top center",
         name="강조",
-        customdata=np.column_stack([sub["tag"].values, sub["top_games_str"].values]),
+        customdata=np.column_stack([sub["tag"].values, sub["neighbors_str"].values]),
         hovertemplate=HOVER_TEMPLATE,
     )
 
