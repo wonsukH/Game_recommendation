@@ -1,20 +1,17 @@
 """Unified, resumable, budget-capped Steam crawler -> SQLite (data_collection/db.py).
 
-Collects EVERY key-callable preference/quality signal (API audit via
-GetSupportedAPIList). Every HTTP call goes through `api_get`, which reserves against
-the shared daily budget BEFORE the call (reserve-before-call) -> the 100k/day cap can
-never be exceeded (default limit 90k). Resumable via crawl_state cursors; run daily
-(manually or scheduled) to accumulate slowly.
+Collects BEHAVIORAL preference signals PER PERSON (not identity — no country/level/
+persona; "what they play", not "who they are"). For each distinct steamid: owned(full);
+if public -> recently, friends, wishlist, followed, groups, and achievements for owned
+games with playtime >= --ach-floor min. A user is marked `complete` only at the very
+end -> never left half-done (resume re-completes). Per-user cursor checkpoint.
 
-Phases:
-  users  : per distinct steamid -> owned(full); if public -> recently, friends,
-           wishlist, followed, groups, level+badges, summary(country), and
-           achievements for owned games with playtime >= --ach-floor min.
-  games  : per appid seen in owned (or pool) -> appdetails, steamspy, current players,
-           global achievement rarity, schema, reviews(text+votes+weighted+playtime_at_review).
-
-ToU: public profiles only (private -> API returns nothing); official API within cap;
-data stored LOCALLY (gitignored). Stops cleanly when the day's budget is spent.
+Every HTTP call reserves against the shared daily budget BEFORE the call
+(reserve-before-call) -> the 100k/day cap can never be exceeded (default 90k). AIMD
+self-tunes the rate (429 -> slow + backoff; success streak -> speed up, min ~1/s);
+circuit breaker on persistent 429. With --forever: steady ~1 req/s continuously,
+looping the queue (refresh). ToU: public profiles only, official API within cap,
+data stored LOCALLY (gitignored).
 """
 
 from __future__ import annotations
@@ -138,11 +135,8 @@ class Crawler:
         time.sleep(self.sleep)
         gr = (j or {}).get("response", {}).get("groups") or []
         db.upsert_many(self.conn, "user_groups", ["steamid", "gid"], [(sid, g["gid"]) for g in gr])
-        # level (per-user). country/persona done in the bulk 'summaries' phase (100/call).
-        j = self.get(f"{API}/IPlayerService/GetSteamLevel/v1/", {"steamid": sid, "format": "json"})
-        time.sleep(self.sleep)
-        level = (j or {}).get("response", {}).get("player_level")
-        db.upsert_user(self.conn, sid, level=level, public=1, fetched_at=_now())
+        # NOTE: identity/profile metadata (country, level, persona) intentionally NOT
+        # crawled — irrelevant to behavioral recommendation ("what they play", not "who").
         # achievements for meaningfully-played games (playtime >= floor)
         played = [(a, pt) for (_, a, pt, _) in owned if pt >= self.ach_floor and int(a) in pool]
         for appid, _pt in played:
@@ -196,24 +190,6 @@ class Crawler:
         db.set_cursor(self.conn, key, len(steamids), done=True)
         return True
 
-    def run_summaries(self):
-        """BULK pass — country/persona for public users, 100 steamids per call
-        (GetPlayerSummaries supports bulk; the only bulk-able signal we use)."""
-        sids = [r[0] for r in self.conn.execute(
-            "SELECT steamid FROM users WHERE public=1 AND country IS NULL").fetchall()]
-        log.info("summaries phase: %d public users need country (bulk 100/call)", len(sids))
-        try:
-            for b in range(0, len(sids), 100):
-                j = self.get(f"{API}/ISteamUser/GetPlayerSummaries/v2/",
-                             {"steamids": ",".join(sids[b:b + 100]), "format": "json"})
-                time.sleep(self.sleep)
-                for pl in ((j or {}).get("response", {}).get("players") or []):
-                    db.upsert_user(self.conn, pl["steamid"], country=pl.get("loccountrycode"))
-        except db.BudgetExhausted:
-            log.info("BUDGET EXHAUSTED in summaries (today=%d).", db.spent_today(self.conn))
-            return False
-        return True
-
 
 def distinct_steamids(scores: Path, limit: int) -> list[str]:
     order, seen = [], set()
@@ -232,7 +208,6 @@ def main() -> int:
     ap.add_argument("--db", type=Path, default=db.DEFAULT_DB)
     ap.add_argument("--scores", type=Path, default=REPO_ROOT / "outputs" / "user_game_scores.csv")
     ap.add_argument("--data-dir", type=Path, default=REPO_ROOT / "serving" / "data")
-    ap.add_argument("--phase", choices=["users", "summaries"], default="users")
     ap.add_argument("--limit", type=int, default=db.DAILY_LIMIT, help="daily call cap (<100k)")
     ap.add_argument("--seed-today", type=int, default=0, help="calls already spent today outside this DB")
     ap.add_argument("--max-steamids", type=int, default=200000)
@@ -255,18 +230,13 @@ def main() -> int:
     steamids = distinct_steamids(args.scores, args.max_steamids)
 
     def one_pass():
-        if args.phase == "summaries":
-            return cr.run_summaries()
-        d = cr.run_users(steamids, pool)
-        if d:                       # bulk-fill country only after the full user pass completes
-            cr.run_summaries()
-        return d
+        return cr.run_users(steamids, pool)
 
     if not args.forever:
         done = one_pass()
-        log.info("%s phase %s. calls=%d throttle_hits=%d interval=%.2fs counts=%s",
-                 args.phase, "DONE" if done else "paused", cr.calls, cr.throttle_hits, cr.sleep, db.counts(conn))
-        print(json.dumps({"phase": args.phase, "calls_this_run": cr.calls, "throttle_hits": cr.throttle_hits,
+        log.info("users %s. calls=%d throttle_hits=%d interval=%.2fs counts=%s",
+                 "DONE" if done else "paused", cr.calls, cr.throttle_hits, cr.sleep, db.counts(conn))
+        print(json.dumps({"calls_this_run": cr.calls, "throttle_hits": cr.throttle_hits,
                           "final_interval": round(cr.sleep, 2), "spent_today": db.spent_today(conn),
                           "counts": db.counts(conn)}))
         conn.close()
