@@ -194,7 +194,11 @@ class Crawler:
         return True
 
 
-def distinct_steamids(scores: Path, limit: int) -> list[str]:
+def distinct_steamids(scores: Path, limit: int, seed: int = 42) -> list[str]:
+    """Distinct review-author steamids, SEED-SHUFFLED so the early-crawled sample is
+    representative (CSV order groups reviewers by game = biased). Deterministic seed
+    -> stable order across restarts -> the resume cursor stays valid."""
+    import random
     order, seen = [], set()
     with open(scores, encoding="utf-8-sig") as f:
         for row in csv.DictReader(f):
@@ -203,6 +207,7 @@ def distinct_steamids(scores: Path, limit: int) -> list[str]:
                 seen.add(s); order.append(s)
             if len(order) >= limit:
                 break
+    random.Random(seed).shuffle(order)
     return order
 
 
@@ -214,7 +219,7 @@ def main() -> int:
     ap.add_argument("--limit", type=int, default=db.DAILY_LIMIT, help="daily call cap (<100k)")
     ap.add_argument("--seed-today", type=int, default=0, help="calls already spent today outside this DB")
     ap.add_argument("--max-steamids", type=int, default=200000)
-    ap.add_argument("--ach-floor", type=float, default=30.0, help="min playtime(min) to crawl a game's achievements")
+    ap.add_argument("--ach-floor", type=float, default=10.0, help="min playtime(min) to crawl a game's achievements")
     ap.add_argument("--sleep", type=float, default=1.0, help="START interval (~1 req/s, steady); AIMD adjusts (min 0.7s)")
     ap.add_argument("--min-sleep", type=float, default=0.7, help="fastest interval AIMD may reach (cap the speed-up)")
     ap.add_argument("--forever", action="store_true", help="run continuously: loop the queue forever (refresh passes)")
