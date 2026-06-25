@@ -40,11 +40,13 @@
 
 
 ## (실행) 개인화 hold-out 결과 — run `pers_smoke`
+- 왜: §1 가설(전체 라이브러리 CF > LLM-with-library)의 첫 소표본 스모크 — 파이프라인·지표 동작 점검용.
 - 12 users. recall@20: CF=0.139, LLM=0.000, POP=0.111, ORACLE=1.000
 - 상세: outputs/experiments/pers_smoke/report.md
 
 
 ## (실행) 개인화 hold-out 결과 — run `personalization_full`
+- 왜: §1 사전등록 결정시험 본런 — CF>LLM(paired CI가 0 제외)이면 개인화 재설계 진행, 포함이면 보류.
 - 78 users. recall@20: CF=0.293, LLM=0.173, POP=0.034, ORACLE=1.000
 - CF−LLM recall@20 = +0.120 [+0.049,+0.192] (유의); LLM pool-miss 4.7%
 - 상세: outputs/experiments/personalization_full/report.md
@@ -56,6 +58,7 @@
 
 
 ## (실행) 개인화 hold-out 결과 — run `_pathcheck`
+- 왜: (정리·2) 실험을 outputs/→experiments/로 이동한 뒤, 새 경로로 기록·재생성이 정상인지 검증하는 점검 run.
 - 6 users. recall@20: CF=0.333, LLM=0.000, POP=0.083, ORACLE=1.000
 - 상세: experiments/_pathcheck/report.md
 
@@ -107,6 +110,7 @@
 
 
 ## (데이터 스케일링) 유저 수 축 — run `datascaling_users`
+- 왜: 데이터 레버를 축별로 분해 — "유저 수"를 늘리면 CF recall이 오르는지(라이브러리 풍부도 축과 분리해) 측정.
 - recall@20 by users: 35350=0.192, 70701=0.246, 106052=0.254, 141403=0.268
 - 25→100% Δ=+0.076 (SIG), monotonic=True. 라이브러리 풍부도(GetOwnedGames)는 미측정.
 
@@ -155,12 +159,6 @@
 ## (데이터 보강 D3) 저-support shrinkage — run `shrinkage_20260625_013858`
 - recall@20 by λ: 0=0.2500, 1=0.2500, 3=0.2433, 5=0.2433, 10=0.2500
 - best λ=0, **adopt=False** (사전등록: Δ>0 & CI 0 제외 시만). 미채택 → 정직히 드롭(기존 conditional-cosine+min_cooc로 충분).
-
-
-## (데이터 보강 D4) 라이브러리 풍부도 레버 — run `libraryrichness_20260625_014020`
-- recall@20 by profile size: p1=nan, p2=nan, p3=nan, p5=nan, p8=nan
-- p1→8 Δ=+0.0000 (ns), monotonic=True, last-step 수확체감.
-- 결론: 풍부도가 효과 제한적. 실현 평균 3.05가 캡(10)보다 진짜 병목.
 
 
 ## (데이터 보강 D4) 라이브러리 풍부도 레버 — run `libraryrichness_20260625_014052`
@@ -228,7 +226,7 @@
 - reviews(opt-in 최저우선): appreviews 페이지네이션(author 귀속, per-user 리뷰 API 부재). page-cap으로 1게임 예산독점 방지.
 
 **예산 강화**: reserve를 HTTP attempt마다(429 재시도도 카운트) → 100k 하드캡 under-count 불가(구 코드는 get당 1예약이라 재시도 누락 위험).
-**검증**: db.py 스모크 통과(20테이블, reserve 5/5, 인터닝 ACH_A→1, lossless join 'First Blood'/'Win a round'/1.3%/unlocktime 재구성). 단기 라이브크롤(--limit 400)로 실데이터 end-to-end 확인 중.
+**검증**: db.py 스모크 통과(20테이블, reserve 5/5, 인터닝 ACH_A→1, lossless join 'First Blood'/'Win a round'/1.3%/unlocktime 재구성). 단기 라이브크롤(--limit 400)로 실데이터 end-to-end 확인(→ 아래 '(Pillar 2 검증) 큐 순서 버그' 항목에서 발견·수정·재검).
 
 **리뷰 phase 제거(사용자 결정)**: 스팀에 per-user 리뷰 이력 API 없음(appreviews=게임별 귀속만, 열거 불가) → "유저별 리뷰" 의도 충족 불가 + voted_up은 playtime과 중복(저가치). reviews/review_progress 테이블·코드 전부 제거(17테이블). 시드는 구 CSV steamid 부트스트랩(셔플)+친구 스노볼 유지(랜덤 accountID+GetPlayerSummaries 벌크 스크리닝도 검토했으나 CSV가 적중률↑·구현단순으로 채택). 랜덤발견은 향후 시드 고갈 시 옵션.
 
@@ -240,3 +238,9 @@
 - "편향이 측정되면 처음부터?" → **아니오**: steam.db는 append-only, CF아티팩트는 오프라인 재빌드(API 0). 보정=유저 증분추가 or 재가중(데이터 0) or 수용+보고. 재시작 강제는 스키마/필드 오류뿐(이미 닫음).
 - "얼마나 필요한지 모름?" → **포화곡선으로 멈춤**(b-검증과 동일 방법: recall vs N, 기울기 평평→정지). 타깃 가능(과소커버 게임=유한 목록의 소유자만), 메터링(≤90k/day), 재가중은 데이터0, 또는 갭 작으면 그냥 보고(자기비판적 평가가 산출물). 곡선의 기울기를 *읽으며* 멈추는 것이지 총량을 추측하지 않음.
 **시드 대안(기록)**: 랜덤 accountID(=76561197960265728+random) → GetPlayerSummaries 벌크100 스크리닝(communityvisibilitystate=3만 적재; persona/country 미저장) → 큐. 한계: state=3여도 "게임 세부" 별도 비공개 가능(최종판정 GetOwnedGames), 랜덤=균일인구라 휴면多·적중률↓·라이브러리 얇음(CF 신호밀도↓). 스노볼이 동질성으로 활성층 끌어올려 상쇄하나 스노볼 자체는 연결성분 편향. → 시드고갈/대표성 필요 시 꺼낼 카드.
+
+## (Pillar 2 검증) 큐 순서 버그 발견·수정 + 실데이터 end-to-end 확인
+**왜 적나**: 위 스키마 항목이 "확인 중"에서 멈춰 있어, 검증 중 실제로 발견·수정한 버그와 최종 결과를 기록(행동마다 이유).
+**버그 발견**: 단기 라이브크롤에서 첫 유저 5명이 전부 playtime 0 / 4명 비공개로 나옴 → 의심. 진단(GetOwnedGames 직접 호출)으로 **파싱 버그 아님** 확인(include_appinfo 0/1 결과 동일). 진짜 원인 = **시드 순서**: `user_queue(steamid INTEGER PRIMARY KEY)`가 steamid를 rowid 별칭으로 만들어 `ORDER BY rowid`가 **steamid 오름차순(=가장 오래된/비공개 많은 계정 먼저)** 으로 크롤되고 있었음.
+**수정**: `seq INTEGER PRIMARY KEY AUTOINCREMENT`로 삽입순서를 steamid와 분리 + 부트스트랩 **시드 셔플 복원**(리뷰 CSV는 게임별로 묶여 편향 → 셔플로 대표성↑). 재크롤 시 첫 유저가 정상 활성계정(level 32, max playtime 21,250)으로 바뀌고 첫 유저부터 업적 발화.
+**최종 검증(실데이터)**: lossless 3중 조인으로 "유저→게임명→업적명/조건/희귀도/시점" 재구성 성공(예: DEFCON의 'Diplomat', 글로벌 1.4%, unlocktime). player_game_ach의 "0해금"(이탈) 행 포착, has_stats 게이팅 동작(업적없는 게임 스킵), throttle_hits=0 @ ~0.7s. db.py 17테이블 스모크 통과(reserve 5/5, 인터닝, lossless join).
