@@ -231,3 +231,12 @@
 **검증**: db.py 스모크 통과(20테이블, reserve 5/5, 인터닝 ACH_A→1, lossless join 'First Blood'/'Win a round'/1.3%/unlocktime 재구성). 단기 라이브크롤(--limit 400)로 실데이터 end-to-end 확인 중.
 
 **리뷰 phase 제거(사용자 결정)**: 스팀에 per-user 리뷰 이력 API 없음(appreviews=게임별 귀속만, 열거 불가) → "유저별 리뷰" 의도 충족 불가 + voted_up은 playtime과 중복(저가치). reviews/review_progress 테이블·코드 전부 제거(17테이블). 시드는 구 CSV steamid 부트스트랩(셔플)+친구 스노볼 유지(랜덤 accountID+GetPlayerSummaries 벌크 스크리닝도 검토했으나 CSV가 적중률↑·구현단순으로 채택). 랜덤발견은 향후 시드 고갈 시 옵션.
+
+## (Pillar 2 확장 논의) 코호트 편향 — 측정·증분보정 전략 (사용자 문답)
+**문제제기(사용자)**: 시드 steamid가 "특정 게임 리뷰"에서 뽑힌 거라 편향 아닐까?
+**측정**: `user_game_scores.csv` = 1.19M행, distinct steamid 171,227, **distinct 게임 44,313**. top1=0.7%/top10=4.6%/top100=20.4%(소수집중 아님, 긴 꼬리). 상위 게임 장르 다양(HELLDIVERS2 슈터/BG3 CRPG/CS2 FPS/Elden Ring ARPG/Terraria 샌드박스/Cyberpunk RPG/TF2/Stardew 시뮬/Clair Obscur 턴제) → **genre-selection 편향은 약함**.
+**잔존 편향(정직)**: (1) 인기/최신 편향(상위가 히트작·RPG多 → 니치/구작/비영어 게임 공동출현 희박), (2) "리뷰 작성자" 편향(몰입·의견·영어권↑), (3) **방법론 핵심**: train·평가 hold-out이 같은 코호트면 편향을 *공유*해 인-코호트 지표로는 일반화 실패가 안 보임.
+**전략**: 시드는 CSV(넓음+적중률↑)+스노볼 유지. P2d에서 **랜덤 accountID OOD hold-out**(genre편향 0)으로 CF recall을 인-코호트 vs 랜덤 비교 → 편향을 *정량화*. 
+- "편향이 측정되면 처음부터?" → **아니오**: steam.db는 append-only, CF아티팩트는 오프라인 재빌드(API 0). 보정=유저 증분추가 or 재가중(데이터 0) or 수용+보고. 재시작 강제는 스키마/필드 오류뿐(이미 닫음).
+- "얼마나 필요한지 모름?" → **포화곡선으로 멈춤**(b-검증과 동일 방법: recall vs N, 기울기 평평→정지). 타깃 가능(과소커버 게임=유한 목록의 소유자만), 메터링(≤90k/day), 재가중은 데이터0, 또는 갭 작으면 그냥 보고(자기비판적 평가가 산출물). 곡선의 기울기를 *읽으며* 멈추는 것이지 총량을 추측하지 않음.
+**시드 대안(기록)**: 랜덤 accountID(=76561197960265728+random) → GetPlayerSummaries 벌크100 스크리닝(communityvisibilitystate=3만 적재; persona/country 미저장) → 큐. 한계: state=3여도 "게임 세부" 별도 비공개 가능(최종판정 GetOwnedGames), 랜덤=균일인구라 휴면多·적중률↓·라이브러리 얇음(CF 신호밀도↓). 스노볼이 동질성으로 활성층 끌어올려 상쇄하나 스노볼 자체는 연결성분 편향. → 시드고갈/대표성 필요 시 꺼낼 카드.
