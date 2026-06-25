@@ -27,9 +27,10 @@ DAILY_LIMIT = 90_000          # < 100k Steam hard cap
 _UTC = timezone.utc
 
 SCHEMA = """
--- users = anonymous behavioral key only (no identity/profile: no country/level/persona).
+-- users = anonymous key + engagement. level = how invested a gamer (kept).
+-- NO identity/locale (country/persona) — irrelevant to behavioral recs.
 CREATE TABLE IF NOT EXISTS users(
-  steamid TEXT PRIMARY KEY, public INTEGER, complete INTEGER DEFAULT 0, fetched_at TEXT);
+  steamid TEXT PRIMARY KEY, level INTEGER, public INTEGER, complete INTEGER DEFAULT 0, fetched_at TEXT);
 CREATE TABLE IF NOT EXISTS owned(
   steamid TEXT, appid INTEGER, playtime_forever REAL, playtime_2weeks REAL,
   PRIMARY KEY(steamid, appid));

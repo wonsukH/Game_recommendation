@@ -1,10 +1,10 @@
 """Unified, resumable, budget-capped Steam crawler -> SQLite (data_collection/db.py).
 
-Collects BEHAVIORAL preference signals PER PERSON (not identity — no country/level/
-persona; "what they play", not "who they are"). For each distinct steamid: owned(full);
-if public -> recently, friends, wishlist, followed, groups, and achievements for owned
-games with playtime >= --ach-floor min. A user is marked `complete` only at the very
-end -> never left half-done (resume re-completes). Per-user cursor checkpoint.
+Collects BEHAVIORAL/ENGAGEMENT signals PER PERSON (not identity — no country/persona).
+For each distinct steamid: owned(full); if public -> recently, friends, wishlist,
+followed, groups, steam level (engagement), and achievements for owned games with
+playtime >= --ach-floor min. A user is marked `complete` only at the very end ->
+never left half-done (resume re-completes). Per-user cursor checkpoint.
 
 Every HTTP call reserves against the shared daily budget BEFORE the call
 (reserve-before-call) -> the 100k/day cap can never be exceeded (default 90k). AIMD
@@ -135,8 +135,11 @@ class Crawler:
         time.sleep(self.sleep)
         gr = (j or {}).get("response", {}).get("groups") or []
         db.upsert_many(self.conn, "user_groups", ["steamid", "gid"], [(sid, g["gid"]) for g in gr])
-        # NOTE: identity/profile metadata (country, level, persona) intentionally NOT
-        # crawled — irrelevant to behavioral recommendation ("what they play", not "who").
+        # steam level = ENGAGEMENT signal (how invested a gamer this is). Kept.
+        # (country/persona = identity/locale -> NOT crawled; irrelevant to behavioral recs.)
+        j = self.get(f"{API}/IPlayerService/GetSteamLevel/v1/", {"steamid": sid, "format": "json"})
+        time.sleep(self.sleep)
+        db.upsert_user(self.conn, sid, level=(j or {}).get("response", {}).get("player_level"))
         # achievements for meaningfully-played games (playtime >= floor)
         played = [(a, pt) for (_, a, pt, _) in owned if pt >= self.ach_floor and int(a) in pool]
         for appid, _pt in played:
