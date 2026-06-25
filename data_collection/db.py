@@ -160,6 +160,23 @@ def upsert_many(conn: sqlite3.Connection, table: str, cols: list[str], rows: lis
     return len(rows)
 
 
+def upsert_user(conn: sqlite3.Connection, steamid: str, **fields) -> None:
+    """Targeted upsert for the `users` row: updates ONLY the given columns, never
+    wiping others (owned/level/summary passes each set different columns). Unlike
+    INSERT OR REPLACE which replaces the whole row."""
+    cols = ["steamid"] + list(fields.keys())
+    vals = [steamid] + list(fields.values())
+    ph = ",".join("?" * len(cols))
+    sets = ",".join(f"{c}=excluded.{c}" for c in fields)
+    conn.execute("BEGIN;")
+    try:
+        conn.execute(f"INSERT INTO users({','.join(cols)}) VALUES({ph}) "
+                     f"ON CONFLICT(steamid) DO UPDATE SET {sets}", vals)
+        conn.execute("COMMIT;")
+    except Exception:
+        conn.execute("ROLLBACK;"); raise
+
+
 def counts(conn: sqlite3.Connection) -> dict:
     out = {}
     for t in ("users", "owned", "recently", "wishlist", "followed", "friends",

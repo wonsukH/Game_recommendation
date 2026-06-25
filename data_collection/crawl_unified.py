@@ -54,16 +54,20 @@ def _now():
 
 
 class Crawler:
-    def __init__(self, conn, key, limit, sleep, ach_floor):
-        self.conn, self.key, self.limit, self.sleep, self.ach_floor = conn, key, limit, sleep, ach_floor
+    def __init__(self, conn, key, limit, sleep, ach_floor, min_sleep=0.2, max_sleep=8.0):
+        self.conn, self.key, self.limit, self.ach_floor = conn, key, limit, ach_floor
+        self.sleep = sleep            # current inter-call interval (AIMD-adapted)
+        self.min_sleep, self.max_sleep = min_sleep, max_sleep
         self.calls = 0
         self.throttle_hits = 0
+        self._ok_streak = 0
 
     def get(self, url, params, store=False):
-        """Reserve-before-call (1 reservation per get, retries don't re-reserve).
-        Returns parsed json on HTTP 200, None on other non-429 errors. On 429 backs
-        off exponentially; if still 429 after backoff raises Throttled (caller must
-        cool down and retry — NEVER treat as 'private'). Raises BudgetExhausted."""
+        """Reserve-before-call (1 reservation per get). Returns json on HTTP 200, None
+        on other non-429 errors. AIMD self-tuning: a 429 multiplicatively SLOWS the
+        steady rate (and exp-backs-off this call); a streak of successes gently SPEEDS
+        it up — so the crawler converges on Steam's allowed rate without hardcoding.
+        Persistent 429 -> raises Throttled (caller cools down; NEVER mark 'private')."""
         if not db.reserve(self.conn, 1, self.limit):
             raise db.BudgetExhausted()
         self.calls += 1
@@ -75,10 +79,16 @@ class Crawler:
                 r = requests.get(url, params=p, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
                 if r.status_code == 429:
                     self.throttle_hits += 1
-                    time.sleep(min(120, 8 * (2 ** attempt)))  # 8,16,32,64,120
+                    self._ok_streak = 0
+                    self.sleep = min(self.max_sleep, self.sleep * 1.7)   # AIMD: slow down
+                    time.sleep(min(120, 8 * (2 ** attempt)))             # exp backoff this call
                     continue
                 if r.status_code != 200:
                     return None
+                self._ok_streak += 1                                     # AIMD: speed up after sustained ok
+                if self._ok_streak >= 25:
+                    self.sleep = max(self.min_sleep, self.sleep * 0.9)
+                    self._ok_streak = 0
                 return r.json()
             except Exception:
                 time.sleep(2)
@@ -91,13 +101,13 @@ class Crawler:
         time.sleep(self.sleep)
         games = (j or {}).get("response", {}).get("games") if j else None
         if games is None:
-            db.upsert_many(self.conn, "users", ["steamid", "public", "fetched_at"], [(sid, 0, _now())])
+            db.upsert_user(self.conn, sid, public=0, fetched_at=_now())
             return  # private/unavailable (still counted the 1 call)
         owned = [(sid, int(g["appid"]), float(g.get("playtime_forever", 0)), float(g.get("playtime_2weeks", 0)))
                  for g in games]
         db.upsert_many(self.conn, "owned",
                        ["steamid", "appid", "playtime_forever", "playtime_2weeks"], owned)
-        db.upsert_many(self.conn, "users", ["steamid", "public", "fetched_at"], [(sid, 1, _now())])
+        db.upsert_user(self.conn, sid, public=1, fetched_at=_now())
 
         # recently
         j = self.get(f"{API}/IPlayerService/GetRecentlyPlayedGames/v1/", {"steamid": sid, "format": "json"})
@@ -128,15 +138,11 @@ class Crawler:
         time.sleep(self.sleep)
         gr = (j or {}).get("response", {}).get("groups") or []
         db.upsert_many(self.conn, "user_groups", ["steamid", "gid"], [(sid, g["gid"]) for g in gr])
-        # level + summary(country)
+        # level (per-user). country/persona done in the bulk 'summaries' phase (100/call).
         j = self.get(f"{API}/IPlayerService/GetSteamLevel/v1/", {"steamid": sid, "format": "json"})
         time.sleep(self.sleep)
         level = (j or {}).get("response", {}).get("player_level")
-        j = self.get(f"{API}/ISteamUser/GetPlayerSummaries/v2/", {"steamids": sid, "format": "json"})
-        time.sleep(self.sleep)
-        pl = ((j or {}).get("response", {}).get("players") or [{}])[0]
-        db.upsert_many(self.conn, "users", ["steamid", "country", "level", "public", "fetched_at"],
-                       [(sid, pl.get("loccountrycode"), level, 1, _now())])
+        db.upsert_user(self.conn, sid, level=level, public=1, fetched_at=_now())
         # achievements for meaningfully-played games (playtime >= floor)
         played = [(a, pt) for (_, a, pt, _) in owned if pt >= self.ach_floor and int(a) in pool]
         for appid, _pt in played:
@@ -149,7 +155,7 @@ class Crawler:
                 db.upsert_many(self.conn, "achievements", ["steamid", "appid", "unlocked", "total"],
                                [(sid, int(appid), done, len(ach))])
 
-    def run_users(self, steamids, pool, cooldown=60, max_throttle_retries=8):
+    def run_users(self, steamids, pool, base_cooldown=300, max_throttle_retries=5):
         key = "phase:users"
         pos, _ = db.get_cursor(self.conn, key)
         log.info("users phase resume pos=%d / %d (today spent=%d)", pos, len(steamids), db.spent_today(self.conn))
@@ -160,13 +166,17 @@ class Crawler:
                 try:
                     self.crawl_user(steamids[i], pool)
                 except Throttled:
+                    # CIRCUIT BREAKER: persistent 429 -> escalating pause, retry SAME user
+                    # (never record false-private). Open circuit after too many.
                     throttle_streak += 1
-                    db.set_cursor(self.conn, key, i)  # checkpoint; retry SAME user (no false-private)
+                    db.set_cursor(self.conn, key, i)
                     if throttle_streak > max_throttle_retries:
-                        log.warning("persistent throttle at pos=%d (streak=%d) — stopping for now", i, throttle_streak)
+                        log.warning("circuit OPEN: persistent throttle at pos=%d (streak=%d) — stop, resume later",
+                                    i, throttle_streak)
                         return False
-                    log.warning("throttled at pos=%d — cooling down %ds (streak=%d)", i, cooldown, throttle_streak)
-                    time.sleep(cooldown)
+                    cd = min(600, base_cooldown * throttle_streak)  # 300s, 600s, ...
+                    log.warning("circuit-break: throttled at pos=%d, pausing %ds (streak=%d)", i, cd, throttle_streak)
+                    time.sleep(cd)
                     continue
                 throttle_streak = 0
                 i += 1
@@ -179,6 +189,24 @@ class Crawler:
             log.info("BUDGET EXHAUSTED at users pos=%d (today=%d). resume tomorrow.", i, db.spent_today(self.conn))
             return False
         db.set_cursor(self.conn, key, len(steamids), done=True)
+        return True
+
+    def run_summaries(self):
+        """BULK pass — country/persona for public users, 100 steamids per call
+        (GetPlayerSummaries supports bulk; the only bulk-able signal we use)."""
+        sids = [r[0] for r in self.conn.execute(
+            "SELECT steamid FROM users WHERE public=1 AND country IS NULL").fetchall()]
+        log.info("summaries phase: %d public users need country (bulk 100/call)", len(sids))
+        try:
+            for b in range(0, len(sids), 100):
+                j = self.get(f"{API}/ISteamUser/GetPlayerSummaries/v2/",
+                             {"steamids": ",".join(sids[b:b + 100]), "format": "json"})
+                time.sleep(self.sleep)
+                for pl in ((j or {}).get("response", {}).get("players") or []):
+                    db.upsert_user(self.conn, pl["steamid"], country=pl.get("loccountrycode"))
+        except db.BudgetExhausted:
+            log.info("BUDGET EXHAUSTED in summaries (today=%d).", db.spent_today(self.conn))
+            return False
         return True
 
 
@@ -199,12 +227,12 @@ def main() -> int:
     ap.add_argument("--db", type=Path, default=db.DEFAULT_DB)
     ap.add_argument("--scores", type=Path, default=REPO_ROOT / "outputs" / "user_game_scores.csv")
     ap.add_argument("--data-dir", type=Path, default=REPO_ROOT / "serving" / "data")
-    ap.add_argument("--phase", choices=["users", "games"], default="users")
+    ap.add_argument("--phase", choices=["users", "summaries"], default="users")
     ap.add_argument("--limit", type=int, default=db.DAILY_LIMIT, help="daily call cap (<100k)")
     ap.add_argument("--seed-today", type=int, default=0, help="calls already spent today outside this DB")
     ap.add_argument("--max-steamids", type=int, default=200000)
     ap.add_argument("--ach-floor", type=float, default=30.0, help="min playtime(min) to crawl a game's achievements")
-    ap.add_argument("--sleep", type=float, default=1.0, help="pause between calls; >=1.0 avoids Steam 429")
+    ap.add_argument("--sleep", type=float, default=0.35, help="START inter-call interval; AIMD self-tunes from here")
     args = ap.parse_args()
 
     key = os.environ.get("STEAM_API_KEY")
@@ -219,9 +247,13 @@ def main() -> int:
     if args.phase == "users":
         steamids = distinct_steamids(args.scores, args.max_steamids)
         done = cr.run_users(steamids, pool)
-        log.info("users phase %s. calls this run=%d. counts=%s",
-                 "DONE" if done else "paused(budget)", cr.calls, db.counts(conn))
-    print(json.dumps({"calls_this_run": cr.calls, "spent_today": db.spent_today(conn), "counts": db.counts(conn)}))
+    else:  # summaries (bulk)
+        done = cr.run_summaries()
+    log.info("%s phase %s. calls this run=%d, throttle_hits=%d, final_interval=%.2fs. counts=%s",
+             args.phase, "DONE" if done else "paused", cr.calls, cr.throttle_hits, cr.sleep, db.counts(conn))
+    print(json.dumps({"phase": args.phase, "calls_this_run": cr.calls, "throttle_hits": cr.throttle_hits,
+                      "final_interval": round(cr.sleep, 2), "spent_today": db.spent_today(conn),
+                      "counts": db.counts(conn)}))
     conn.close()
     return 0
 
