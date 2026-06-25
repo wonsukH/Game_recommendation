@@ -448,6 +448,8 @@ def main() -> int:
     ap.add_argument("--games-chunk", type=int, default=60)
     ap.add_argument("--forever", action="store_true", help="run continuously across days")
     ap.add_argument("--loop-sleep", type=int, default=3600, help="sleep when paused/caught-up (--forever)")
+    ap.add_argument("--stop-at-users", type=int, default=0,
+                    help="stop once this many public+complete users are crawled (0 = no limit)")
     args = ap.parse_args()
 
     key = os.environ.get("STEAM_API_KEY")
@@ -475,9 +477,13 @@ def main() -> int:
         n = cr.run_cycle(phases, args.users_chunk, args.games_chunk)
         cycles += 1
         if cycles % 5 == 0:
-            log.info("cycle=%d calls=%d spent_today=%d pending=%d interval=%.2fs throttle=%d",
+            log.info("cycle=%d calls=%d spent_today=%d pending=%d public_done=%d interval=%.2fs throttle=%d",
                      cycles, cr.calls, db.spent_today(conn), db.pending_users(conn),
-                     cr.target, cr.throttle_hits)
+                     db.public_complete_users(conn), cr.target, cr.throttle_hits)
+        if args.stop_at_users and db.public_complete_users(conn) >= args.stop_at_users:
+            log.info("TARGET REACHED: %d public+complete users (>= %d). stopping.",
+                     db.public_complete_users(conn), args.stop_at_users)
+            break
         if cr.budget_exhausted:
             log.info("BUDGET EXHAUSTED today (spent=%d).", db.spent_today(conn))
             if not args.forever:

@@ -397,6 +397,11 @@ def pending_users(conn: sqlite3.Connection) -> int:
         "WHERE u.complete IS NULL OR u.complete=0").fetchone()[0]
 
 
+def public_complete_users(conn: sqlite3.Connection) -> int:
+    """Usable cohort size = public profiles fully crawled (the stop-at-target metric)."""
+    return conn.execute("SELECT COUNT(*) FROM users WHERE public=1 AND complete=1").fetchone()[0]
+
+
 if __name__ == "__main__":
     # smoke + budget-gate + interning proof
     import os
