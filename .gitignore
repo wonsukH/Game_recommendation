@@ -26,6 +26,7 @@ experiments/**/shard*.json
 **/*.sqlite3
 **/*.sqlite3-journal
 data_collection/steam.db*
+data_collection/*.log
 
 # C extensions
 *.so
