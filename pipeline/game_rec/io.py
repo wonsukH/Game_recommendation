@@ -1,7 +1,7 @@
-"""I/O helpers reused across the offline pipeline and the online retriever.
+"""I/O helpers reused across the offline pipeline and the serving agent.
 
-The offline pipeline (game_rec.data / .models / .index / .evaluation)
-and the online retriever (game_rec.agent.retriever) load the same
+The offline data builders (game_rec.data / .evaluation) and the serving
+agent (game_rec.agent: cf_recommender, content, hybrid) load the same
 artifacts: index maps, tag vocabulary, sparse Game x Tag matrix, dense
 vectors. Centralising these calls keeps the conversion conventions
 (int keys for JSON-loaded dicts, float32 for vectors) in one place.
