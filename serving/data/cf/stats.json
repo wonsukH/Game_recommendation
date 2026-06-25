@@ -1,0 +1,6 @@
+{
+  "n_users": 103090,
+  "n_items": 8450,
+  "C_nnz": 912868,
+  "like_threshold": 7.0
+}

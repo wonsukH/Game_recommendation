@@ -22,7 +22,7 @@
 | Genre Precision (객관 측정) | **90.7%** (Steam 사용자 vote 기반 태그 매칭) |
 | 단위 테스트 | **55 passing** |
 
-자세한 평가 표 + ablation: [`README_PIPELINE.md`](README_PIPELINE.md) 의 "평가 결과" 섹션.
+자세한 평가 표 + ablation: [`README_PIPELINE.md`](docs/README_PIPELINE.md) 의 "평가 결과" 섹션.
 
 ---
 
@@ -126,7 +126,7 @@ python -m pipeline.orchestration.llm_vs_system --preset balanced
 
 평가 시드: `tests/eval_queries.json` (30 query). 측정 코드: `pipeline/orchestration/llm_vs_system.py` + `pipeline/orchestration/intuitive_metrics.py` + `scripts/check_true_hallucination.py`.
 
-검토했지만 의도적으로 제외한 metric: **Overlap@5 / ILD** (두 시스템 목표가 다름 — LLM=풀 외부 mainstream, 시스템=풀 내부 검증 추천 — 자연 차이라 외부 어필 부적합), **LLM-as-Judge** (LLM이 niche indie game 모름 → mainstream bias로 unfair). 자세한 사유는 `ISSUES.md` 및 `portfolio/portfolio_content.md`.
+검토했지만 의도적으로 제외한 metric: **Overlap@5 / ILD** (두 시스템 목표가 다름 — LLM=풀 외부 mainstream, 시스템=풀 내부 검증 추천 — 자연 차이라 외부 어필 부적합), **LLM-as-Judge** (LLM이 niche indie game 모름 → mainstream bias로 unfair). 자세한 사유는 `ISSUES.md` 및 `docs/portfolio/portfolio_content.md`.
 
 ---
 
@@ -156,13 +156,16 @@ Game_recommendation/
 ├── scripts/                 # sync_data, build_games_tags_csv, summarize_ablation
 ├── config/default.yaml      # 하이퍼파라미터 + 3-axis presets
 ├── prompts/                 # parser / response_generator LLM 프롬프트
-├── docs/runbook_*.md        # 데이터 풀 확장 가이드
 ├── tests/                   # 55 단위 테스트 + 30 query 평가 시드
 ├── outputs/                 # 파이프라인 산출물 (gitignored, 재현 가능)
-├── README.md                # 이 파일 (overview + quick start)
-├── README_PIPELINE.md       # 임베딩 학습 / 평가 / ablation deep dive
-├── INTENT.md                # 개발 의도 + 의사결정 기록
-└── ISSUES.md                # 개발 중 발견한 이슈 + 해결 (14건)
+├── experiments/             # 평가·검증 실험 증거 (INDEX·리포트·DELIBERATION_LOG)
+├── docs/                    # 문서 통합
+│   ├── README_PIPELINE.md   #   임베딩 학습 / 평가 / ablation deep dive
+│   ├── INTENT.md            #   개발 의도 + 의사결정 기록
+│   ├── ISSUES.md            #   개발 중 발견한 이슈 + 해결
+│   ├── runbook_*.md         #   데이터 풀 확장 가이드
+│   └── portfolio/           #   포트폴리오 / 발표 자료 (gitignored)
+└── README.md                # 이 파일 (overview + quick start)
 ```
 
 ---
@@ -210,9 +213,9 @@ python -m pipeline.orchestration.build_offline
 
 ## 더 깊이 보기
 
-- **임베딩 학습 / 평가 / Ablation 상세**: [`README_PIPELINE.md`](README_PIPELINE.md)
-- **개발 의도 + 의사결정 기록**: [`INTENT.md`](INTENT.md)
-- **개발 중 발견한 14개 이슈와 해결**: [`ISSUES.md`](ISSUES.md)
+- **임베딩 학습 / 평가 / Ablation 상세**: [`README_PIPELINE.md`](docs/README_PIPELINE.md)
+- **개발 의도 + 의사결정 기록**: [`INTENT.md`](docs/INTENT.md)
+- **개발 중 발견한 14개 이슈와 해결**: [`ISSUES.md`](docs/ISSUES.md)
 - **데이터 풀 확장 절차**: [`docs/runbook_pool_expansion.md`](docs/runbook_pool_expansion.md)
 
 ---

@@ -144,3 +144,71 @@ def evaluate_recommendation(
         "novelty@k": novelty(rec_indices[:k], popularity),
         "serendipity@k": serendipity(rec_indices[:k], true_set, popularity_baseline_top),
     }
+
+
+# ----- System-level / comparison metrics (added for the experiment driver) -----
+
+def overlap_at_k(list_a: list, list_b: list, k: int) -> float:
+    """Distinctiveness probe: |a[:k] ∩ b[:k]| / k.
+
+    Measures whether two systems even produce different outputs. HIGH overlap
+    means a complex variant barely changes results vs the baseline (so its
+    extra machinery buys little); LOW overlap means they differ — and only
+    THEN do the quality metrics decide which difference is better. Overlap is
+    NOT a quality metric on its own (different can be worse).
+    """
+    if k <= 0:
+        return 0.0
+    sa, sb = set(list_a[:k]), set(list_b[:k])
+    return len(sa & sb) / k
+
+
+def catalog_coverage(rec_lists: list[list], n_catalog: int) -> float:
+    """Fraction of the catalog that appears in ANY top-k across all queries.
+
+    A system that collapses onto a few popular items has low coverage even if
+    per-query relevance looks fine. Pair with relevance — random maximizes
+    coverage but is irrelevant.
+    """
+    if n_catalog <= 0:
+        return 0.0
+    seen = set()
+    for lst in rec_lists:
+        seen.update(lst)
+    return len(seen) / n_catalog
+
+
+def gini_coefficient(counts) -> float:
+    """Gini of recommendation frequency across items (0 = uniform, 1 = skewed).
+
+    `counts` = how many times each item was recommended across the query set.
+    Quantifies popularity concentration / long-tail collapse.
+    """
+    x = np.sort(np.asarray(counts, dtype=np.float64))
+    n = x.size
+    if n == 0 or x.sum() == 0:
+        return 0.0
+    cum = np.cumsum(x)
+    return float((n + 1 - 2 * (cum.sum() / cum[-1])) / n)
+
+
+def popularity_percentile(pop: np.ndarray) -> np.ndarray:
+    """Map a popularity array to per-item percentile ranks in [0, 1]."""
+    order = np.argsort(np.argsort(pop))
+    return order / max(len(pop) - 1, 1)
+
+
+def novelty_calibration(
+    rec_indices: list[int], pop_percentile: np.ndarray, expected_band: str
+) -> float:
+    """Does the rec set's popularity band match the preset's intent?
+
+    expected_band: 'popular' (beginner; expect low novelty/high popularity
+    percentile), 'niche' (heavy; expect high novelty/low percentile), or
+    'neutral'. Returns mean popularity percentile of the recs (higher = more
+    mainstream); the driver compares it against the expected direction.
+    Reported alongside relevance so "more niche" is never mistaken for "better".
+    """
+    if not rec_indices:
+        return float("nan")
+    return float(np.mean(pop_percentile[rec_indices]))

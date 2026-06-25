@@ -1,0 +1,145 @@
+{
+ "win_rate": 1.0,
+ "ci": [
+  1.0,
+  1.0
+ ],
+ "novelty": 1.0,
+ "aspect": 1.0,
+ "quality_ok": 1.0,
+ "n": 12,
+ "per_case": [
+  {
+   "id": "nov0",
+   "tally": {
+    "A": 3,
+    "B": 0,
+    "tie": 0
+   },
+   "majority": "A",
+   "steered": "A",
+   "win": 1.0
+  },
+  {
+   "id": "asp0",
+   "tally": {
+    "A": 0,
+    "B": 3,
+    "tie": 0
+   },
+   "majority": "B",
+   "steered": "B",
+   "win": 1.0
+  },
+  {
+   "id": "nov1",
+   "tally": {
+    "A": 3,
+    "B": 0,
+    "tie": 0
+   },
+   "majority": "A",
+   "steered": "A",
+   "win": 1.0
+  },
+  {
+   "id": "asp1",
+   "tally": {
+    "A": 0,
+    "B": 3,
+    "tie": 0
+   },
+   "majority": "B",
+   "steered": "B",
+   "win": 1.0
+  },
+  {
+   "id": "nov2",
+   "tally": {
+    "A": 3,
+    "B": 0,
+    "tie": 0
+   },
+   "majority": "A",
+   "steered": "A",
+   "win": 1.0
+  },
+  {
+   "id": "asp2",
+   "tally": {
+    "A": 0,
+    "B": 3,
+    "tie": 0
+   },
+   "majority": "B",
+   "steered": "B",
+   "win": 1.0
+  },
+  {
+   "id": "nov3",
+   "tally": {
+    "A": 3,
+    "B": 0,
+    "tie": 0
+   },
+   "majority": "A",
+   "steered": "A",
+   "win": 1.0
+  },
+  {
+   "id": "asp3",
+   "tally": {
+    "A": 0,
+    "B": 3,
+    "tie": 0
+   },
+   "majority": "B",
+   "steered": "B",
+   "win": 1.0
+  },
+  {
+   "id": "nov5",
+   "tally": {
+    "A": 3,
+    "B": 0,
+    "tie": 0
+   },
+   "majority": "A",
+   "steered": "A",
+   "win": 1.0
+  },
+  {
+   "id": "asp5",
+   "tally": {
+    "A": 0,
+    "B": 3,
+    "tie": 0
+   },
+   "majority": "B",
+   "steered": "B",
+   "win": 1.0
+  },
+  {
+   "id": "nov7",
+   "tally": {
+    "A": 3,
+    "B": 0,
+    "tie": 0
+   },
+   "majority": "A",
+   "steered": "A",
+   "win": 1.0
+  },
+  {
+   "id": "asp7",
+   "tally": {
+    "A": 0,
+    "B": 3,
+    "tie": 0
+   },
+   "majority": "B",
+   "steered": "B",
+   "win": 1.0
+  }
+ ]
+}

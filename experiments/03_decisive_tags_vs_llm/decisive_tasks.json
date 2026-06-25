@@ -1,0 +1,638 @@
+[
+  {
+    "id": "q01",
+    "query": "처음 RPG 해보려고 하는데 어두운 분위기 추천해줘",
+    "lists": {
+      "A": [
+        "Gomorrah",
+        "Tyranny",
+        "The Life and Suffering of Sir Brante — Chapter 1&2",
+        "The Life and Suffering of Sir Brante",
+        "Exiled Kingdoms"
+      ],
+      "B": [
+        "The Desolate Hope",
+        "Elements: Soul of Fire",
+        "1914: Prelude to Chaos",
+        "Atonement 2: Ruptured by Despair",
+        "Gorky 17"
+      ],
+      "C": [
+        "Drakensang",
+        "秦殇 (Prince of Qin)",
+        "Pillars of Eternity II: Deadfire",
+        "DARK SOULS II",
+        "Dungeon Siege"
+      ]
+    }
+  },
+  {
+    "id": "q03",
+    "query": "마음 편하게 할 수 있는 따뜻한 분위기 게임",
+    "lists": {
+      "A": [
+        "Spirit City: Lofi Sessions",
+        "Kind Words (lo fi chill beats to write to)",
+        "Virtual Cottage",
+        "Station to Station",
+        "TOEM: A Photo Adventure"
+      ],
+      "B": [
+        "Starwisp Hyperdrive",
+        "Pretty Neko",
+        "Pretty Angel",
+        "Hentai Girl",
+        "Terminal Hacker"
+      ],
+      "C": [
+        "Cozy Grove",
+        "A Little to the Left",
+        "Virtual Cottage",
+        "Tiny Glade",
+        "Spirit City: Lofi Sessions"
+      ]
+    }
+  },
+  {
+    "id": "q05",
+    "query": "한 판 한 판 짧게 즐길 수 있는 로그라이크",
+    "lists": {
+      "A": [
+        "Desktop Dungeons",
+        "Dungeonmans",
+        "Dungeons of Dredmor",
+        "Hack, Slash, Loot",
+        "Depression Quest"
+      ],
+      "B": [
+        "Fidel Dungeon Rescue",
+        "In Celebration of Violence",
+        "Die in the Dungeon",
+        "Instinct War - Card Game",
+        "BlazBlue Entropy Effect"
+      ],
+      "C": [
+        "Hand of Fate",
+        "Hack, Slash, Loot",
+        "Dungeonmans",
+        "Guild of Dungeoneering Ultimate Edition",
+        "Dungreed"
+      ]
+    }
+  },
+  {
+    "id": "q06",
+    "query": "Hades 같은데 더 어둡고 잔혹한 게임",
+    "lists": {
+      "A": [
+        "Hades",
+        "Hades II",
+        "In Celebration of Violence",
+        "BlazBlue Entropy Effect",
+        "Conquest Dark"
+      ],
+      "B": [
+        "NECROPOLIS: BRUTAL EDITION",
+        "UnderMine",
+        "Hand of Fate 2",
+        "GoNNER",
+        "Hand of Fate"
+      ],
+      "C": []
+    }
+  },
+  {
+    "id": "q07",
+    "query": "친구랑 같이 할 수 있는 가벼운 협동 게임",
+    "lists": {
+      "A": [
+        "We Were Here Expeditions: The FriendShip",
+        "UNI",
+        "Sonder",
+        "Moon Hunters",
+        "Terminal Hacker"
+      ],
+      "B": [
+        "Filthy Animals | Heist Simulator",
+        "Overcooked! All You Can Eat",
+        "Pummel Party",
+        "Bopl Battle",
+        "Blood Fresh Supply"
+      ],
+      "C": [
+        "crazy maze ~疯狂迷宫 ~ 狂った迷路 ~ Laberinto loco ~ Labyrinthe fou ~ Verrücktes Labyrinth",
+        "3SwitcheD",
+        "CRACKHEAD",
+        "It's Spring Again",
+        "Catch a Falling Star"
+      ]
+    }
+  },
+  {
+    "id": "q08",
+    "query": "스토리가 깊은 SF 어드벤처 게임",
+    "lists": {
+      "A": [
+        "Analogue: A Hate Story",
+        "Lightracer Spark",
+        "Aliya: Timelink",
+        "Doctor Who: The Lonely Assassins",
+        "Sixtieth Kilometer"
+      ],
+      "B": [
+        "Lost Awakening",
+        "Number 8",
+        "Lacuna – A Sci-Fi Noir Adventure",
+        "Elara: A Coding Adventure in Space",
+        "In Other Waters"
+      ],
+      "C": [
+        "Dreamfall: The Longest Journey",
+        "Space Pilgrim Episode I: Alpha Centauri",
+        "Space Pilgrim Episode III: Delta Pavonis",
+        "Space Pilgrim Episode IV: Sol",
+        "Space Pilgrim Episode II: Epsilon Indi"
+      ]
+    }
+  },
+  {
+    "id": "q09",
+    "query": "전략 게임 처음 해보는데 입문하기 좋은 거",
+    "lists": {
+      "A": [
+        "Greed Corp",
+        "Total War: SHOGUN 2",
+        "Total War: SHOGUN 2",
+        "The Great War: Western Front",
+        "DG2: Defense Grid 2"
+      ],
+      "B": [
+        "最強の囲碁 ～名人への道～ / Igo Meijin",
+        "Squares",
+        "The Happy Hereafter",
+        "Magnifico",
+        "Chess Knight 2"
+      ],
+      "C": [
+        "Heroes of the Three Kingdoms",
+        "Heroes of the Three Kingdoms 6",
+        "Heroes of the Three Kingdoms 2",
+        "Heroes of the Three Kingdoms 3",
+        "Heroes of the Three Kingdoms 7"
+      ]
+    }
+  },
+  {
+    "id": "q10",
+    "query": "분위기 무섭고 미스터리 푸는 게임",
+    "lists": {
+      "A": [
+        "Kholat",
+        "Layers of Fear (2016)",
+        "Daylight",
+        "Dead by Daylight",
+        "Lurk in the Dark : Prologue"
+      ],
+      "B": [
+        "Call of Cthulhu: Dark Corners of the Earth",
+        "Amnesia: The Dark Descent",
+        "Visage",
+        "Lost in Vivo",
+        "Call of Cthulhu"
+      ],
+      "C": [
+        "Grievous Survivors",
+        "Silent Mansion : Part2",
+        "Silent",
+        "Forbidden Art",
+        "孙美琪疑案 第二季"
+      ]
+    }
+  },
+  {
+    "id": "q12",
+    "query": "픽셀 그래픽 RPG인데 감성적인 거",
+    "lists": {
+      "A": [
+        "Last Dream",
+        "Skyborn",
+        "Luise and Secret Basement Rooms",
+        "Trials of Mana",
+        "Victim of Xen"
+      ],
+      "B": [
+        "PARTY RUSH!!",
+        "The Count Lucanor",
+        "Hylics 2",
+        "坏小孩",
+        "Magic and Machines"
+      ],
+      "C": [
+        "Have a Nice Dream",
+        "Data Hacker: Initiation",
+        "The Desolate Hope",
+        "Elements: Soul of Fire",
+        "1914: Prelude to Chaos"
+      ]
+    }
+  },
+  {
+    "id": "q13",
+    "query": "정말 어렵고 도전적인 액션 게임 추천",
+    "lists": {
+      "A": [
+        "DEATH TRAIN - Warning: Unsafe VR Experience",
+        "AX:EL - Air XenoDawn",
+        "Blast Zone! Tournament",
+        "The Drone Racing League Simulator",
+        "DYNASTY WARRIORS 9"
+      ],
+      "B": [
+        "SINNER: Sacrifice for Redemption",
+        "Nioh: Complete Edition",
+        "DARK SOULS II: Scholar of the First Sin",
+        "Salt and Sanctuary",
+        "DARK SOULS II"
+      ],
+      "C": [
+        "Mini-Dead",
+        "Blaite",
+        "Dungeon Escape",
+        "Volgarr the Viking",
+        "Grievous Survivors"
+      ]
+    }
+  },
+  {
+    "id": "q14",
+    "query": "머리를 식히면서 풀 수 있는 퍼즐 게임",
+    "lists": {
+      "A": [
+        "Pretty Neko",
+        "Hentai Girl",
+        "Pretty Angel",
+        "Taboos: Cracks",
+        "Millie"
+      ],
+      "B": [
+        "Hexcells Infinite",
+        "Hexcells",
+        "KAMI",
+        "Hook",
+        "Hexcells Plus"
+      ],
+      "C": [
+        "Glass Masquerade",
+        "Divide By Sheep",
+        "KAMI",
+        "Hexcells Infinite",
+        "Back to Bed"
+      ]
+    }
+  },
+  {
+    "id": "q16",
+    "query": "도시 건설 게임 시작하기 좋은 거",
+    "lists": {
+      "A": [
+        "Dawn of Man",
+        "Zeus + Poseidon",
+        "Banished",
+        "Ymir",
+        "Life is Feudal: Forest Village"
+      ],
+      "B": [
+        "Concrete Jungle",
+        "Tile Cities",
+        "TheoTown",
+        "MicroTown",
+        "Kingdoms Reborn"
+      ],
+      "C": [
+        "crazy maze ~疯狂迷宫 ~ 狂った迷路 ~ Laberinto loco ~ Labyrinthe fou ~ Verrücktes Labyrinth",
+        "3SwitcheD",
+        "CRACKHEAD",
+        "It's Spring Again",
+        "Catch a Falling Star"
+      ]
+    }
+  },
+  {
+    "id": "q17",
+    "query": "걸어다니면서 이야기 듣는 게임",
+    "lists": {
+      "A": [
+        "Gone Home",
+        "Dear Esther",
+        "What Remains of Edith Finch",
+        "The Beginner's Guide",
+        "Amnesia: A Machine for Pigs"
+      ],
+      "B": [
+        "Gone Home",
+        "Dear Esther",
+        "Fort Solis",
+        "Heaven Island - VR MMO",
+        "Amnesia: A Machine for Pigs"
+      ],
+      "C": [
+        "Swaying Girl",
+        "Grievous Survivors",
+        "The Coffin of Andy and Leyley",
+        "SEASON: A letter to the future",
+        "Whisper Books"
+      ]
+    }
+  },
+  {
+    "id": "q18",
+    "query": "외딴 곳에서 살아남고 만드는 서바이벌",
+    "lists": {
+      "A": [
+        "DayZ Tools",
+        "Don't Starve",
+        "Rust",
+        "How to Survive",
+        "Subsistence"
+      ],
+      "B": [
+        "Don't Starve Together",
+        "SURVIVAL: Postapocalypse Now",
+        "The Long Dark",
+        "Miscreated",
+        "The Forest"
+      ],
+      "C": [
+        "Aground",
+        "Hand Simulator: Survival",
+        "Among Trees",
+        "Card Survival: Tropical Island",
+        "Green Project"
+      ]
+    }
+  },
+  {
+    "id": "q20",
+    "query": "음악에 맞춰 즐기는 리듬 게임",
+    "lists": {
+      "A": [
+        "Space Channel 5: Part 2",
+        "McOsu",
+        "Before the Echo",
+        "Quaver",
+        "音灵 INVAXION"
+      ],
+      "B": [
+        "音灵 INVAXION",
+        "AudioSurf",
+        "TAPSONIC BOLD",
+        "Chime",
+        "Intralism"
+      ],
+      "C": [
+        "Slash It Ultimate",
+        "Tempo",
+        "Geometry Dash",
+        "TAPSONIC BOLD",
+        "LoveBeat"
+      ]
+    }
+  },
+  {
+    "id": "q21",
+    "query": "복잡하고 깊이 있는 전략 게임",
+    "lists": {
+      "A": [
+        "Earth 2140",
+        "Two Worlds II Castle Defense",
+        "World War III: Black Gold",
+        "World War II: Panzer Claws",
+        "Earth 2150 Trilogy"
+      ],
+      "B": [
+        "Greed Corp",
+        "Grim wanderings 2",
+        "AI War 2",
+        "Conquest of Elysium 3",
+        "Slipways"
+      ],
+      "C": [
+        "Jagged Alliance 3",
+        "Brigandine The Legend of Runersia",
+        "Banner of the Maid",
+        "XCOM: Chimera Squad",
+        "Wargroove"
+      ]
+    }
+  },
+  {
+    "id": "q22",
+    "query": "몰래 잠입해서 임무 수행하는 게임",
+    "lists": {
+      "A": [
+        "Hitman: Contracts",
+        "Hitman: Codename 47",
+        "HITMAN",
+        "Hitman 2: Silent Assassin",
+        "Hitman: Absolution"
+      ],
+      "B": [
+        "Agent A: A puzzle in disguise",
+        "Invisible, Inc.",
+        "Intruder",
+        "Ninja Stealth",
+        "Stealth Bastard Deluxe"
+      ],
+      "C": [
+        "HITMAN 2",
+        "HITMAN",
+        "Thief",
+        "Tom Clancy's Splinter Cell",
+        "Tom Clancy's Splinter Cell Chaos Theory"
+      ]
+    }
+  },
+  {
+    "id": "q23",
+    "query": "조작이 간단한 플랫포머 게임 처음 해보고 싶어",
+    "lists": {
+      "A": [
+        "Super Meat Boy",
+        "Lone Fungus",
+        "Guacamelee! Super Turbo Championship Edition",
+        "Leap Year",
+        "Knytt Underground"
+      ],
+      "B": [
+        "Job the Leprechaun",
+        "Guardians of Victoria",
+        "crazy maze ~疯狂迷宫 ~ 狂った迷路 ~ Laberinto loco ~ Labyrinthe fou ~ Verrücktes Labyrinth",
+        "3SwitcheD",
+        "CRACKHEAD"
+      ],
+      "C": [
+        "Dungeon Escape",
+        "appid\n1093720    SlipSlop: World's Hardest Platformer Game\n1093720    SlipSlop: World's Hardest Platformer Game\nName: name, dtype: object",
+        "Blaite",
+        "I wanna be the Creator",
+        "Mandew vs the Colorless Curse"
+      ]
+    }
+  },
+  {
+    "id": "q24",
+    "query": "광활한 오픈월드 탐험",
+    "lists": {
+      "A": [
+        "Hyper Light Drifter",
+        "Tree of Life",
+        "Towers of Aghasba",
+        "West Ride",
+        "Creativerse"
+      ],
+      "B": [
+        "The Long Dark",
+        "Just Cause 2: Multiplayer Mod",
+        "No Man's Sky",
+        "Ancestors: The Humankind Odyssey",
+        "Planet Explorers"
+      ],
+      "C": [
+        "Just Cause 2: Multiplayer Mod",
+        "Eastshade",
+        "Yonder: The Cloud Catcher Chronicles",
+        "Fallout 4",
+        "Worlds Adrift"
+      ]
+    }
+  },
+  {
+    "id": "q25",
+    "query": "귀여운 농장 시뮬레이션",
+    "lists": {
+      "A": [
+        "Farm Together",
+        "Farming Simulator 2013 Titanium Edition",
+        "Farming Simulator 22",
+        "Fields of Mistria",
+        "Rusty's Retirement"
+      ],
+      "B": [
+        "STORY OF SEASONS: Friends of Mineral Town",
+        "Farming Simulator 2013 Titanium Edition",
+        "Voodoo Garden",
+        "Lemon Cake",
+        "Meadow - A Shelter Game"
+      ],
+      "C": [
+        "Farming Simulator 2011",
+        "Hokko Life",
+        "Agricultural Simulator 2011: Extended Edition",
+        "Summer in Mara",
+        "Fields of Mistria"
+      ]
+    }
+  },
+  {
+    "id": "q27",
+    "query": "탐정처럼 단서를 모아 사건을 푸는 게임",
+    "lists": {
+      "A": [
+        "Sherlock Holmes: Crimes and Punishments",
+        "Unheard - Voices of Crime",
+        "Agatha Christie - Hercule Poirot: The First Cases",
+        "The Roottrees are Dead",
+        "The Rise of the Golden Idol"
+      ],
+      "B": [
+        "Hundreds of Mysteries:Wendy's Home2",
+        "The Case of the Golden Idol",
+        "Song of Farca",
+        "Staffer Case: A Supernatural Mystery Adventure",
+        "Shadows of Doubt"
+      ],
+      "C": [
+        "Sherlock Holmes: Crimes and Punishments",
+        "L.A. Noire",
+        "Ace Attorney Investigations Collection",
+        "The Rise of the Golden Idol",
+        "Agatha Christie - Hercule Poirot: The First Cases"
+      ]
+    }
+  },
+  {
+    "id": "q28",
+    "query": "기지 짓고 관리하는 게임",
+    "lists": {
+      "A": [
+        "Dawn of Man",
+        "Life is Feudal: Forest Village",
+        "Banished",
+        "Zeus + Poseidon",
+        "Kingdoms and Castles"
+      ],
+      "B": [
+        "Planetbase",
+        "MicroTown",
+        "Gaia",
+        "The Crust",
+        "Sheltered 2"
+      ],
+      "C": [
+        "Evil Genius 2: World Domination",
+        "Another Brick in The Mall",
+        "Railroad Tycoon 3",
+        "RimWorld",
+        "Evil Genius"
+      ]
+    }
+  },
+  {
+    "id": "q29",
+    "query": "Dark Souls 같은 분위기인데 난이도 부담 적은 거",
+    "lists": {
+      "A": [],
+      "B": [
+        "Souldiers",
+        "Enigmoon",
+        "SINNER: Sacrifice for Redemption",
+        "Lies of P",
+        "DARK SOULS: Prepare To Die Edition"
+      ],
+      "C": [
+        "Trinity Fusion",
+        "Little Noah: Scion of Paradise",
+        "Salt and Sanctuary",
+        "Spirit Hunters: Infinite Horde",
+        "Dark Devotion"
+      ]
+    }
+  },
+  {
+    "id": "q30",
+    "query": "짧지만 여운 남는 감성 게임",
+    "lists": {
+      "A": [
+        "Brothers - A Tale of Two Sons",
+        "The Plan",
+        "TREE",
+        "Eliza",
+        "Sea of Solitude"
+      ],
+      "B": [
+        "Grievous Survivors",
+        "Swaying Girl",
+        "A Bird Story",
+        "Arise: A Simple Story",
+        "That Dragon, Cancer"
+      ],
+      "C": [
+        "Brothers - A Tale of Two Sons",
+        "Kind Words (lo fi chill beats to write to)",
+        "The Plan",
+        "TREE",
+        "Eliza"
+      ]
+    }
+  }
+]

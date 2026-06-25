@@ -1,0 +1,51 @@
+{
+  "n_test": 0,
+  "n_eligible": 0,
+  "by_profile_size": {
+    "1": {
+      "mean": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "n": 0
+    },
+    "2": {
+      "mean": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "n": 0
+    },
+    "3": {
+      "mean": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "n": 0
+    },
+    "5": {
+      "mean": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "n": 0
+    },
+    "8": {
+      "mean": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "n": 0
+    }
+  },
+  "growth_lo_to_hi": {
+    "mean_diff": 0.0,
+    "lo": 0.0,
+    "hi": 0.0,
+    "significant": false,
+    "n": 0
+  },
+  "last_step": {
+    "mean_diff": 0.0,
+    "lo": 0.0,
+    "hi": 0.0,
+    "significant": false,
+    "n": 0
+  },
+  "monotonic": true
+}

@@ -1,0 +1,170 @@
+[
+  {
+    "id": "q01",
+    "label_to_variant": {
+      "A": "LLM_alone",
+      "B": "Ve_system"
+    }
+  },
+  {
+    "id": "q03",
+    "label_to_variant": {
+      "A": "Ve_system",
+      "B": "LLM_alone"
+    }
+  },
+  {
+    "id": "q05",
+    "label_to_variant": {
+      "A": "Ve_system",
+      "B": "LLM_alone"
+    }
+  },
+  {
+    "id": "q06",
+    "label_to_variant": {
+      "A": "Ve_system",
+      "B": "LLM_alone"
+    }
+  },
+  {
+    "id": "q07",
+    "label_to_variant": {
+      "A": "LLM_alone",
+      "B": "Ve_system"
+    }
+  },
+  {
+    "id": "q08",
+    "label_to_variant": {
+      "A": "LLM_alone",
+      "B": "Ve_system"
+    }
+  },
+  {
+    "id": "q09",
+    "label_to_variant": {
+      "A": "Ve_system",
+      "B": "LLM_alone"
+    }
+  },
+  {
+    "id": "q10",
+    "label_to_variant": {
+      "A": "LLM_alone",
+      "B": "Ve_system"
+    }
+  },
+  {
+    "id": "q12",
+    "label_to_variant": {
+      "A": "Ve_system",
+      "B": "LLM_alone"
+    }
+  },
+  {
+    "id": "q13",
+    "label_to_variant": {
+      "A": "Ve_system",
+      "B": "LLM_alone"
+    }
+  },
+  {
+    "id": "q14",
+    "label_to_variant": {
+      "A": "LLM_alone",
+      "B": "Ve_system"
+    }
+  },
+  {
+    "id": "q16",
+    "label_to_variant": {
+      "A": "Ve_system",
+      "B": "LLM_alone"
+    }
+  },
+  {
+    "id": "q17",
+    "label_to_variant": {
+      "A": "Ve_system",
+      "B": "LLM_alone"
+    }
+  },
+  {
+    "id": "q18",
+    "label_to_variant": {
+      "A": "Ve_system",
+      "B": "LLM_alone"
+    }
+  },
+  {
+    "id": "q20",
+    "label_to_variant": {
+      "A": "LLM_alone",
+      "B": "Ve_system"
+    }
+  },
+  {
+    "id": "q21",
+    "label_to_variant": {
+      "A": "Ve_system",
+      "B": "LLM_alone"
+    }
+  },
+  {
+    "id": "q22",
+    "label_to_variant": {
+      "A": "Ve_system",
+      "B": "LLM_alone"
+    }
+  },
+  {
+    "id": "q23",
+    "label_to_variant": {
+      "A": "LLM_alone",
+      "B": "Ve_system"
+    }
+  },
+  {
+    "id": "q24",
+    "label_to_variant": {
+      "A": "LLM_alone",
+      "B": "Ve_system"
+    }
+  },
+  {
+    "id": "q25",
+    "label_to_variant": {
+      "A": "Ve_system",
+      "B": "LLM_alone"
+    }
+  },
+  {
+    "id": "q27",
+    "label_to_variant": {
+      "A": "Ve_system",
+      "B": "LLM_alone"
+    }
+  },
+  {
+    "id": "q28",
+    "label_to_variant": {
+      "A": "Ve_system",
+      "B": "LLM_alone"
+    }
+  },
+  {
+    "id": "q29",
+    "label_to_variant": {
+      "A": "Ve_system",
+      "B": "LLM_alone"
+    }
+  },
+  {
+    "id": "q30",
+    "label_to_variant": {
+      "A": "LLM_alone",
+      "B": "Ve_system"
+    }
+  }
+]
