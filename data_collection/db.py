@@ -29,7 +29,7 @@ _UTC = timezone.utc
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS users(
   steamid TEXT PRIMARY KEY, country TEXT, level INTEGER, xp INTEGER,
-  public INTEGER, fetched_at TEXT);
+  public INTEGER, complete INTEGER DEFAULT 0, fetched_at TEXT);
 CREATE TABLE IF NOT EXISTS owned(
   steamid TEXT, appid INTEGER, playtime_forever REAL, playtime_2weeks REAL,
   PRIMARY KEY(steamid, appid));

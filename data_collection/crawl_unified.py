@@ -154,6 +154,11 @@ class Crawler:
                 done = sum(1 for a in ach if a.get("achieved") == 1)
                 db.upsert_many(self.conn, "achievements", ["steamid", "appid", "unlocked", "total"],
                                [(sid, int(appid), done, len(ach))])
+        # mark the user FULLY crawled (owned + all signals + all played-game achievements).
+        # Set only here, at the very end -> a user is never left permanently half-done:
+        # an interruption (budget/throttle/kill) leaves complete=0 and the cursor on this
+        # user, so resume re-runs it from the top (idempotent upserts) before advancing.
+        db.upsert_user(self.conn, sid, complete=1)
 
     def run_users(self, steamids, pool, base_cooldown=300, max_throttle_retries=5):
         key = "phase:users"
@@ -180,10 +185,10 @@ class Crawler:
                     continue
                 throttle_streak = 0
                 i += 1
+                db.set_cursor(self.conn, key, i)   # PER-USER checkpoint: resume granularity = 1 person
                 if i % 20 == 0:
-                    db.set_cursor(self.conn, key, i)
-                    log.info("users pos=%d/%d spent_today=%d throttle_hits=%d",
-                             i, len(steamids), db.spent_today(self.conn), self.throttle_hits)
+                    log.info("users pos=%d/%d spent_today=%d throttle_hits=%d interval=%.2fs",
+                             i, len(steamids), db.spent_today(self.conn), self.throttle_hits, self.sleep)
         except db.BudgetExhausted:
             db.set_cursor(self.conn, key, i)
             log.info("BUDGET EXHAUSTED at users pos=%d (today=%d). resume tomorrow.", i, db.spent_today(self.conn))
@@ -232,7 +237,10 @@ def main() -> int:
     ap.add_argument("--seed-today", type=int, default=0, help="calls already spent today outside this DB")
     ap.add_argument("--max-steamids", type=int, default=200000)
     ap.add_argument("--ach-floor", type=float, default=30.0, help="min playtime(min) to crawl a game's achievements")
-    ap.add_argument("--sleep", type=float, default=0.35, help="START inter-call interval; AIMD self-tunes from here")
+    ap.add_argument("--sleep", type=float, default=1.0, help="START interval (~1 req/s, steady); AIMD adjusts (min 0.7s)")
+    ap.add_argument("--min-sleep", type=float, default=0.7, help="fastest interval AIMD may reach (cap the speed-up)")
+    ap.add_argument("--forever", action="store_true", help="run continuously: loop the queue forever (refresh passes)")
+    ap.add_argument("--loop-sleep", type=int, default=3600, help="seconds to sleep between passes / on pause in --forever")
     args = ap.parse_args()
 
     key = os.environ.get("STEAM_API_KEY")
@@ -243,18 +251,40 @@ def main() -> int:
         db.seed_today(conn, args.seed_today)
     pool = set(int(a) for a in load_index_maps(args.data_dir / "index_maps.json")["appid2row"].keys())
 
-    cr = Crawler(conn, key, args.limit, args.sleep, args.ach_floor)
-    if args.phase == "users":
-        steamids = distinct_steamids(args.scores, args.max_steamids)
-        done = cr.run_users(steamids, pool)
-    else:  # summaries (bulk)
-        done = cr.run_summaries()
-    log.info("%s phase %s. calls this run=%d, throttle_hits=%d, final_interval=%.2fs. counts=%s",
-             args.phase, "DONE" if done else "paused", cr.calls, cr.throttle_hits, cr.sleep, db.counts(conn))
-    print(json.dumps({"phase": args.phase, "calls_this_run": cr.calls, "throttle_hits": cr.throttle_hits,
-                      "final_interval": round(cr.sleep, 2), "spent_today": db.spent_today(conn),
-                      "counts": db.counts(conn)}))
-    conn.close()
+    cr = Crawler(conn, key, args.limit, args.sleep, args.ach_floor, min_sleep=args.min_sleep)
+    steamids = distinct_steamids(args.scores, args.max_steamids)
+
+    def one_pass():
+        if args.phase == "summaries":
+            return cr.run_summaries()
+        d = cr.run_users(steamids, pool)
+        if d:                       # bulk-fill country only after the full user pass completes
+            cr.run_summaries()
+        return d
+
+    if not args.forever:
+        done = one_pass()
+        log.info("%s phase %s. calls=%d throttle_hits=%d interval=%.2fs counts=%s",
+                 args.phase, "DONE" if done else "paused", cr.calls, cr.throttle_hits, cr.sleep, db.counts(conn))
+        print(json.dumps({"phase": args.phase, "calls_this_run": cr.calls, "throttle_hits": cr.throttle_hits,
+                          "final_interval": round(cr.sleep, 2), "spent_today": db.spent_today(conn),
+                          "counts": db.counts(conn)}))
+        conn.close()
+        return 0
+
+    # --forever: steady continuous crawl (survives throttle via circuit breaker; budget per
+    # UTC-day auto-resets). At ~1/s the daily cap never binds -> just runs, slowly accumulating.
+    log.info("FOREVER mode @ ~%.2fs/call. loops the queue (refresh). Ctrl-C / TaskStop to end.", args.sleep)
+    while True:
+        done = one_pass()
+        if done:
+            log.info("FULL PASS DONE. counts=%s. sleep %ds then refresh-pass.", db.counts(conn), args.loop_sleep)
+            time.sleep(args.loop_sleep)
+            db.set_cursor(conn, "phase:users", 0)   # re-crawl for freshness
+        else:
+            log.info("paused (budget/throttle). spent_today=%d. sleep %ds then resume.",
+                     db.spent_today(conn), args.loop_sleep)
+            time.sleep(args.loop_sleep)
     return 0
 
 
