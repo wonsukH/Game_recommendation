@@ -209,3 +209,23 @@
 - recall@20: pop=0.0783, cf=0.2033, ease=0.2000, als=0.1742
 - winner=cf. Δrecall vs CF: pop=-0.1250(SIG), ease=-0.0033(ns), als=-0.0292(ns)
 - 해석: EASE 대비 위치 = 전통 recsys 대비 보수적 하한. 이기는 랭커를 에이전트 밑에 채택(교체 가능).
+
+
+## (Pillar 2 데이터 인프라) 최종 SQLite 스키마 — 무손실·정규화·3-phase
+**문제틀(사용자)**: "정보는 절대 누락 금지(모든 필드 포함). 고민할 건 *무엇을 담느냐*가 아니라 DB **구조**(어떻게 무손실+컴팩트하게) + **타이밍**(어느 phase에서 가장 싸게)뿐. 구 데이터는 목표가 달라 한 줄도 재사용 안 함 → wipe 후 신스키마로 새로 크롤."
+
+**고민1 — 페이싱 버그(사용자 지적)**: 구 크롤러는 호출 *뒤* sleep(1.0) → 실간격=RTT+sleep≈1.3s(~0.77/s, 공칭 1/s 아님) → 일일 ~60~66k만 소진(90k 미달). 수정: **월-클록 페이싱** sleep=max(0,target−경과). reserve()=하드캡(타이밍무관)과 페이싱=throughput평활은 분리. 과거 429폭주는 일일캡 아닌 **버스트한도** → AIMD(429×1.7, 성공streak×0.9)+서킷브레이커가 담당. 결정: target~1.0s(예산최대화 ~86k/day).
+
+**고민2 — 업적 저장(최대 테이블 ~수백만~천만 행)**: 자연키(steamid,appid,apiname TEXT) vs 인터닝(ach_id INT). 둘 다 무손실. apiname(~25B)이 수백만 반복 → 인터닝 시 ach_id(INT)로 ~3x↓. 읽을 때 game_achievement 조인 필요하나 *희귀도/조건은 어차피 차원에만 있어 조인 불가피* → 인터닝이 추가 부담 거의 0. **결정: 인터닝.** game_achievement(ach_id PK, appid, apiname, display_name, description, hidden, global_pct)에 이름/조건/희귀도 1부씩.
+
+**고민3 — 무손실 보험**: 미컬럼화 가변필드(스크린샷/영상/요구사양)까지 raw_json 블롭 vs 컬럼만. 사용자 판단: "비신호 + 게임단위라 <1일 재크롤 복원 가능" → **결정: 컬럼만(raw_json 미사용).** 모든 *신호* 필드는 빠짐없이 컬럼화. (per-게임 차원은 distinct ~수만개로 바운드.)
+
+**구조(스타스키마)**: steamid/gid INTEGER(64bit<2^63 무손실, TEXT 대비 ~3x↓). facts(owned/user_achievement/...) vs dimension(game_achievement/games/steamspy). 무손실복원: `user_achievement ⋈ game_achievement(ach_id) ⋈ games(appid)` → "유저X가 [게임명]에서 [업적명](조건:…, 글로벌Q%)를 T에 해금". player_game_ach(unlocked=0,total=N)으로 "플레이했으나 0해금"(disengagement) 명시 보존.
+
+**타이밍(3-phase 라운드로빈, 각 데이터 최저비용 지점에서 1회)**:
+- users: 게임명 **공짜**(include_appinfo=1) + 업적콜 **has_community_visible_stats 게이팅**(업적없는 게임 스킵 ~40%절감). GetBadges 1콜로 level+xp+뱃지(GetSteamLevel 대체). 업적은 해금 apiname+unlocktime만(인터닝). 트랜지언트(non-200)는 pending 유지(false-private 버그 수정). 친구→스노볼 enqueue.
+- games: distinct owned appid당 1회. appdetails/steamspy/**GetSchemaForGame(이름·조건)**/GlobalAchPct(희귀도)/CurrentPlayers(CCU). games.fetched_at=방문마커(부분방문 resume는 sub-step has_* 가드).
+- reviews(opt-in 최저우선): appreviews 페이지네이션(author 귀속, per-user 리뷰 API 부재). page-cap으로 1게임 예산독점 방지.
+
+**예산 강화**: reserve를 HTTP attempt마다(429 재시도도 카운트) → 100k 하드캡 under-count 불가(구 코드는 get당 1예약이라 재시도 누락 위험).
+**검증**: db.py 스모크 통과(20테이블, reserve 5/5, 인터닝 ACH_A→1, lossless join 'First Blood'/'Win a round'/1.3%/unlocktime 재구성). 단기 라이브크롤(--limit 400)로 실데이터 end-to-end 확인 중.

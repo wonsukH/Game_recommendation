@@ -1,17 +1,32 @@
 """Unified, resumable, budget-capped Steam crawler -> SQLite (data_collection/db.py).
 
-Collects BEHAVIORAL/ENGAGEMENT signals PER PERSON (not identity — no country/persona).
-For each distinct steamid: owned(full); if public -> recently, friends, wishlist,
-followed, groups, steam level (engagement), and achievements for owned games with
-playtime >= --ach-floor min. A user is marked `complete` only at the very end ->
-never left half-done (resume re-completes). Per-user cursor checkpoint.
+THREE PHASES, interleaved round-robin so per-game metadata accumulates alongside the
+per-user facts (each datum fetched at the cheapest point — see plan 최종 SQLite 스키마):
 
-Every HTTP call reserves against the shared daily budget BEFORE the call
-(reserve-before-call) -> the 100k/day cap can never be exceeded (default 90k). AIMD
-self-tunes the rate (429 -> slow + backoff; success streak -> speed up, min ~1/s);
-circuit breaker on persistent 429. With --forever: steady ~1 req/s continuously,
-looping the queue (refresh). ToU: public profiles only, official API within cap,
-data stored LOCALLY (gitignored).
+  Phase 1 users (facts)  — per public user. GetOwnedGames(include_appinfo=1: game names
+      come FREE + has_community_visible_stats GATES achievement calls), Recently, Friends
+      (+snowball enqueue), Wishlist, Followed, Groups, GetBadges(level+xp+badges), and
+      GetPlayerAchievements for played(>=floor)+stats games — storing only WHICH apinames
+      were unlocked (+unlocktime), interned to a compact ach_id. A user is `complete` only
+      at the very end (atomic; resume re-runs idempotently). A transient (non-200) owned
+      response leaves the user pending (NOT marked private) so it retries.
+  Phase 2 games (dimension) — per distinct owned appid, ONCE. appdetails, SteamSpy,
+      GetSchemaForGame (achievement display_name/description/hidden + game stats),
+      GetGlobalAchievementPercentages (rarity %), GetNumberOfCurrentPlayers (live CCU).
+      This is where achievement id->name/condition mapping happens. games.fetched_at =
+      "visited" marker (sub-steps individually guarded for partial-visit resume).
+  Phase 3 reviews (opt-in, lowest priority) — per-game appreviews (author-attributed),
+      paginated with a stored cursor, page-capped per cycle so one game can't hog budget.
+
+Rate control: WALL-CLOCK pacing — sleep only `max(0, target - elapsed_since_last_start)`,
+so the cadence equals `target` regardless of response latency (the old code slept AFTER
+each call, so the real gap was RTT+sleep ≈ 1.3s, not 1.0s). AIMD adapts `target` (429 ->
+×1.7 slower; success streak -> ×0.9 faster, floored). Circuit breaker on persistent 429.
+
+Budget: EVERY HTTP request reserves 1 against the shared daily counter BEFORE firing
+(reserve-before-call, retries counted too) -> the 100k/day cap can NEVER be exceeded
+(default 90k). ToU: public profiles only, official/store APIs within cap, data stored
+LOCALLY (gitignored).
 """
 
 from __future__ import annotations
@@ -22,7 +37,6 @@ import json
 import os
 import sys
 import time
-from datetime import datetime, timezone
 from pathlib import Path
 
 import requests
@@ -33,197 +47,470 @@ sys.path.insert(0, str(REPO_ROOT))
 load_dotenv(REPO_ROOT / ".env")
 
 from data_collection import db  # noqa: E402
-from pipeline.game_rec.io import load_index_maps  # noqa: E402
 from pipeline.game_rec.log import get_logger  # noqa: E402
 
 log = get_logger("data_collection.crawl_unified")
 API = "https://api.steampowered.com"
 STORE = "https://store.steampowered.com"
+STEAMSPY = "https://steamspy.com/api.php"
 
 
 class Throttled(Exception):
-    """Persistent HTTP 429 after backoff — caller must cool down and retry, and must
-    NOT record the user as private (that would corrupt data with false negatives)."""
+    """Persistent HTTP 429 after backoff — caller cools down and retries later; the user
+    must NOT be recorded private (that would corrupt data with false negatives)."""
 
 
-def _now():
-    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+def _f(v) -> float:
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return 0.0
 
 
+def _i(v):
+    try:
+        return int(v)
+    except (TypeError, ValueError):
+        return None
+
+
+def _csv(v) -> str | None:
+    if isinstance(v, list):
+        return ", ".join(str(x) for x in v) if v else None
+    return v if v else None
+
+
+# ---------------- response parsers (pure functions) ----------------
+def parse_appdetails(appid: int, data: dict | None) -> dict:
+    """appdetails 'data' -> games columns (no fetched_at). data=None -> {appid} only
+    (so the early-inserted name is preserved and fetched_at still gets stamped)."""
+    g = {"appid": int(appid)}
+    if not data:
+        return g
+    price = data.get("price_overview") or {}
+    plat = data.get("platforms") or {}
+    metac = data.get("metacritic") or {}
+    rel = data.get("release_date") or {}
+    rec = data.get("recommendations") or {}
+    ach = data.get("achievements") or {}
+    support = data.get("support_info") or {}
+    g.update({
+        "name": data.get("name"),
+        "type": data.get("type"),
+        "required_age": _i(data.get("required_age")),
+        "is_free": int(bool(data.get("is_free"))),
+        "controller_support": data.get("controller_support"),
+        "dlc_json": json.dumps(data.get("dlc")) if data.get("dlc") else None,
+        "short_description": data.get("short_description") or None,
+        "detailed_description": data.get("detailed_description") or None,
+        "about_the_game": data.get("about_the_game") or None,
+        "supported_languages": data.get("supported_languages") or None,
+        "developers": _csv(data.get("developers")),
+        "publishers": _csv(data.get("publishers")),
+        "win": int(bool(plat.get("windows"))),
+        "mac": int(bool(plat.get("mac"))),
+        "linux": int(bool(plat.get("linux"))),
+        "price_final": _i(price.get("final")),
+        "price_initial": _i(price.get("initial")),
+        "price_discount": _i(price.get("discount_percent")),
+        "price_currency": price.get("currency"),
+        "metacritic_score": _i(metac.get("score")),
+        "metacritic_url": metac.get("url"),
+        "categories_json": json.dumps(data.get("categories")) if data.get("categories") else None,
+        "genres_json": json.dumps(data.get("genres")) if data.get("genres") else None,
+        "recommendations_total": _i(rec.get("total")),
+        "achievements_total": _i(ach.get("total")),
+        "release_date": rel.get("date"),
+        "coming_soon": int(bool(rel.get("coming_soon"))),
+        "header_image": data.get("header_image"),
+        "content_descriptors_json": json.dumps(data.get("content_descriptors"))
+        if data.get("content_descriptors") else None,
+        "website": data.get("website"),
+        "support_url": support.get("url") or None,
+    })
+    return g
+
+
+def parse_steamspy(appid: int, d: dict) -> tuple:
+    return (int(appid), d.get("name"), d.get("developer"), d.get("publisher"),
+            str(d.get("score_rank")) if d.get("score_rank") not in (None, "") else None,
+            _i(d.get("positive")), _i(d.get("negative")), _i(d.get("userscore")),
+            d.get("owners"), _i(d.get("average_forever")), _i(d.get("average_2weeks")),
+            _i(d.get("median_forever")), _i(d.get("median_2weeks")), _i(d.get("price")),
+            _i(d.get("initialprice")), _i(d.get("discount")), _i(d.get("ccu")),
+            d.get("languages"), d.get("genre"),
+            json.dumps(d.get("tags")) if d.get("tags") else None, db.now_iso())
+
+
+REVIEW_COLS = ["recommendationid", "appid", "author_steamid", "language", "voted_up",
+               "votes_up", "votes_funny", "weighted_vote_score", "comment_count",
+               "steam_purchase", "received_for_free", "written_during_early_access",
+               "primarily_steam_deck", "author_playtime_forever", "author_playtime_at_review",
+               "author_playtime_2weeks", "author_num_games_owned", "author_num_reviews",
+               "review_text", "timestamp_created", "timestamp_updated", "fetched_at"]
+
+
+def parse_review(appid: int, r: dict, ts: str) -> tuple:
+    a = r.get("author") or {}
+    return (_i(r.get("recommendationid")), int(appid), _i(a.get("steamid")), r.get("language"),
+            int(bool(r.get("voted_up"))), _i(r.get("votes_up")), _i(r.get("votes_funny")),
+            _f(r.get("weighted_vote_score")), _i(r.get("comment_count")),
+            int(bool(r.get("steam_purchase"))), int(bool(r.get("received_for_free"))),
+            int(bool(r.get("written_during_early_access"))), int(bool(r.get("primarily_steam_deck"))),
+            _f(a.get("playtime_forever")), _f(a.get("playtime_at_review")),
+            _f(a.get("playtime_last_two_weeks")), _i(a.get("num_games_owned")),
+            _i(a.get("num_reviews")), r.get("review"), _i(r.get("timestamp_created")),
+            _i(r.get("timestamp_updated")), ts)
+
+
+# ---------------- crawler ----------------
 class Crawler:
-    def __init__(self, conn, key, limit, sleep, ach_floor, min_sleep=0.2, max_sleep=8.0):
+    def __init__(self, conn, key, limit, target, ach_floor,
+                 min_target=0.7, max_target=8.0, max_throttle=5):
         self.conn, self.key, self.limit, self.ach_floor = conn, key, limit, ach_floor
-        self.sleep = sleep            # current inter-call interval (AIMD-adapted)
-        self.min_sleep, self.max_sleep = min_sleep, max_sleep
+        self.target = target            # current wall-clock interval (AIMD-adapted)
+        self.min_target, self.max_target = min_target, max_target
+        self.max_throttle = max_throttle
+        self._last_start = None
         self.calls = 0
         self.throttle_hits = 0
         self._ok_streak = 0
+        self.throttle_streak = 0
+        self.budget_exhausted = False
+        self.circuit_open = False
+
+    def _pace(self):
+        """Wall-clock pacing: ensure `target` elapsed between consecutive request STARTS,
+        absorbing RTT into the interval (cadence = target regardless of latency)."""
+        if self._last_start is not None:
+            wait = self.target - (time.monotonic() - self._last_start)
+            if wait > 0:
+                time.sleep(wait)
+        self._last_start = time.monotonic()
 
     def get(self, url, params, store=False):
-        """Reserve-before-call (1 reservation per get). Returns json on HTTP 200, None
-        on other non-429 errors. AIMD self-tuning: a 429 multiplicatively SLOWS the
-        steady rate (and exp-backs-off this call); a streak of successes gently SPEEDS
-        it up — so the crawler converges on Steam's allowed rate without hardcoding.
-        Persistent 429 -> raises Throttled (caller cools down; NEVER mark 'private')."""
-        if not db.reserve(self.conn, 1, self.limit):
-            raise db.BudgetExhausted()
-        self.calls += 1
+        """Reserve-before-call PER HTTP attempt (429 retries counted too -> the daily cap
+        is never under-counted). 200 -> json; other non-429 -> None; persistent 429 ->
+        Throttled. AIMD adapts `target`."""
         p = dict(params)
         if not store:
             p["key"] = self.key
         for attempt in range(5):
+            if not db.reserve(self.conn, 1, self.limit):
+                raise db.BudgetExhausted()
+            self.calls += 1
+            self._pace()
             try:
-                r = requests.get(url, params=p, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
-                if r.status_code == 429:
-                    self.throttle_hits += 1
-                    self._ok_streak = 0
-                    self.sleep = min(self.max_sleep, self.sleep * 1.7)   # AIMD: slow down
-                    time.sleep(min(120, 8 * (2 ** attempt)))             # exp backoff this call
-                    continue
-                if r.status_code != 200:
-                    return None
-                self._ok_streak += 1                                     # AIMD: speed up after sustained ok
-                if self._ok_streak >= 25:
-                    self.sleep = max(self.min_sleep, self.sleep * 0.9)
-                    self._ok_streak = 0
-                return r.json()
+                r = requests.get(url, params=p, timeout=25, headers={"User-Agent": "Mozilla/5.0"})
             except Exception:
                 time.sleep(2)
-        raise Throttled()  # persistent 429
+                continue
+            if r.status_code == 429:
+                self.throttle_hits += 1
+                self._ok_streak = 0
+                self.target = min(self.max_target, self.target * 1.7)   # AIMD: slow down
+                time.sleep(min(120, 8 * (2 ** attempt)))                # exp backoff this attempt
+                continue
+            if r.status_code != 200:
+                return None
+            self._ok_streak += 1
+            if self._ok_streak >= 25:
+                self.target = max(self.min_target, self.target * 0.9)   # AIMD: speed up
+                self._ok_streak = 0
+            try:
+                return r.json()
+            except Exception:
+                return None
+        raise Throttled()
 
-    # ---------- per-user ----------
-    def crawl_user(self, sid, pool):
+    # ---------- Phase 1: users ----------
+    def crawl_user(self, sid) -> bool:
+        """Crawl one user fully. Returns True if processed (public or genuinely private),
+        False if a transient error left it pending (retry later). complete=1 set only at
+        the very end -> atomic."""
+        sid = int(sid)
+        depth = db.queue_depth_of(self.conn, sid)
         j = self.get(f"{API}/IPlayerService/GetOwnedGames/v1/",
-                     {"steamid": sid, "include_appinfo": 0, "include_played_free_games": 1, "format": "json"})
-        time.sleep(self.sleep)
-        games = (j or {}).get("response", {}).get("games") if j else None
+                     {"steamid": sid, "include_appinfo": 1, "include_played_free_games": 1,
+                      "format": "json"})
+        if j is None:
+            return False  # transient (non-200) -> leave pending, do NOT mark private
+        games = (j.get("response") or {}).get("games")
         if games is None:
-            db.upsert_user(self.conn, sid, public=0, fetched_at=_now())
-            return  # private/unavailable (still counted the 1 call)
-        owned = [(sid, int(g["appid"]), float(g.get("playtime_forever", 0)), float(g.get("playtime_2weeks", 0)))
+            db.upsert_user(self.conn, sid, public=0, complete=1, fetched_at=db.now_iso())
+            return True   # genuinely private (200 with no games)
+
+        owned = [(sid, int(g["appid"]), _f(g.get("playtime_forever")), _f(g.get("playtime_2weeks")),
+                  _f(g.get("playtime_windows_forever")), _f(g.get("playtime_mac_forever")),
+                  _f(g.get("playtime_linux_forever")), _f(g.get("playtime_deck_forever")),
+                  _f(g.get("playtime_disconnected")), _i(g.get("rtime_last_played")),
+                  int(bool(g.get("has_community_visible_stats"))), None, g.get("img_icon_url"))
                  for g in games]
         db.upsert_many(self.conn, "owned",
-                       ["steamid", "appid", "playtime_forever", "playtime_2weeks"], owned)
-        db.upsert_user(self.conn, sid, public=1, fetched_at=_now())
+                       ["steamid", "appid", "playtime_forever", "playtime_2weeks",
+                        "playtime_windows", "playtime_mac", "playtime_linux", "playtime_deck",
+                        "playtime_disconnected", "rtime_last_played", "has_stats",
+                        "has_leaderboards", "img_icon_url"], owned)
+        # game names come FREE here (include_appinfo=1) -> seed games(appid,name) w/o clobber
+        db.insert_ignore(self.conn, "games", ["appid", "name"],
+                         [(int(g["appid"]), g.get("name")) for g in games if g.get("name")])
+        db.upsert_user(self.conn, sid, public=1, fetched_at=db.now_iso())
 
         # recently
         j = self.get(f"{API}/IPlayerService/GetRecentlyPlayedGames/v1/", {"steamid": sid, "format": "json"})
-        time.sleep(self.sleep)
-        rec = (j or {}).get("response", {}).get("games") or []
+        rec = ((j or {}).get("response") or {}).get("games") or []
         db.upsert_many(self.conn, "recently", ["steamid", "appid", "playtime_2weeks"],
-                       [(sid, int(g["appid"]), float(g.get("playtime_2weeks", 0))) for g in rec])
-        # friends
-        j = self.get(f"{API}/ISteamUser/GetFriendList/v1/", {"steamid": sid, "relationship": "friend", "format": "json"})
-        time.sleep(self.sleep)
-        fr = (j or {}).get("friendslist", {}).get("friends") or []
-        db.upsert_many(self.conn, "friends", ["steamid", "friend_steamid"],
-                       [(sid, f["steamid"]) for f in fr])
+                       [(sid, int(g["appid"]), _f(g.get("playtime_2weeks"))) for g in rec])
+        # friends (+ snowball enqueue)
+        j = self.get(f"{API}/ISteamUser/GetFriendList/v1/",
+                     {"steamid": sid, "relationship": "friend", "format": "json"})
+        fr = ((j or {}).get("friendslist") or {}).get("friends") or []
+        db.upsert_many(self.conn, "friends", ["steamid", "friend_steamid", "friend_since"],
+                       [(sid, _i(f["steamid"]), _i(f.get("friend_since"))) for f in fr if f.get("steamid")])
+        if fr:
+            db.enqueue_users(self.conn, [f["steamid"] for f in fr if f.get("steamid")], depth + 1)
         # wishlist
         j = self.get(f"{API}/IWishlistService/GetWishlist/v1/", {"steamid": sid})
-        time.sleep(self.sleep)
-        wl = (j or {}).get("response", {}).get("items") or []
-        db.upsert_many(self.conn, "wishlist", ["steamid", "appid", "priority"],
-                       [(sid, int(w.get("appid")), int(w.get("priority", 0))) for w in wl if w.get("appid")])
+        wl = ((j or {}).get("response") or {}).get("items") or []
+        db.upsert_many(self.conn, "wishlist", ["steamid", "appid", "priority", "date_added"],
+                       [(sid, int(w["appid"]), _i(w.get("priority")), _i(w.get("date_added")))
+                        for w in wl if w.get("appid")])
         # followed
         j = self.get(f"{API}/IStoreService/GetGamesFollowed/v1/", {"steamid": sid})
-        time.sleep(self.sleep)
-        fo = (j or {}).get("response", {}).get("games") or []
+        fo = ((j or {}).get("response") or {}).get("games") or []
         db.upsert_many(self.conn, "followed", ["steamid", "appid"],
-                       [(sid, int(g.get("appid"))) for g in fo if g.get("appid")])
+                       [(sid, int(g["appid"])) for g in fo if g.get("appid")])
         # groups
         j = self.get(f"{API}/ISteamUser/GetUserGroupList/v1/", {"steamid": sid, "format": "json"})
-        time.sleep(self.sleep)
-        gr = (j or {}).get("response", {}).get("groups") or []
-        db.upsert_many(self.conn, "user_groups", ["steamid", "gid"], [(sid, g["gid"]) for g in gr])
-        # steam level = ENGAGEMENT signal (how invested a gamer this is). Kept.
-        # (country/persona = identity/locale -> NOT crawled; irrelevant to behavioral recs.)
-        j = self.get(f"{API}/IPlayerService/GetSteamLevel/v1/", {"steamid": sid, "format": "json"})
-        time.sleep(self.sleep)
-        db.upsert_user(self.conn, sid, level=(j or {}).get("response", {}).get("player_level"))
-        # achievements for meaningfully-played games (playtime >= floor)
-        played = [(a, pt) for (_, a, pt, _) in owned if pt >= self.ach_floor and int(a) in pool]
-        for appid, _pt in played:
+        gr = ((j or {}).get("response") or {}).get("groups") or []
+        db.upsert_many(self.conn, "user_groups", ["steamid", "gid"],
+                       [(sid, _i(g["gid"])) for g in gr if g.get("gid")])
+        # badges (one call -> level + xp + per-game badges; supersedes GetSteamLevel)
+        j = self.get(f"{API}/IPlayerService/GetBadges/v1/", {"steamid": sid, "format": "json"})
+        resp = (j or {}).get("response") or {}
+        db.upsert_user(self.conn, sid, level=_i(resp.get("player_level")), xp=_i(resp.get("player_xp")),
+                       xp_needed=_i(resp.get("player_xp_needed_to_level_up")))
+        bd = resp.get("badges") or []
+        db.upsert_many(self.conn, "badges",
+                       ["steamid", "badgeid", "appid", "level", "completion_time", "xp",
+                        "scarcity", "border_color"],
+                       [(sid, _i(b.get("badgeid")), _i(b.get("appid")) or 0, _i(b.get("level")),
+                         _i(b.get("completion_time")), _i(b.get("xp")), _i(b.get("scarcity")),
+                         _i(b.get("border_color"))) for b in bd if b.get("badgeid") is not None])
+
+        # achievements: played games (playtime>=floor) that HAVE stats (gating saves calls)
+        played = [int(g["appid"]) for g in games
+                  if _f(g.get("playtime_forever")) >= self.ach_floor
+                  and g.get("has_community_visible_stats")]
+        for appid in played:
             j = self.get(f"{API}/ISteamUserStats/GetPlayerAchievements/v1/",
                          {"steamid": sid, "appid": appid})
-            time.sleep(self.sleep)
-            ach = (j or {}).get("playerstats", {}).get("achievements") if j else None
-            if ach:
-                done = sum(1 for a in ach if a.get("achieved") == 1)
-                db.upsert_many(self.conn, "achievements", ["steamid", "appid", "unlocked", "total"],
-                               [(sid, int(appid), done, len(ach))])
-        # mark the user FULLY crawled (owned + all signals + all played-game achievements).
-        # Set only here, at the very end -> a user is never left permanently half-done:
-        # an interruption (budget/throttle/kill) leaves complete=0 and the cursor on this
-        # user, so resume re-runs it from the top (idempotent upserts) before advancing.
+            ach = ((j or {}).get("playerstats") or {}).get("achievements") if j else None
+            if not ach:
+                continue   # stats genuinely absent / private for this game -> no signal
+            unlocked = [(a["apiname"], _i(a.get("unlocktime")) or 0)
+                        for a in ach if a.get("achieved") == 1 and a.get("apiname")]
+            db.upsert_many(self.conn, "player_game_ach",
+                           ["steamid", "appid", "unlocked", "total", "checked_at"],
+                           [(sid, appid, len(unlocked), len(ach), db.now_iso())])
+            if unlocked:
+                m = db.intern_achievements(self.conn, appid, [n for n, _ in unlocked])
+                db.upsert_many(self.conn, "user_achievement", ["steamid", "ach_id", "unlocktime"],
+                               [(sid, m[n], t) for n, t in unlocked if n in m])
         db.upsert_user(self.conn, sid, complete=1)
-
-    def run_users(self, steamids, pool, base_cooldown=300, max_throttle_retries=5):
-        key = "phase:users"
-        pos, _ = db.get_cursor(self.conn, key)
-        log.info("users phase resume pos=%d / %d (today spent=%d)", pos, len(steamids), db.spent_today(self.conn))
-        i = pos
-        throttle_streak = 0
-        try:
-            while i < len(steamids):
-                try:
-                    self.crawl_user(steamids[i], pool)
-                except Throttled:
-                    # CIRCUIT BREAKER: persistent 429 -> escalating pause, retry SAME user
-                    # (never record false-private). Open circuit after too many.
-                    throttle_streak += 1
-                    db.set_cursor(self.conn, key, i)
-                    if throttle_streak > max_throttle_retries:
-                        log.warning("circuit OPEN: persistent throttle at pos=%d (streak=%d) — stop, resume later",
-                                    i, throttle_streak)
-                        return False
-                    cd = min(600, base_cooldown * throttle_streak)  # 300s, 600s, ...
-                    log.warning("circuit-break: throttled at pos=%d, pausing %ds (streak=%d)", i, cd, throttle_streak)
-                    time.sleep(cd)
-                    continue
-                throttle_streak = 0
-                i += 1
-                db.set_cursor(self.conn, key, i)   # PER-USER checkpoint: resume granularity = 1 person
-                if i % 20 == 0:
-                    log.info("users pos=%d/%d spent_today=%d throttle_hits=%d interval=%.2fs",
-                             i, len(steamids), db.spent_today(self.conn), self.throttle_hits, self.sleep)
-        except db.BudgetExhausted:
-            db.set_cursor(self.conn, key, i)
-            log.info("BUDGET EXHAUSTED at users pos=%d (today=%d). resume tomorrow.", i, db.spent_today(self.conn))
-            return False
-        db.set_cursor(self.conn, key, len(steamids), done=True)
         return True
 
+    # ---------- Phase 2: games ----------
+    def crawl_game(self, appid):
+        """Fetch all per-game dimension data ONCE. games.fetched_at stamped LAST = visited."""
+        appid = int(appid)
+        # appdetails (store API, no key)
+        j = self.get(f"{STORE}/api/appdetails", {"appids": appid, "l": "english"}, store=True)
+        data = None
+        if j:
+            node = j.get(str(appid)) or {}
+            if node.get("success"):
+                data = node.get("data")
+        gcols = parse_appdetails(appid, data)
+        # SteamSpy (store API, no key)
+        if not db.has_steamspy(self.conn, appid):
+            js = self.get(STEAMSPY, {"request": "appdetails", "appid": appid}, store=True)
+            if js and js.get("appid") is not None:
+                db.upsert_many(self.conn, "steamspy",
+                               ["appid", "name", "developer", "publisher", "score_rank",
+                                "positive", "negative", "userscore", "owners", "average_forever",
+                                "average_2weeks", "median_forever", "median_2weeks", "price",
+                                "initialprice", "discount", "ccu", "languages", "genre",
+                                "tags_json", "fetched_at"], [parse_steamspy(appid, js)])
+        # achievement schema: display_name + description(condition) + hidden + game stats
+        if not db.has_schema(self.conn, appid):
+            jsc = self.get(f"{API}/ISteamUserStats/GetSchemaForGame/v2/",
+                           {"appid": appid, "l": "english"})
+            ags = ((jsc or {}).get("game") or {}).get("availableGameStats") or {}
+            achs = ags.get("achievements") or []
+            if achs:
+                db.upsert_achievement_schema(self.conn, appid, achs)
+            stats = ags.get("stats") or []
+            if stats:
+                db.upsert_many(self.conn, "game_stat",
+                               ["appid", "name", "display_name", "default_value"],
+                               [(appid, s.get("name"), s.get("displayName"), _f(s.get("defaultvalue")))
+                                for s in stats if s.get("name")])
+        # global achievement rarity %
+        if not db.has_global_pct(self.conn, appid):
+            jp = self.get(f"{API}/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2/",
+                          {"gameid": appid})
+            pcts = ((jp or {}).get("achievementpercentages") or {}).get("achievements") or []
+            if pcts:
+                db.upsert_global_pct(self.conn, appid,
+                                     [(a["name"], a["percent"]) for a in pcts if a.get("name") is not None])
+        # live concurrent players (official)
+        if not db.has_live(self.conn, appid):
+            jl = self.get(f"{API}/ISteamUserStats/GetNumberOfCurrentPlayers/v1/", {"appid": appid})
+            pc = ((jl or {}).get("response") or {}).get("player_count")
+            db.upsert_cols(self.conn, "game_live", ["appid"],
+                           {"appid": appid, "player_count": _i(pc), "fetched_at": db.now_iso()})
+        # stamp visited LAST (preserves early name if appdetails failed)
+        db.upsert_cols(self.conn, "games", ["appid"], {**gcols, "fetched_at": db.now_iso()})
 
-def distinct_steamids(scores: Path, limit: int, seed: int = 42) -> list[str]:
-    """Distinct review-author steamids, SEED-SHUFFLED so the early-crawled sample is
-    representative (CSV order groups reviewers by game = biased). Deterministic seed
-    -> stable order across restarts -> the resume cursor stays valid."""
+    # ---------- Phase 3: reviews ----------
+    def crawl_game_reviews(self, appid, max_pages):
+        appid = int(appid)
+        cursor = db.get_review_cursor(self.conn, appid)
+        for _ in range(max_pages):
+            j = self.get(f"{STORE}/appreviews/{appid}",
+                         {"json": 1, "filter": "recent", "language": "all", "num_per_page": 100,
+                          "cursor": cursor, "purchase_type": "all", "review_type": "all"}, store=True)
+            if not j or j.get("success") != 1:
+                db.set_review_cursor(self.conn, appid, cursor, 0, done=True)
+                return
+            revs = j.get("reviews") or []
+            if revs:
+                db.upsert_many(self.conn, "reviews", REVIEW_COLS,
+                               [parse_review(appid, r, db.now_iso()) for r in revs
+                                if r.get("recommendationid")])
+            new_cursor = j.get("cursor")
+            if not revs or not new_cursor or new_cursor == cursor:
+                db.set_review_cursor(self.conn, appid, new_cursor or cursor, len(revs), done=True)
+                return
+            db.set_review_cursor(self.conn, appid, new_cursor, len(revs), done=False)
+            cursor = new_cursor
+        # page cap reached this cycle: not done, resumes from stored cursor next cycle
+
+    # ---------- chunk runners (one round-robin slice each) ----------
+    def _cooldown(self) -> bool:
+        """Handle a Throttled in chunk context. Returns True if the circuit OPENED (stop)."""
+        self.throttle_streak += 1
+        if self.throttle_streak > self.max_throttle:
+            self.circuit_open = True
+            log.warning("circuit OPEN: persistent throttle (streak=%d) — pause this cycle",
+                        self.throttle_streak)
+            return True
+        cd = min(600, 300 * self.throttle_streak)
+        log.warning("circuit-break: throttled, pausing %ds (streak=%d)", cd, self.throttle_streak)
+        time.sleep(cd)
+        return False
+
+    def run_users_chunk(self, limit) -> int:
+        done = 0
+        for sid in db.next_pending_users(self.conn, limit):
+            try:
+                ok = self.crawl_user(sid)
+            except db.BudgetExhausted:
+                self.budget_exhausted = True
+                break
+            except Throttled:
+                if self._cooldown():
+                    break
+                break  # leave user pending; next cycle retries
+            else:
+                self.throttle_streak = 0
+                done += int(ok)
+        return done
+
+    def run_games_chunk(self, limit) -> int:
+        done = 0
+        for appid in db.next_games_to_fetch(self.conn, limit):
+            try:
+                self.crawl_game(appid)
+            except db.BudgetExhausted:
+                self.budget_exhausted = True
+                break
+            except Throttled:
+                self._cooldown()
+                break
+            else:
+                self.throttle_streak = 0
+                done += 1
+        return done
+
+    def run_reviews_chunk(self, limit, max_pages) -> int:
+        done = 0
+        for appid in db.next_games_to_review(self.conn, limit):
+            try:
+                self.crawl_game_reviews(appid, max_pages)
+            except db.BudgetExhausted:
+                self.budget_exhausted = True
+                break
+            except Throttled:
+                self._cooldown()
+                break
+            else:
+                self.throttle_streak = 0
+                done += 1
+        return done
+
+    def run_cycle(self, phases, users_chunk, games_chunk, reviews_chunk, review_pages) -> int:
+        n = 0
+        if "users" in phases and not self.budget_exhausted:
+            n += self.run_users_chunk(users_chunk)
+        if "games" in phases and not self.budget_exhausted and not self.circuit_open:
+            n += self.run_games_chunk(games_chunk)
+        if "reviews" in phases and not self.budget_exhausted and not self.circuit_open:
+            n += self.run_reviews_chunk(reviews_chunk, review_pages)
+        return n
+
+
+def bootstrap_from_csv(conn, scores: Path, limit: int, seed: int = 42) -> int:
+    """Seed the user queue (depth 0) from distinct steamids in a CSV. Only the ID column
+    is used (not the old data) — a pure entry point; friend-snowball grows it from there.
+    SEED-SHUFFLED: CSV order groups reviewers by game (biased), so a deterministic shuffle
+    makes the early-crawled sample representative; the seq order then stays stable."""
+    if not scores.exists():
+        return 0
     import random
-    order, seen = [], set()
+    ids, seen = [], set()
     with open(scores, encoding="utf-8-sig") as f:
         for row in csv.DictReader(f):
-            s = row["steamid"]
-            if s not in seen:
-                seen.add(s); order.append(s)
-            if len(order) >= limit:
+            s = row.get("steamid")
+            if s and s not in seen:
+                seen.add(s)
+                ids.append(s)
+            if len(ids) >= limit:
                 break
-    random.Random(seed).shuffle(order)
-    return order
+    random.Random(seed).shuffle(ids)
+    return db.enqueue_users(conn, ids, depth=0)
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--db", type=Path, default=db.DEFAULT_DB)
-    ap.add_argument("--scores", type=Path, default=REPO_ROOT / "outputs" / "user_game_scores.csv")
-    ap.add_argument("--data-dir", type=Path, default=REPO_ROOT / "serving" / "data")
+    ap.add_argument("--scores", type=Path, default=REPO_ROOT / "outputs" / "user_game_scores.csv",
+                    help="CSV to bootstrap the user queue (steamid column only)")
     ap.add_argument("--limit", type=int, default=db.DAILY_LIMIT, help="daily call cap (<100k)")
     ap.add_argument("--seed-today", type=int, default=0, help="calls already spent today outside this DB")
-    ap.add_argument("--max-steamids", type=int, default=200000)
-    ap.add_argument("--ach-floor", type=float, default=10.0, help="min playtime(min) to crawl a game's achievements")
-    ap.add_argument("--sleep", type=float, default=1.0, help="START interval (~1 req/s, steady); AIMD adjusts (min 0.7s)")
-    ap.add_argument("--min-sleep", type=float, default=0.7, help="fastest interval AIMD may reach (cap the speed-up)")
-    ap.add_argument("--forever", action="store_true", help="run continuously: loop the queue forever (refresh passes)")
-    ap.add_argument("--loop-sleep", type=int, default=3600, help="seconds to sleep between passes / on pause in --forever")
+    ap.add_argument("--max-bootstrap", type=int, default=200000, help="max steamids to seed from CSV")
+    ap.add_argument("--phases", default="users,games", help="comma list: users,games,reviews")
+    ap.add_argument("--ach-floor", type=float, default=10.0,
+                    help="min playtime(min) to crawl a game's achievements")
+    ap.add_argument("--target", type=float, default=1.0, help="wall-clock interval seconds (RTT-absorbed)")
+    ap.add_argument("--min-target", type=float, default=0.7, help="fastest interval AIMD may reach")
+    ap.add_argument("--users-chunk", type=int, default=20)
+    ap.add_argument("--games-chunk", type=int, default=60)
+    ap.add_argument("--reviews-chunk", type=int, default=10)
+    ap.add_argument("--review-pages", type=int, default=5, help="appreviews pages/game/cycle")
+    ap.add_argument("--forever", action="store_true", help="run continuously across days")
+    ap.add_argument("--loop-sleep", type=int, default=3600, help="sleep when paused/caught-up (--forever)")
     args = ap.parse_args()
 
     key = os.environ.get("STEAM_API_KEY")
@@ -232,37 +519,46 @@ def main() -> int:
     conn = db.connect(args.db)
     if args.seed_today > 0:
         db.seed_today(conn, args.seed_today)
-    pool = set(int(a) for a in load_index_maps(args.data_dir / "index_maps.json")["appid2row"].keys())
+    seeded = bootstrap_from_csv(conn, args.scores, args.max_bootstrap)
+    phases = [p.strip() for p in args.phases.split(",") if p.strip()]
+    log.info("phases=%s bootstrap=+%d queued, pending=%d, today_spent=%d, target=%.2fs",
+             phases, seeded, db.pending_users(conn), db.spent_today(conn), args.target)
 
-    cr = Crawler(conn, key, args.limit, args.sleep, args.ach_floor, min_sleep=args.min_sleep)
-    steamids = distinct_steamids(args.scores, args.max_steamids)
+    cr = Crawler(conn, key, args.limit, args.target, args.ach_floor, min_target=args.min_target)
 
-    def one_pass():
-        return cr.run_users(steamids, pool)
+    def report():
+        return {"calls_this_run": cr.calls, "throttle_hits": cr.throttle_hits,
+                "final_interval": round(cr.target, 2), "spent_today": db.spent_today(conn),
+                "pending_users": db.pending_users(conn), "counts": db.counts(conn)}
 
-    if not args.forever:
-        done = one_pass()
-        log.info("users %s. calls=%d throttle_hits=%d interval=%.2fs counts=%s",
-                 "DONE" if done else "paused", cr.calls, cr.throttle_hits, cr.sleep, db.counts(conn))
-        print(json.dumps({"calls_this_run": cr.calls, "throttle_hits": cr.throttle_hits,
-                          "final_interval": round(cr.sleep, 2), "spent_today": db.spent_today(conn),
-                          "counts": db.counts(conn)}))
-        conn.close()
-        return 0
-
-    # --forever: steady continuous crawl (survives throttle via circuit breaker; budget per
-    # UTC-day auto-resets). At ~1/s the daily cap never binds -> just runs, slowly accumulating.
-    log.info("FOREVER mode @ ~%.2fs/call. loops the queue (refresh). Ctrl-C / TaskStop to end.", args.sleep)
+    cycles = 0
     while True:
-        done = one_pass()
-        if done:
-            log.info("FULL PASS DONE. counts=%s. sleep %ds then refresh-pass.", db.counts(conn), args.loop_sleep)
+        cr.budget_exhausted = False
+        cr.circuit_open = False
+        n = cr.run_cycle(phases, args.users_chunk, args.games_chunk, args.reviews_chunk, args.review_pages)
+        cycles += 1
+        if cycles % 5 == 0:
+            log.info("cycle=%d calls=%d spent_today=%d pending=%d interval=%.2fs throttle=%d",
+                     cycles, cr.calls, db.spent_today(conn), db.pending_users(conn),
+                     cr.target, cr.throttle_hits)
+        if cr.budget_exhausted:
+            log.info("BUDGET EXHAUSTED today (spent=%d).", db.spent_today(conn))
+            if not args.forever:
+                break
             time.sleep(args.loop_sleep)
-            db.set_cursor(conn, "phase:users", 0)   # re-crawl for freshness
-        else:
-            log.info("paused (budget/throttle). spent_today=%d. sleep %ds then resume.",
-                     db.spent_today(conn), args.loop_sleep)
+            continue
+        if n == 0 and not cr.circuit_open:
+            log.info("CAUGHT UP (nothing pending in %s). counts=%s", phases, db.counts(conn))
+            if not args.forever:
+                break
             time.sleep(args.loop_sleep)
+            continue
+        if cr.circuit_open and args.forever:
+            time.sleep(args.loop_sleep)
+
+    log.info("STOP. %s", json.dumps(report()))
+    print(json.dumps(report()))
+    conn.close()
     return 0
 
 
