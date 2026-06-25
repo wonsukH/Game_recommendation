@@ -1,6 +1,6 @@
 """Unified, resumable, budget-capped Steam crawler -> SQLite (data_collection/db.py).
 
-THREE PHASES, interleaved round-robin so per-game metadata accumulates alongside the
+TWO PHASES, interleaved round-robin so per-game metadata accumulates alongside the
 per-user facts (each datum fetched at the cheapest point — see plan 최종 SQLite 스키마):
 
   Phase 1 users (facts)  — per public user. GetOwnedGames(include_appinfo=1: game names
@@ -15,8 +15,10 @@ per-user facts (each datum fetched at the cheapest point — see plan 최종 SQL
       GetGlobalAchievementPercentages (rarity %), GetNumberOfCurrentPlayers (live CCU).
       This is where achievement id->name/condition mapping happens. games.fetched_at =
       "visited" marker (sub-steps individually guarded for partial-visit resume).
-  Phase 3 reviews (opt-in, lowest priority) — per-game appreviews (author-attributed),
-      paginated with a stored cursor, page-capped per cycle so one game can't hog budget.
+
+(Reviews are intentionally NOT crawled: Steam has no per-user review-history API — only
+the per-game appreviews endpoint — so it can't meet the per-user intent, and voted_up is
+largely redundant with playtime. Owned/playtime/achievements/wishlist are the signal.)
 
 Rate control: WALL-CLOCK pacing — sleep only `max(0, target - elapsed_since_last_start)`,
 so the cadence equals `target` regardless of response latency (the old code slept AFTER
@@ -140,27 +142,6 @@ def parse_steamspy(appid: int, d: dict) -> tuple:
             _i(d.get("initialprice")), _i(d.get("discount")), _i(d.get("ccu")),
             d.get("languages"), d.get("genre"),
             json.dumps(d.get("tags")) if d.get("tags") else None, db.now_iso())
-
-
-REVIEW_COLS = ["recommendationid", "appid", "author_steamid", "language", "voted_up",
-               "votes_up", "votes_funny", "weighted_vote_score", "comment_count",
-               "steam_purchase", "received_for_free", "written_during_early_access",
-               "primarily_steam_deck", "author_playtime_forever", "author_playtime_at_review",
-               "author_playtime_2weeks", "author_num_games_owned", "author_num_reviews",
-               "review_text", "timestamp_created", "timestamp_updated", "fetched_at"]
-
-
-def parse_review(appid: int, r: dict, ts: str) -> tuple:
-    a = r.get("author") or {}
-    return (_i(r.get("recommendationid")), int(appid), _i(a.get("steamid")), r.get("language"),
-            int(bool(r.get("voted_up"))), _i(r.get("votes_up")), _i(r.get("votes_funny")),
-            _f(r.get("weighted_vote_score")), _i(r.get("comment_count")),
-            int(bool(r.get("steam_purchase"))), int(bool(r.get("received_for_free"))),
-            int(bool(r.get("written_during_early_access"))), int(bool(r.get("primarily_steam_deck"))),
-            _f(a.get("playtime_forever")), _f(a.get("playtime_at_review")),
-            _f(a.get("playtime_last_two_weeks")), _i(a.get("num_games_owned")),
-            _i(a.get("num_reviews")), r.get("review"), _i(r.get("timestamp_created")),
-            _i(r.get("timestamp_updated")), ts)
 
 
 # ---------------- crawler ----------------
@@ -373,30 +354,6 @@ class Crawler:
         # stamp visited LAST (preserves early name if appdetails failed)
         db.upsert_cols(self.conn, "games", ["appid"], {**gcols, "fetched_at": db.now_iso()})
 
-    # ---------- Phase 3: reviews ----------
-    def crawl_game_reviews(self, appid, max_pages):
-        appid = int(appid)
-        cursor = db.get_review_cursor(self.conn, appid)
-        for _ in range(max_pages):
-            j = self.get(f"{STORE}/appreviews/{appid}",
-                         {"json": 1, "filter": "recent", "language": "all", "num_per_page": 100,
-                          "cursor": cursor, "purchase_type": "all", "review_type": "all"}, store=True)
-            if not j or j.get("success") != 1:
-                db.set_review_cursor(self.conn, appid, cursor, 0, done=True)
-                return
-            revs = j.get("reviews") or []
-            if revs:
-                db.upsert_many(self.conn, "reviews", REVIEW_COLS,
-                               [parse_review(appid, r, db.now_iso()) for r in revs
-                                if r.get("recommendationid")])
-            new_cursor = j.get("cursor")
-            if not revs or not new_cursor or new_cursor == cursor:
-                db.set_review_cursor(self.conn, appid, new_cursor or cursor, len(revs), done=True)
-                return
-            db.set_review_cursor(self.conn, appid, new_cursor, len(revs), done=False)
-            cursor = new_cursor
-        # page cap reached this cycle: not done, resumes from stored cursor next cycle
-
     # ---------- chunk runners (one round-robin slice each) ----------
     def _cooldown(self) -> bool:
         """Handle a Throttled in chunk context. Returns True if the circuit OPENED (stop)."""
@@ -444,30 +401,12 @@ class Crawler:
                 done += 1
         return done
 
-    def run_reviews_chunk(self, limit, max_pages) -> int:
-        done = 0
-        for appid in db.next_games_to_review(self.conn, limit):
-            try:
-                self.crawl_game_reviews(appid, max_pages)
-            except db.BudgetExhausted:
-                self.budget_exhausted = True
-                break
-            except Throttled:
-                self._cooldown()
-                break
-            else:
-                self.throttle_streak = 0
-                done += 1
-        return done
-
-    def run_cycle(self, phases, users_chunk, games_chunk, reviews_chunk, review_pages) -> int:
+    def run_cycle(self, phases, users_chunk, games_chunk) -> int:
         n = 0
         if "users" in phases and not self.budget_exhausted:
             n += self.run_users_chunk(users_chunk)
         if "games" in phases and not self.budget_exhausted and not self.circuit_open:
             n += self.run_games_chunk(games_chunk)
-        if "reviews" in phases and not self.budget_exhausted and not self.circuit_open:
-            n += self.run_reviews_chunk(reviews_chunk, review_pages)
         return n
 
 
@@ -500,15 +439,13 @@ def main() -> int:
     ap.add_argument("--limit", type=int, default=db.DAILY_LIMIT, help="daily call cap (<100k)")
     ap.add_argument("--seed-today", type=int, default=0, help="calls already spent today outside this DB")
     ap.add_argument("--max-bootstrap", type=int, default=200000, help="max steamids to seed from CSV")
-    ap.add_argument("--phases", default="users,games", help="comma list: users,games,reviews")
+    ap.add_argument("--phases", default="users,games", help="comma list: users,games")
     ap.add_argument("--ach-floor", type=float, default=10.0,
                     help="min playtime(min) to crawl a game's achievements")
     ap.add_argument("--target", type=float, default=1.0, help="wall-clock interval seconds (RTT-absorbed)")
     ap.add_argument("--min-target", type=float, default=0.7, help="fastest interval AIMD may reach")
     ap.add_argument("--users-chunk", type=int, default=20)
     ap.add_argument("--games-chunk", type=int, default=60)
-    ap.add_argument("--reviews-chunk", type=int, default=10)
-    ap.add_argument("--review-pages", type=int, default=5, help="appreviews pages/game/cycle")
     ap.add_argument("--forever", action="store_true", help="run continuously across days")
     ap.add_argument("--loop-sleep", type=int, default=3600, help="sleep when paused/caught-up (--forever)")
     args = ap.parse_args()
@@ -535,7 +472,7 @@ def main() -> int:
     while True:
         cr.budget_exhausted = False
         cr.circuit_open = False
-        n = cr.run_cycle(phases, args.users_chunk, args.games_chunk, args.reviews_chunk, args.review_pages)
+        n = cr.run_cycle(phases, args.users_chunk, args.games_chunk)
         cycles += 1
         if cycles % 5 == 0:
             log.info("cycle=%d calls=%d spent_today=%d pending=%d interval=%.2fs throttle=%d",

@@ -229,3 +229,5 @@
 
 **예산 강화**: reserve를 HTTP attempt마다(429 재시도도 카운트) → 100k 하드캡 under-count 불가(구 코드는 get당 1예약이라 재시도 누락 위험).
 **검증**: db.py 스모크 통과(20테이블, reserve 5/5, 인터닝 ACH_A→1, lossless join 'First Blood'/'Win a round'/1.3%/unlocktime 재구성). 단기 라이브크롤(--limit 400)로 실데이터 end-to-end 확인 중.
+
+**리뷰 phase 제거(사용자 결정)**: 스팀에 per-user 리뷰 이력 API 없음(appreviews=게임별 귀속만, 열거 불가) → "유저별 리뷰" 의도 충족 불가 + voted_up은 playtime과 중복(저가치). reviews/review_progress 테이블·코드 전부 제거(17테이블). 시드는 구 CSV steamid 부트스트랩(셔플)+친구 스노볼 유지(랜덤 accountID+GetPlayerSummaries 벌크 스크리닝도 검토했으나 CSV가 적중률↑·구현단순으로 채택). 랜덤발견은 향후 시드 고갈 시 옵션.

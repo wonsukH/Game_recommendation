@@ -37,10 +37,6 @@ SCHEMA = """
 CREATE TABLE IF NOT EXISTS budget(day TEXT PRIMARY KEY, calls INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS crawl_state(
   key TEXT PRIMARY KEY, pos INTEGER NOT NULL DEFAULT 0, done INTEGER NOT NULL DEFAULT 0);
--- per-game appreviews pagination cursor (opaque string)
-CREATE TABLE IF NOT EXISTS review_progress(
-  appid INTEGER PRIMARY KEY, cursor TEXT, num INTEGER NOT NULL DEFAULT 0,
-  done INTEGER NOT NULL DEFAULT 0);
 -- growing user crawl queue: CSV bootstrap (depth 0) + friend snowball (depth+1).
 -- seq = explicit insertion order (NOT steamid): if steamid were the INTEGER PRIMARY KEY
 -- it would alias rowid, and ORDER BY rowid would crawl ascending steamid = oldest/most-
@@ -109,16 +105,6 @@ CREATE TABLE IF NOT EXISTS steamspy(
 CREATE TABLE IF NOT EXISTS game_live(        -- official live concurrent players
   appid INTEGER PRIMARY KEY, player_count INTEGER, fetched_at TEXT);
 
--- ===== Phase 3: reviews =====
-CREATE TABLE IF NOT EXISTS reviews(          -- per-game appreviews, author-attributed
-  recommendationid INTEGER PRIMARY KEY, appid INTEGER, author_steamid INTEGER, language TEXT,
-  voted_up INTEGER, votes_up INTEGER, votes_funny INTEGER, weighted_vote_score REAL,
-  comment_count INTEGER, steam_purchase INTEGER, received_for_free INTEGER,
-  written_during_early_access INTEGER, primarily_steam_deck INTEGER,
-  author_playtime_forever REAL, author_playtime_at_review REAL, author_playtime_2weeks REAL,
-  author_num_games_owned INTEGER, author_num_reviews INTEGER,
-  review_text TEXT, timestamp_created INTEGER, timestamp_updated INTEGER, fetched_at TEXT);
-
 -- ===== indexes =====
 CREATE INDEX IF NOT EXISTS ix_owned_appid    ON owned(appid);
 CREATE INDEX IF NOT EXISTS ix_recently_appid ON recently(appid);
@@ -126,15 +112,13 @@ CREATE INDEX IF NOT EXISTS ix_uach_ach       ON user_achievement(ach_id);
 CREATE INDEX IF NOT EXISTS ix_pga_appid      ON player_game_ach(appid);
 CREATE INDEX IF NOT EXISTS ix_badges_appid   ON badges(appid);
 CREATE INDEX IF NOT EXISTS ix_friends_friend ON friends(friend_steamid);
-CREATE INDEX IF NOT EXISTS ix_reviews_author ON reviews(author_steamid);
-CREATE INDEX IF NOT EXISTS ix_reviews_appid  ON reviews(appid);
 CREATE INDEX IF NOT EXISTS ix_uq_pending     ON user_queue(depth);
 """
 
 ALL_TABLES = ("users", "owned", "recently", "wishlist", "followed", "friends",
               "user_groups", "badges", "player_game_ach", "user_achievement",
               "game_achievement", "game_stat", "games", "steamspy", "game_live",
-              "reviews", "user_queue")
+              "user_queue")
 
 
 def today_utc() -> str:
@@ -376,29 +360,6 @@ def next_games_to_fetch(conn: sqlite3.Connection, limit: int) -> list[int]:
         "LEFT JOIN games g ON g.appid = o.appid "
         "WHERE g.fetched_at IS NULL ORDER BY o.appid LIMIT ?", (int(limit),)).fetchall()
     return [int(r[0]) for r in rows]
-
-
-def next_games_to_review(conn: sqlite3.Connection, limit: int) -> list[int]:
-    """Distinct owned appids whose reviews are not yet exhausted (review_progress.done!=1)."""
-    rows = conn.execute(
-        "SELECT o.appid FROM (SELECT DISTINCT appid FROM owned) o "
-        "LEFT JOIN review_progress r ON r.appid = o.appid "
-        "WHERE r.done IS NULL OR r.done = 0 ORDER BY o.appid LIMIT ?", (int(limit),)).fetchall()
-    return [int(r[0]) for r in rows]
-
-
-def get_review_cursor(conn: sqlite3.Connection, appid: int) -> str:
-    row = conn.execute("SELECT cursor FROM review_progress WHERE appid=?", (int(appid),)).fetchone()
-    return row[0] if row and row[0] else "*"
-
-
-def set_review_cursor(conn: sqlite3.Connection, appid: int, cursor: str,
-                      add_num: int = 0, done: bool = False) -> None:
-    conn.execute(
-        "INSERT INTO review_progress(appid, cursor, num, done) VALUES(?,?,?,?) "
-        "ON CONFLICT(appid) DO UPDATE SET cursor=excluded.cursor, "
-        "num=review_progress.num+?, done=excluded.done",
-        (int(appid), cursor, add_num, int(done), add_num))
 
 
 # ---------------- per-game "already have it" guards (games-phase resume) ----------------
