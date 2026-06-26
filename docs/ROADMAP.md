@@ -28,7 +28,7 @@
 ## 핵심 검증 결과 (왜 이 방향인가)
 - 개인화 **CF가 LLM-with-library 이김**: recall@20 0.293 vs 0.173, Δ+0.120 [+0.049,+0.192] 유의.
 - **CF ≈ EASE 동률**(ranker bench: cf 0.203, ease 0.200 ns, als 0.174 ns, pop 0.078 SIG) → 단순 CF 정당.
-- 익명/태그-유사도는 LLM에 ~96% 패배 → 폐기. **프로젝트의 진짜 자산 = 자기비판적 평가 역량**(메모리 [[game-rec-meaningfulness-verdict]]).
+- 익명/태그-유사도는 LLM에 ~96% 패배 → 폐기(이는 *익명/vibe 한정* 판정). **추천 성능 = 개인화 niche의 입증된 scoped moat**(CF>LLM-lib, ≈EASE), **자기비판적 평가 = 그 우위를 정직히 한정하는 보완 메타역량**(둘 다 — 성능 '대신' 아님). 메모리 [[game-rec-meaningfulness-verdict]].
 - 스티어링(인접 노벨티)으로 CF 필터버블 깨고 신장르 발굴(blinded judge 1.0).
 
 ## CF moat 방식 (변하지 않는 코어)

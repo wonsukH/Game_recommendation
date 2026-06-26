@@ -44,6 +44,7 @@ were restored into `python3`.
 | b | **라이브러리 풍부도 LIVE (실 GetOwnedGames)** | D4 외삽이 실데이터에서도 성립? | **YES, 확정**: 190 공개프로필 크롤(in-pool 플레이 median 119 vs 크롤 프록시 3 = ~40×). 129명 실유저 recall@20 p3=0.056→p30=0.123, Δ+0.068 [+0.054,+0.082] **SIG**(2.2×), 미포화. → GetOwnedGames 입력이 개인화 최대 레버임을 실데이터로 확정 | `libraryrichness_live_*/report.md`, `owned_libraries.json` |
 
 ## Decisions reached (data-backed)
+> ⚠️ **아래 similar/vibe/SVD/W_align/Item2Vec/Genre-Precision 관련 결정은 *피벗으로 폐기된 태그-유사도 스택* 기준 — 현 시스템 아님(증거로만 보존).** 현 코어 결정은 PERSONALIZATION(P3)·AGENTIC(D)·STEERING(F)·DATA(D1–4) 항목. 현 포지셔닝: 개인화 CF = 입증된 scoped moat(LLM-lib 이김·EASE 동률), 자기비판 평가는 보완 역량(성능 '대신' 아님).
 - **similar mode**: drop SVD, use vote-weighted tag-cosine (simpler + significantly better on non-circular co-play; SVD worse, p=1.5e-17).
 - **vibe mode (NL→tag)**: **replace W_align ridge with Gemini-space NN tag selection (Ve)** — significantly best on blinded Claude+Gemini judge; shipped W_align is significantly worst.
 - **Item2Vec / β-steering**: confirmed inert in shipped config (Vd==Vc); keep off.

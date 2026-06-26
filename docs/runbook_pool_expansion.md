@@ -1,5 +1,7 @@
 # Runbook: 게임 풀 1031 → 10K 확장
 
+> ⚠️ **[폐기·이력] 이 runbook은 *피벗 이전* SteamSpy/appdetails CSV 풀-확장 + 태그임베딩 재학습 워크플로우다 — 현재 데이터 경로가 아니다.** 현재 데이터 수집 = owned-libraries 2-phase 크롤 → 행동 SQLite(`data_collection/steam.db`, `crawl_unified.py`), 추천 코어 = 플레이타임 가중 co-play CF(태그임베딩 없음). 본문의 `build_offline.py`·`build_games_tags_csv` 통합 단계는 **존재하지 않음/대체됨**(CSV→steam.db 재배선은 [`ROADMAP.md`](ROADMAP.md) P5). 과거 10K 풀 조립 방법의 참고용으로만 보존.
+
 원본 데이터셋은 메타크리틱 PC userscore 상위 1800개 타이틀에서 출발해 Steam appid 매핑 후 1031 게임으로 좁혀졌다. 이 풀은 메이저 인기작 편향이 강해 niche/long-tail 추천이 어렵다. SteamSpy + Steam Store appdetails API로 10K 게임 풀로 확장한다.
 
 ## 사전 조건

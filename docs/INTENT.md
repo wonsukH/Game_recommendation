@@ -1,5 +1,7 @@
 # 설계 의도 — 왜 이렇게 만들었는가
 
+> ⚠️ **[폐기·이력] 이 문서는 *피벗 이전*(태그-유사도/PPMI·SVD/W_align/FAISS/Item2Vec, similar·vibe·hybrid 모드) 시스템 기준이라 현재 아키텍처와 불일치한다.** 현재 시스템(개인화 CF moat + LangGraph agent[library/seed/multi_entity/explore/anonymous] + 행동 SQLite `steam.db`)은 [`../README.md`](../README.md)·[`ROADMAP.md`](ROADMAP.md) 참조. 이 파일은 당시 설계의도의 *역사적 기록*으로만 보존(전면 갱신은 데이터층 재구축 P8 이후).
+
 이 문서는 본 프로젝트의 **모든 결정의 이유**를 처음 보는 사람도 이해할 수 있게 풀어쓴 글이다. 수식이나 코드 디테일은 [README_PIPELINE.md](README_PIPELINE.md)에 있다. 여기서는 **"왜"**와 **"어떤 동작을 의도했는가"**에 집중.
 
 ---

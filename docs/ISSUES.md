@@ -1,5 +1,7 @@
 # ISSUES.md — 발견된 파이프라인 이슈 + 진단 + 해결
 
+> ⚠️ **[폐기·이력] *피벗 이전* 태그-유사도/FAISS 파이프라인의 디버깅 기록이다(현재 코드 아님).** 그 스택(PPMI·SVD·W_align·Item2Vec·FAISS·serving/main.py·similar/vibe/hybrid 모드)은 삭제됨. 현재 시스템은 개인화 CF + LangGraph agent + 행동 SQLite — [`../README.md`](../README.md)·[`ROADMAP.md`](ROADMAP.md) 참조. 본문 수치(Genre Precision 90.7%[순환으로 강등]·9,956게임·55테스트 등)는 당시 값으로, 현재 무효.
+
 본 문서는 후속 연구 진행 중 발견된 **파이프라인 관련 이슈 14건**의 진단/해결 기록.
 시각화/UI 관련 이슈(streamlit-agraph physics tuning, plotly hover 보강 등)는 본 문서에서 제외.
 

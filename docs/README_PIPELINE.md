@@ -1,5 +1,7 @@
 # 데이터 / 모델 파이프라인 상세 — Reproducible Specification
 
+> ⚠️ **[폐기·이력] 이 스펙은 *피벗 이전* 태그-유사도 파이프라인(PPMI+SVD 128d tag_vecs·Item2Vec·W_align·FAISS·MMR rerank·similar/vibe/hybrid/general·serving/main.py)을 기술하며 현재 시스템이 아니다.** 그 스택은 삭제됨. 현재 = 개인화 CF(`cf_recommender.py`) + LangGraph agent(`serving/agent_graph.py`, routes library/seed/multi_entity/explore/anonymous, entry `main_agent.py`) + content/hybrid 스티어링 + 행동 SQLite `steam.db`. 정본은 [`../README.md`](../README.md)·[`ROADMAP.md`](ROADMAP.md). 데이터층 재구축 후(P8) 전면 재작성 예정. (Genre Precision 90.7%·Pool Coverage Miss·9,956게임/447태그·55테스트는 폐기/강등 수치.)
+
 이 문서는 본 시스템을 **밑바닥부터 동일하게 재현할 수 있는 수준**으로 모든 단계를 기술한다. 각 단계의 입력 / 출력 / 알고리즘 / 수식 / 하이퍼파라미터 / 실행 명령 / 트러블슈팅을 다 포함.
 
 목차:
