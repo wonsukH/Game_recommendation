@@ -1,228 +1,117 @@
-# Steam Game Recommendation Agent
+# Steam Game Recommendation — Personalized Agent
 
-> 자연어로 게임을 추천하는 멀티 에이전트 시스템 — LangGraph + Gemini + FAISS
+> 당신의 Steam 라이브러리(플레이한 게임·시간)를 읽고 "다음에 뭐 할까"를 개인화 추천하는 멀티에이전트.
+> 그리고 — **이 시스템이 프론티어 LLM을 *어디서* 이기고 *어디서* 지는지**를 사전등록·CI로 정직하게 검증한 기록.
 
 ```
-"몰입감 있는 어드벤처 게임 추천해줘"   →   AI Agent   →   Steam 게임 5개 + 자연어 설명
+"엘든링 같은 거"  ·  "내 라이브러리 기반 추천"  ·  "새 장르 좀 발굴해줘"
+        →  LangGraph 에이전트(라우팅 + CF + 콘텐츠 스티어링)  →  게임 5개 + 설명
 ```
-
-사용자가 게임 태그(`Soulslike`, `Roguelite`)를 몰라도 평범한 한국어 한 줄로 적합한 게임에 도달할 수 있게 만든 시스템. 자연어 ↔ 게임 의미 임베딩 정렬을 1급 자산으로 두고, 자체 평가 framework로 모델 구성을 검증·단순화했다.
 
 ---
 
-## 핵심 결과
+## 무엇을 보여주는가 (정직한 포지셔닝)
 
-| 지표 | 값 |
-|---|---|
-| 추천 대상 Steam 게임 | **9,956** |
-| 태그 임베딩 차원 | **447 태그 → 128차원** |
-| LLM 단독 vs 시스템 평가 쿼리 | **30** |
-| Pool Coverage Miss | **0.0%** (LLM 단독 7.3% — 풀 외부 추천 시 운영 통합 불가) |
-| True Hallucination | ~0% (Steam Storefront API cross-check) |
-| Genre Precision (객관 측정) | **90.7%** (Steam 사용자 vote 기반 태그 매칭) |
-| 단위 테스트 | **55 passing** |
+이 프로젝트의 핵심 자산은 "LLM보다 나은 추천기"가 아니라 **자기비판적·객관적 평가 역량**이다.
 
-자세한 평가 표 + ablation: [`README_PIPELINE.md`](docs/README_PIPELINE.md) 의 "평가 결과" 섹션.
+- 처음 만든 익명/태그-유사도 추천은 **프론티어 LLM에 ~96% 패배** → 정직하게 폐기.
+- 실험으로 *이기는 지점*을 좁혀 **전체 라이브러리 개인화(CF)** 로 피벗:
+  - **개인화 CF가 "LLM에 내 라이브러리 주고 추천받기"를 이김** — recall@20 **0.293 vs 0.173** (Δ+0.120 [+0.049, +0.192], 유의).
+  - **CF ≈ EASE 동률**(전통 recsys 기준선과 통계적 차이 없음) → 단순 CF 채택이 정당, popularity는 압승.
+  - **방향성 스티어링**으로 CF 필터버블을 깨고 신장르 발굴 — blinded judge win-rate 1.0.
+- 모든 결정이 사전등록·CI·귀무/음성보고로 기록됨: `experiments/DELIBERATION_LOG.md`, `experiments/registry.jsonl`.
 
 ---
 
-## 1분 안에 데모 실행
+## 어떻게 동작하나
 
-```powershell
-# 1. clone + venv
-git clone https://github.com/wonsukH/YBIGTA-Newbie-project.git
-cd YBIGTA-Newbie-project/Game_recommendation
-python -m venv .venv
-.venv\Scripts\Activate.ps1
+### 1) 개인화 CF moat (`pipeline/game_rec/agent/cf_recommender.py`)
+12만 유저의 **공동플레이(co-play) 통계**로 "X를 좋아한 사람들이 같이 좋아한 게임"을 계산. 플레이타임 가중 item-item conditional-cosine. LLM이 in-context로 재현 못 하는 long-tail 행동 신호가 해자(moat).
 
-# 2. dependencies
-pip install -r requirements.txt
-pip install -e .
+### 2) LangGraph 에이전트 (`serving/agent_graph.py`)
+요청을 라우팅해 *필요한 곳에만* 에이전트성을 씀(검증된 조건부 정당화):
 
-# 3. .env 만들기 (Gemini 키 필요, 무료)
-#    https://aistudio.google.com/apikey 에서 발급
-echo "GEMINI_API_KEY=your_key_here" > .env
-echo "GEMINI_EMBEDDING_MODEL=models/gemini-embedding-2" >> .env
-echo "GEMINI_CHAT_MODEL=gemini-2.5-pro" >> .env
-
-# 4. 데모 실행
-streamlit run serving/main.py
-```
-
-브라우저에서 `http://localhost:8501` 자동 열림. 채팅창에 자연어 쿼리 입력:
-
-- `다크 소울 3 같은 게임 추천해줘`
-- `혼자 차분하게 할 수 있는 짧은 게임`
-- `Stardew Valley처럼 힐링되는데 더 모험적인 거`
-- `Roguelite 좋아하는데 너무 어렵지 않은 거`
-
-좌측 사이드바에서 3-axis 슬라이더(Relevance / Diversity / Novelty)로 추천 성향 조절.
-
-> **데이터 산출물 없이 데모 실행**: `outputs/`는 gitignored. 처음 clone 시 임베딩이 없어 추천이 안 된다. `python -m pipeline.orchestration.build_offline`으로 전체 파이프라인 실행 (Gemini 임베딩 호출 약 7분 + faiss index 빌드). 또는 사전 빌드된 산출물 zip을 받았다면 `outputs/`에 풀어두기.
-
----
-
-## 무엇을 보여주는가
-
-1. **자연어 이해 + 의도 분류** — LangGraph 멀티 에이전트 (Parser → Router → Recommender → Response)
-2. **RAG-like 검색** — Gemini 임베딩 + 자연어-태그 공간 정렬 + FAISS 코사인 검색 + 3-axis rerank
-3. **데이터 기반 의사결정** — 자체 평가 framework로 가설 검증 → 모델 구성 단순화 (negative finding 채택)
-4. **검증 가능한 시스템** — 단위 테스트 55건, label-free 평가 30 query, 모든 의사결정이 `INTENT.md`/`ISSUES.md`에 기록
-
----
-
-## 시스템 아키텍처
-
-```
-사용자 자연어 쿼리
-    │
-    ▼
-┌─────────────────────────────────────────────┐
-│  LangGraph StateGraph                       │
-│                                             │
-│  Parser  →  Router  →  Recommender  →  Response
-│    │          │            │              │
-│    │          │            │              ▼
-│    │          │            │         자연어 답변
-│    │          │            ▼
-│    │          │       FAISS 코사인
-│    │          │       + 3-axis rerank
-│    │          │       + 시리즈 자동 제외
-│    │          ▼
-│    │     {similar | vibe | hybrid | general}
-│    ▼
-│  Gemini로 의도 분류 + 게임명/태그/제약 추출
-└─────────────────────────────────────────────┘
-```
-
-### 4가지 모드
-| 모드 | 쿼리 예시 | 동작 |
+| 라우트 | 예시 | 처리 |
 |---|---|---|
-| **similar** | "다크 소울 비슷한 게임" | seed 게임의 임베딩과 가까운 후보, 시리즈는 자동 제외 |
-| **vibe** | "차분하고 감성적인 게임" | 자연어 → 태그 의미 공간 정렬 → 가까운 영역 검색 |
-| **hybrid** | "Stardew Valley 같은데 더 모험적인" | similar + vibe 조합 |
-| **general** | "어떤 게임 좋아?" | 대화형 응답 (검색 안 함) |
+| **library** | "내 라이브러리 기반 추천" | 전체 라이브러리 → CF 개인화 |
+| **seed** | "엘든링 같은 거" | seed 게임(+시리즈) → co-play 유사작, 프랜차이즈 자동 제외 |
+| **multi_entity** | "나랑 친구 같이 할 거" | 다중 라이브러리 interleave 융합 |
+| **explore** | "새 장르 발굴해줘" | CF base를 콘텐츠 태그로 재가중(인접 노벨티 스티어링) |
+| **anonymous** | "차분한 인디" (라이브러리 없음) | LLM-direct (LLM 우세 영역) |
 
-### 시각화 페이지 (사이드바)
-- `tag map` — UMAP 2D scatter, 태그 hover 시 인기 게임 Top 5
-- `tag graph 3d` — Three.js 기반 인터랙티브 3D 그래프. dark + bloom glow, 검색창, 클러스터 필터, 노드 호버 시 연결된 태그 강조 + 이웃 5개 표시, 클릭 시 사이드 패널 (top 게임 + 이웃 태그)
+제약 필터(협동/한국어/가격/출시일)·품질 게이트·played 제외는 도구층(`tools.py`).
+
+### 3) Streamlit (`serving/main_agent.py`)
+steamid(GetOwnedGames)/데모 라이브러리 입력 + 채팅 + 라우트/스티어 표시.
 
 ---
 
-## 자체 평가 framework
+## 데이터 층 (재구축 중)
 
-만 개 게임에 ground truth 라벨링은 비현실적. 그래서 LLM(Gemini) 단독과 본 시스템에 같은 30개 자연어 쿼리를 던지고 4개 지표로 비교:
+추천은 행동 데이터로 학습된다. 데이터 파이프라인을 **리뷰-CSV → 행동 SQLite 스토어로 재구축** 중:
+
+- `data_collection/db.py` — 무손실 정규화 SQLite 스키마(owned·playtime·업적·wishlist·friends·badges + 게임 차원). steamid INTEGER, 업적 인터닝.
+- `data_collection/crawl_unified.py` — 2-phase(유저 facts + 게임 dimension) 크롤러, 월-클록 페이싱, **일일 ≤90k 콜 하드캡**(reserve-before-call), AIMD+서킷브레이커, 재개형.
+- 공식 Steam Web API + 공개 프로필만. 수집 데이터는 **로컬 전용(gitignored)**, 재배포 안 함 (Steam ToU).
+
+> 진행 상황·다음 단계(P4~P9)·"무엇이 어디 있나"는 **[`docs/ROADMAP.md`](ROADMAP.md)** 참조.
+
+---
+
+## 실행
 
 ```powershell
-python -m pipeline.orchestration.llm_vs_system --preset balanced
-# 결과: outputs/llm_vs_system.{csv,md}
+# 1. 환경
+python -m venv .venv ; .venv\Scripts\Activate.ps1
+pip install -r requirements.txt ; pip install -e .
+
+# 2. .env (gitignored, 절대 commit 금지)
+#    GEMINI_API_KEY=...        (에이전트 LLM, https://aistudio.google.com/apikey)
+#    STEAM_API_KEY=...         (크롤링 시만, https://steamcommunity.com/dev/registerkey)
+
+# 3. 데모 (serving/data/ 산출물 사용; 라이브 라이브러리는 공개 프로필 필요, 없으면 데모 proxy)
+streamlit run serving/main_agent.py
+
+# 4. (선택) 행동 데이터 크롤 — 백그라운드, 재개형, 일일 ≤90k
+scripts\daily_crawl.bat
 ```
 
-| 지표 | 의미 | LLM 단독 | 본 시스템 |
-|---|---|---|---|
-| **Pool Coverage Miss** | 추천 게임이 도메인 풀(9,956) 외부 비율 — 운영 통합 시 dead link | 7.3% | **0.0%** (정의상 보장) |
-| **True Hallucination** | Steam에도 없는 게임 추천 비율 (Steam Storefront API cross-check) | ~0% | 0% |
-| **Genre Precision** | 쿼리 카테고리 태그 보유한 시스템 추천 비율 (Steam vote 기반 객관 측정) | — | **90.7%** |
+---
 
-평가 시드: `tests/eval_queries.json` (30 query). 측정 코드: `pipeline/orchestration/llm_vs_system.py` + `pipeline/orchestration/intuitive_metrics.py` + `scripts/check_true_hallucination.py`.
+## 평가 (재현)
 
-검토했지만 의도적으로 제외한 metric: **Overlap@5 / ILD** (두 시스템 목표가 다름 — LLM=풀 외부 mainstream, 시스템=풀 내부 검증 추천 — 자연 차이라 외부 어필 부적합), **LLM-as-Judge** (LLM이 niche indie game 모름 → mainstream bias로 unfair). 자세한 사유는 `ISSUES.md` 및 `docs/portfolio/portfolio_content.md`.
+```powershell
+# 랭커 벤치: CF vs EASE vs ALS vs popularity (co-play hold-out)
+python -m pipeline.orchestration.ranker_benchmark
+# 개인화: CF vs LLM-with-library vs popularity
+python -m pipeline.orchestration.personalization_experiment
+```
+
+평가 철학: 만 개 게임 ground-truth는 비현실적 → **co-play hold-out(비순환)** + **CI/paired** + **사전등록 결정규칙** + **귀무/음성 결과도 그대로 보고**(예: 저-support shrinkage 미채택, D4 풍부도 레버 채택). 지표 자체의 적절성부터 검증(floor/ceiling·순환·섭동).
 
 ---
 
-## 기술 스택
-
-Python 3.13 · **LangGraph** · LangChain · **Google Gemini** (chat + embedding) · **FAISS-CPU** · scikit-learn · scipy · gensim (Item2Vec) · umap-learn · plotly · **Streamlit** · **Three.js** (3d-force-graph + UnrealBloomPass) · aiohttp · pandas · numpy
-
----
-
-## 디렉토리
+## 구조
 
 ```
 Game_recommendation/
-├── serving/                 # Streamlit + LangGraph agent (online)
-│   ├── main.py             #   채팅 entry
-│   ├── pages/              #   tag_map (UMAP) + tag_graph_3d (Three.js)
-│   └── data/               #   앱이 읽는 산출물 사본
-├── pipeline/                # 라이브러리 + CLI orchestration (offline)
-│   ├── game_rec/
-│   │   ├── data/           #   user_scores, tag_vocab, weighted X
-│   │   ├── models/         #   PPMI+SVD, Item2Vec, game_vectors, W_align
-│   │   ├── index/          #   FAISS + UMAP projection
-│   │   ├── evaluation/     #   4-metric (Relevance/Diversity/Novelty/Serendipity)
-│   │   └── agent/          #   parser / router / recommender / response 노드
-│   └── orchestration/      #   build_offline.py, llm_vs_system.py
-├── data_collection/         # SteamSpy + Steam Store API 크롤러
-├── scripts/                 # sync_data, build_games_tags_csv, summarize_ablation
-├── config/default.yaml      # 하이퍼파라미터 + 3-axis presets
-├── prompts/                 # parser / response_generator LLM 프롬프트
-├── tests/                   # 55 단위 테스트 + 30 query 평가 시드
-├── outputs/                 # 파이프라인 산출물 (gitignored, 재현 가능)
-├── experiments/             # 평가·검증 실험 증거 (INDEX·리포트·DELIBERATION_LOG)
-├── docs/                    # 문서 통합
-│   ├── README_PIPELINE.md   #   임베딩 학습 / 평가 / ablation deep dive
-│   ├── INTENT.md            #   개발 의도 + 의사결정 기록
-│   ├── ISSUES.md            #   개발 중 발견한 이슈 + 해결
-│   ├── runbook_*.md         #   데이터 풀 확장 가이드
-│   └── portfolio/           #   포트폴리오 / 발표 자료 (gitignored)
-└── README.md                # 이 파일 (overview + quick start)
+├── data_collection/      # 행동 SQLite 스토어 + 크롤러 (db.py, crawl_unified.py)
+├── pipeline/game_rec/
+│   ├── agent/            # cf_recommender · content · hybrid · tools · build_quality · steam_library
+│   ├── data/             # 빌더(스코어·태그·인기) — P5에서 steam.db로 재배선 예정
+│   └── evaluation/       # metrics · stats(CI) · coplay_labels · run_logger
+├── pipeline/orchestration/  # ranker_benchmark · personalization_experiment · steering_eval · ...
+├── serving/              # agent_graph.py(LangGraph) · main_agent.py(Streamlit) · data/(산출물)
+├── experiments/          # DELIBERATION_LOG.md(추론 여정) · registry.jsonl · INDEX.md
+├── docs/                 # ROADMAP.md(시작점) · INTENT · ISSUES · README_PIPELINE · technical_reference.html
+├── scripts/daily_crawl.bat
+└── tests/                # pytest (metrics · popularity · tag_vocab) + co-play eval set
 ```
 
----
+## 더 보기
+- **현재 상태 + 로드맵 + 핸드오프**: [`docs/ROADMAP.md`](ROADMAP.md) ← 리셋 후 여기부터
+- **모든 고민·결정의 서사**: `experiments/DELIBERATION_LOG.md`
+- **개발 의도/이슈**: [`docs/INTENT.md`](INTENT.md) · [`docs/ISSUES.md`](ISSUES.md)
 
-## 환경 변수
-
-`.env` (gitignored, 절대 commit 금지):
-
-```
-GEMINI_API_KEY=...                                    # 필수
-GEMINI_EMBEDDING_MODEL=models/gemini-embedding-2      # 3072d
-GEMINI_CHAT_MODEL=gemini-2.5-pro
-STEAM_API_KEY=...                                     # 크롤링 시만
-```
-
-키 발급:
-- **Gemini**: https://aistudio.google.com/apikey (무료 tier 1500 req/min)
-- **Steam Web API**: https://steamcommunity.com/dev/registerkey (크롤링용, 본 데모는 불필요)
-
-키 노출 시 즉시 위 URL에서 새 키로 교체.
-
----
-
-## 데이터 수집 (선택 — 본 데모 실행에는 불필요)
-
-본 레포는 9,956 게임의 처리된 산출물이 `outputs/`에 들어가야 데모가 동작. 처음 빌드 절차:
-
-```powershell
-# 1. SteamSpy 게임 풀 수집 (약 3시간, target 10K)
-python -m data_collection.crawlers.steamspy --target-count 10000
-
-# 2. Steam Store 메타데이터 보강 (약 3시간)
-python -m data_collection.crawlers.steam_appdetails --input outputs/steamspy_games.csv
-
-# 3. 정규화 CSV
-python scripts/build_games_tags_csv.py
-
-# 4. 전체 파이프라인 (임베딩 학습 + FAISS + sync_data 자동)
-python -m pipeline.orchestration.build_offline
-```
-
-자세한 runbook + 트러블슈팅: [`docs/runbook_pool_expansion.md`](docs/runbook_pool_expansion.md).
-
----
-
-## 더 깊이 보기
-
-- **임베딩 학습 / 평가 / Ablation 상세**: [`README_PIPELINE.md`](docs/README_PIPELINE.md)
-- **개발 의도 + 의사결정 기록**: [`INTENT.md`](docs/INTENT.md)
-- **개발 중 발견한 14개 이슈와 해결**: [`ISSUES.md`](docs/ISSUES.md)
-- **데이터 풀 확장 절차**: [`docs/runbook_pool_expansion.md`](docs/runbook_pool_expansion.md)
-
----
-
-## 테스트
-
-```powershell
-pytest tests/
-# 55 passed
-```
+## 보안 / 약관
+`.env`(키)·`data_collection/steam.db`·`data_collection/export/`·크롤 유저데이터는 **전부 gitignored, 절대 commit 금지**. 공개 프로필 + 공식 API + 비상업 연구 용도, 일일 콜 상한 준수.
