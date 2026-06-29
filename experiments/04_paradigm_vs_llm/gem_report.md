@@ -1,5 +1,7 @@
 # Fair hidden-gem test — system (Ve) vs LLM forced into discovery
 
+> **유형**: experiment-report · **상태**: active · **run**: `gem_report` · **갱신**: 2026-06-25
+
 n=24 NL queries, Claude+Gemini, DISCOVERY-framed judge (famous = penalty, must be good + lesser-known).
 
 - **System(Ve) win-rate vs LLM-gem: 0.04 [0.00, 0.10]** (0.5 = tie)

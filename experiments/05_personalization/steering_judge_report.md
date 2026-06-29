@@ -1,5 +1,7 @@
 # F — directional-steering blinded judge
 
+> **유형**: experiment-report · **상태**: active · **run**: `steering_judge_report` · **갱신**: 2026-06-29
+
 **Question.** When the user asks to branch out (new genre) or emphasize a liked
 aspect, does the system's *steered* list beat its own *plain-CF* list at fulfilling
 that request — judged blind?

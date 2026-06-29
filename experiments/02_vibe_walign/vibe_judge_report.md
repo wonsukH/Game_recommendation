@@ -1,5 +1,7 @@
 # Phase 2c — Vibe judge (blinded, Claude + Gemini)
 
+> **유형**: experiment-report · **상태**: active · **run**: `vibe_judge_report` · **갱신**: 2026-06-25
+
 4 variants ranked per query, anonymized A/B/C/D. Borda: 1st=4..4th=1, averaged across 24 NL queries. Higher = better.
 
 | variant | Gemini Borda | Claude Borda |

@@ -1,5 +1,7 @@
 # DELIBERATION LOG — 고민·문제해결 과정의 서사 (append-only)
 
+> **유형**: reasoning-log · **상태**: active · **갱신**: 2026-06-29
+
 > 결과 수치가 아니라 *왜 시도했고, 무엇에 반박했고, 방향이 어떻게 바뀌었는지*의 기록.
 > 사용자 상시 요구("정말정말 중요"). 매 고민/결정마다 즉시 추가. 결과 로그는 INDEX.md / registry.jsonl / 각 run report.md.
 

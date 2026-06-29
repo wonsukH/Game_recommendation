@@ -1,5 +1,7 @@
 # Decisive test — tags vs pure LLM-on-descriptions (blinded)
 
+> **유형**: experiment-report · **상태**: active · **run**: `decisive_report` · **갱신**: 2026-06-25
+
 3-way blind ranking, n=24 NL queries, Borda 1st=3..3rd=1, combined Claude+Gemini. Higher = better.
 
 | variant | combined Borda [95% CI] |

@@ -105,9 +105,9 @@
 
 ## 6. 검사 (강제)
 
-`scripts/check_doc_format.py`(읽기전용)가 추적 문서별로 (a) H1 존재, (b) 메타블록의 유형/상태/갱신 유효, (c) deprecated/frozen이면 표준 배너+정본 링크, (d) ISO 날짜, (e) 볼드-헤더 없음을 검사하고 위반 시 비0으로 종료한다. 경로↔유형은 스크립트 내 `DOC_TYPES`로 관리한다.
+`scripts/check_doc_format.py`(읽기전용)가 추적 문서(`README.md`·`docs/**`·`experiments/**`의 .md; `outputs/`·`docs/portfolio/`·`.venv/`는 gitignore라 제외)마다 (a) H1, (b) 메타블록의 `유형`(어휘 내)·`상태`(active/deprecated/frozen)·`갱신`(YYYY-MM-DD), (c) deprecated/frozen이면 폐기 배너 또는 `정본:` 포인터를 검사하고 위반 시 비0으로 종료한다. 실행: `python scripts/check_doc_format.py` → `0 failing`.
 
-내용 보존은 `scripts/check_doc_content_preserved.py`로 검증한다(정규화: 토큰 제거 후 본문 해시 전/후 동일; 분할: 자식 본문 concat = 원문).
+**내용 보존은 변경 시점에 보장**한다: 정규화는 삽입 전용(diff 삭제 0), 분할은 자식 재조립이 분할 전 원문과 **byte 일치**(git 기준)함을 확인한 뒤에만 커밋한다.
 
 ## 7. 내용 보존 원칙 (최우선)
 

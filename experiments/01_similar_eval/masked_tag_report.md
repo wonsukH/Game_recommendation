@@ -1,5 +1,7 @@
 # Phase 2a — Masked-tag recovery (does SVD generalize?)
 
+> **유형**: experiment-report · **상태**: active · **run**: `masked_tag_report` · **갱신**: 2026-06-25
+
 Masked **360** strong (game,tag) memberships across **120** tags, rebuilt PPMI+SVD (dim=128) on the masked matrix, then tried to recover the removed game from the removed tag's vector. n_games=9956.
 
 | k | SVD recall@k | raw-masked recall@k | chance |
