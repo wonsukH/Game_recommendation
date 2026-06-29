@@ -145,7 +145,7 @@ def main() -> int:
           "", "## 해석",
           "- 채택이면 저-support 쌍 down-weight가 sparse 공출현에서 신호↑.",
           "- 미채택이면 정직히 드롭: min_cooc≥3 floor + conditional-cosine이 이미 충분(추가 shrinkage 무익)."]
-    logger.write_report("\n".join(L))
+    logger.write_report("\n".join(L), decision=f"adopt={adopt} (best λ={best_lam:g})")
     logger.append_registry({"run_id": run_id, "phase": "D3-shrinkage",
                             "best_lambda": best_lam, "adopt": adopt,
                             "recall_by_lambda": {str(l): float(per_lam[l].mean()) for l in args.lambdas}})

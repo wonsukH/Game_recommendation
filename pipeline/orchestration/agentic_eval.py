@@ -175,7 +175,7 @@ def main() -> int:
          "- 단일패스는 친구(B)를 구조적으로 무시 → B-recall 낮음. agentic은 두 라이브러리 융합 → 둘 다 served.",
          "- 이건 LLM이 더 똑똑해서가 아니라 *오케스트레이션*(다중주체 융합)이 주는 가치 → 진짜 agentic 차별점.",
          "- (참고) 단발·단일주체 단순 추천이면 agentic은 과함; 가치는 복합/다중주체에서 발생."]
-    logger.write_report("\n".join(L))
+    logger.write_report("\n".join(L), decision=f"best fusion = {best}")
     logger.append_registry({"run_id": run_id, "phase": "D-agentic-value", "n_pairs": len(df),
                             "best_fusion": best, "agentic_min": agg[f"{best}_min"]["mean"],
                             "non_min": agg["non_min"]["mean"],

@@ -258,7 +258,7 @@ def main() -> int:
           "- EASE/ALS가 CF를 유의하게 이기면 → 그게 에이전트 밑 랭커로 채택할 후보(품질 향상). CF가 비등/우위면 단순 CF 유지 정당.",
           "- 어느 쪽이든 '두 타워보다 낫다'는 직접 주장은 아님(EASE는 통제연구에서 다수 neural을 이기는 강baseline이므로, EASE 대비 위치가 곧 전통 recsys 대비 위치의 보수적 하한).",
           "- 랭커는 교체 가능한 도구 — agentic 레이어(NL·다중주체·제약·스티어링·설명)는 불변."]
-    logger.write_report("\n".join(L))
+    logger.write_report("\n".join(L), decision=f"winner = {winner}")
     logger.append_registry({"run_id": run_id, "phase": "ranker-benchmark",
                             "recall": {m: res[m]["recall"]["mean"] for m in methods},
                             "winner": winner,

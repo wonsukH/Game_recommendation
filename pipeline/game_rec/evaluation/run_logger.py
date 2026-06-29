@@ -88,7 +88,7 @@ class RunLogger:
 
     def append_deliberation(self, topic: str, body: str) -> None:
         """Append a standardized entry to DELIBERATION_LOG.md (append-only):
-        `## (<topic>) — run \`<run_id>\`` + body. Uniform header across all
+        `## (<topic>) — run <run_id>` + body. Uniform header across all
         orchestration scripts so the log stays scannable. Does not rewrite history."""
         dlog = self.root / "DELIBERATION_LOG.md"
         if not dlog.exists():

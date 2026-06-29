@@ -183,7 +183,7 @@ def main() -> int:
           "- best가 있으면: 인접노벨티 스티어링이 유저 본인의 *신장르 분기 행동*을 plain-CF보다 잘 회복(비순환 입증).",
           "- overall recall 트레이드오프 정직 보고: 신장르↑가 전체↓를 동반하면 그 폭을 명시(스티어링은 의도적 탐색 모드).",
           "- 측면 스티어링은 별도(기계적 aspect-match + blinded judge)."]
-    logger.write_report("\n".join(L))
+    logger.write_report("\n".join(L), decision=f"best config = {best} (신장르 recall 회복; overall 트레이드오프)")
     logger.append_registry({"run_id": run_id, "phase": "F-steering-newgenre",
                             "best_config": best, "n_newgenre_users": n_newgenre_users,
                             "newgenre_recall": {c: (res["newgenre"][c]["mean"] if res["newgenre"][c] else None) for c in configs},
