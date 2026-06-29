@@ -1,5 +1,7 @@
 # Phase 0 — Metric Trust Report
 
+> **유형**: metric-report · **상태**: active · **run**: `phase1_full` · **갱신**: 2026-06-25
+
 Anchors + 4 real variants over **410 co-play seeds**. Headline k = **50** (recall ceiling reachable since k ≥ avg |relevant|).
 
 ## Anchor recall (validation)

@@ -1,5 +1,7 @@
 # D1 cold-start fallback eval — run `coldstart_20260625_013732`
 
+> **유형**: experiment-report · **상태**: active · **run**: `coldstart_20260625_013732` · **갱신**: 2026-06-25
+
 150 hold-out test users, recall@20, leave-user-out CF from 141373 train users.
 
 - **coverage**: pool 9956, CF-reachable 8604, CF-cold 1352 (13.6%) → content fallback makes 100% recommendable.

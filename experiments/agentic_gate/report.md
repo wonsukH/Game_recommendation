@@ -1,5 +1,7 @@
 # Phase D — Agentic orchestration value (run `agentic_gate`)
 
+> **유형**: experiment-report · **상태**: active · **run**: `agentic_gate` · **갱신**: 2026-06-25
+
 60 user-pairs, behavioral hold-out, deterministic (no LLM/judge). 95% bootstrap CI.
 
 ## Test 1 — MULTI-ENTITY ('me + friend'), k=20  [the gate]

@@ -1,5 +1,7 @@
 # (b) LIVE library-richness — real GetOwnedGames — run `libraryrichness_live_20260625_031928`
 
+> **유형**: experiment-report · **상태**: active · **run**: `libraryrichness_live_20260625_031928` · **갱신**: 2026-06-25
+
 129 REAL public profiles (liked = in-pool playtime >= 120min; median profile-pool 78 games), FIXED 30% holdout, recall@20, production CF.
 
 | profile size p | recall@20 [CI] |

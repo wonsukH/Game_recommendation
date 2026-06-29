@@ -1,5 +1,7 @@
 # Ranker benchmark — CF vs classical recsys — run `rankerbench_main`
 
+> **유형**: experiment-report · **상태**: active · **run**: `rankerbench_main` · **갱신**: 2026-06-25
+
 200 hold-out users, recall@20/ndcg@20, item universe 6487 (support>=3), leave-user-out. base = cf.
 
 | method | recall@20 [CI] | ndcg@20 [CI] | Δrecall vs CF |

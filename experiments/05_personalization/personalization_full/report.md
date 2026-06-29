@@ -1,5 +1,7 @@
 # Personalization hold-out — CF (playtime-weighted) vs LLM-with-library (run `personalization_full`)
 
+> **유형**: experiment-report · **상태**: active · **run**: `personalization_full` · **갱신**: 2026-06-25
+
 78 test users, leave-user-out CF, profile 70% / hold-out rest. Behavioral ground truth (held-out liked games). 95% bootstrap CI.
 
 LLM out-of-catalog (pool-miss) rate: 4.7%

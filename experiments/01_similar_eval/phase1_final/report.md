@@ -1,5 +1,7 @@
 # Phase 1 — Similar mode: does SVD/structure beat tag-cosine? (run `phase1_final`)
 
+> **유형**: experiment-report · **상태**: active · **run**: `phase1_final` · **갱신**: 2026-06-25
+
 Non-circular **co-play** ground truth, **410** seeds (support≥30). Evaluating RAW retrieval ranking (no rerank). 95% bootstrap CI (B=1000).
 
 > Note: avg |relevant| ≈ 25, so recall@10 is capped near 10/25; the cap is identical across variants so comparisons stay valid. Headline k = **50** (ceiling reachable).

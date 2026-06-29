@@ -1,5 +1,7 @@
 # Data-scaling (user-count axis) — run `datascaling_users`
 
+> **유형**: experiment-report · **상태**: active · **run**: `datascaling_users` · **갱신**: 2026-06-25
+
 Fixed 120 test users, hold-out recall@20; co-occurrence from X% of 141403 train users.
 
 | users | recall@20 [CI] |

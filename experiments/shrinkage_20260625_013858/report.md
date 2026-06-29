@@ -1,5 +1,7 @@
 # D3 support-shrinkage sweep — run `shrinkage_20260625_013858`
 
+> **유형**: experiment-report · **상태**: active · **run**: `shrinkage_20260625_013858` · **갱신**: 2026-06-25
+
 150 hold-out users, recall@20, leave-user-out. sim ·= C/(C+λ). λ=0 is the current baseline.
 
 | λ | recall@20 [CI] | Δ vs λ=0 [CI] |

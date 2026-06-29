@@ -1,5 +1,7 @@
 # F novelty-steering validation — run `steering_20260625_014419`
 
+> **유형**: experiment-report · **상태**: active · **run**: `steering_20260625_014419` · **갱신**: 2026-06-25
+
 400 users; 22 have >=1 NEW-genre held-out game (<0.34 of its tags in profile). recall@20, leave-user-out.
 
 | config | new-genre recall [CI] | overall recall [CI] |

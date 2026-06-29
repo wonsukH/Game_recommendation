@@ -1,5 +1,7 @@
 # Personalization hold-out — CF (playtime-weighted) vs LLM-with-library (run `pers_smoke`)
 
+> **유형**: experiment-report · **상태**: active · **run**: `pers_smoke` · **갱신**: 2026-06-25
+
 12 test users, leave-user-out CF, profile 70% / hold-out rest. Behavioral ground truth (held-out liked games). 95% bootstrap CI.
 
 

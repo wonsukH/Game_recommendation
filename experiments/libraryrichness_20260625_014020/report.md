@@ -1,5 +1,7 @@
 # D4 library-richness (profile-size) — run `libraryrichness_20260625_014020`
 
+> **유형**: experiment-report · **상태**: active · **run**: `libraryrichness_20260625_014020` · **갱신**: 2026-06-25
+
 0 users (>= 11 liked, 0 eligible), FIXED 30% holdout, recall@20; reveal first p profile games to leave-user-out CF.
 
 | profile size p | recall@20 [CI] |
