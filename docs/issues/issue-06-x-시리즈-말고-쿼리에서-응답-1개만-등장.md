@@ -1,7 +1,7 @@
 # Issue #6: "X 시리즈 말고" 쿼리에서 응답 1개만 등장
 
 > **유형**: bug-log · **상태**: deprecated · **갱신**: 2026-06-29
-> 상위: [ISSUES.md](../ISSUES.md)
+> 상위: [ISSUES.md](../ISSUES.md) · 정본: [README.md](../../README.md) · [ROADMAP.md](../ROADMAP.md)
 
 
 ## Symptom

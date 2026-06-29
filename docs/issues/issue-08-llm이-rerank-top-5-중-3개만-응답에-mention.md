@@ -1,7 +1,7 @@
 # Issue #8: LLM이 rerank top 5 중 3개만 응답에 mention
 
 > **유형**: bug-log · **상태**: deprecated · **갱신**: 2026-06-29
-> 상위: [ISSUES.md](../ISSUES.md)
+> 상위: [ISSUES.md](../ISSUES.md) · 정본: [README.md](../../README.md) · [ROADMAP.md](../ROADMAP.md)
 
 
 ## Symptom

@@ -1,7 +1,7 @@
 # 6. M9 — Vibe 약점 풀기 시도 + 결과
 
 > **유형**: design-spec · **상태**: deprecated · **갱신**: 2026-06-29
-> 상위: [INTENT.md](../INTENT.md)
+> 상위: [INTENT.md](../INTENT.md) · 정본: [README.md](../../README.md) · [ROADMAP.md](../ROADMAP.md)
 
 
 ## 시도한 것

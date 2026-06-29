@@ -1,7 +1,7 @@
 # Issue #1: 새 venv에서 의존성 충돌 (`tokenizers` strict constraint)
 
 > **유형**: bug-log · **상태**: deprecated · **갱신**: 2026-06-29
-> 상위: [ISSUES.md](../ISSUES.md)
+> 상위: [ISSUES.md](../ISSUES.md) · 정본: [README.md](../../README.md) · [ROADMAP.md](../ROADMAP.md)
 
 
 ## Symptom

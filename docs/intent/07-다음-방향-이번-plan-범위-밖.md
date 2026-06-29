@@ -1,7 +1,7 @@
 # 7. 다음 방향 (이번 plan 범위 밖)
 
 > **유형**: design-spec · **상태**: deprecated · **갱신**: 2026-06-29
-> 상위: [INTENT.md](../INTENT.md)
+> 상위: [INTENT.md](../INTENT.md) · 정본: [README.md](../../README.md) · [ROADMAP.md](../ROADMAP.md)
 
 
 ## 더 풍부한 데이터

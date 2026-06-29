@@ -1,7 +1,7 @@
 # Issue #2: Upstage API 키 정지 → 시스템 전체 마비
 
 > **유형**: bug-log · **상태**: deprecated · **갱신**: 2026-06-29
-> 상위: [ISSUES.md](../ISSUES.md)
+> 상위: [ISSUES.md](../ISSUES.md) · 정본: [README.md](../../README.md) · [ROADMAP.md](../ROADMAP.md)
 
 
 ## Symptom

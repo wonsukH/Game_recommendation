@@ -1,7 +1,7 @@
 # Issue #11: `langchain-google-genai 4.x` 설치 시 다른 langchain 패키지 4개와 충돌
 
 > **유형**: bug-log · **상태**: deprecated · **갱신**: 2026-06-29
-> 상위: [ISSUES.md](../ISSUES.md)
+> 상위: [ISSUES.md](../ISSUES.md) · 정본: [README.md](../../README.md) · [ROADMAP.md](../ROADMAP.md)
 
 
 ## Symptom

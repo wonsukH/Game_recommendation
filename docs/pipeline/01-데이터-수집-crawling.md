@@ -1,7 +1,7 @@
 # 1. 데이터 수집 (Crawling)
 
 > **유형**: design-spec · **상태**: deprecated · **갱신**: 2026-06-29
-> 상위: [README_PIPELINE.md](../README_PIPELINE.md)
+> 상위: [README_PIPELINE.md](../README_PIPELINE.md) · 정본: [README.md](../../README.md) · [ROADMAP.md](../ROADMAP.md)
 
 
 `data_collection/crawlers/` 안의 모듈들. 두 경로:

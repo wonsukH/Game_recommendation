@@ -1,7 +1,7 @@
 # 5. 평가 — 왜 LLM 비교?
 
 > **유형**: design-spec · **상태**: deprecated · **갱신**: 2026-06-29
-> 상위: [INTENT.md](../INTENT.md)
+> 상위: [INTENT.md](../INTENT.md) · 정본: [README.md](../../README.md) · [ROADMAP.md](../ROADMAP.md)
 
 
 ## 원래 계획: ideal label 30개 라벨링

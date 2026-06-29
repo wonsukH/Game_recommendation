@@ -1,7 +1,7 @@
 # Issue #7: Rerank novelty 슬라이더가 작은 값에서도 유명 게임 과도하게 죽임
 
 > **유형**: bug-log · **상태**: deprecated · **갱신**: 2026-06-29
-> 상위: [ISSUES.md](../ISSUES.md)
+> 상위: [ISSUES.md](../ISSUES.md) · 정본: [README.md](../../README.md) · [ROADMAP.md](../ROADMAP.md)
 
 
 ## Symptom

@@ -1,7 +1,7 @@
 # Issue #9: `steam_games_tags.csv` 1031 rows vs 새 9956 게임 → KeyError 2855
 
 > **유형**: bug-log · **상태**: deprecated · **갱신**: 2026-06-29
-> 상위: [ISSUES.md](../ISSUES.md)
+> 상위: [ISSUES.md](../ISSUES.md) · 정본: [README.md](../../README.md) · [ROADMAP.md](../ROADMAP.md)
 
 
 ## Symptom

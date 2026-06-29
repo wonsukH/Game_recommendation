@@ -1,7 +1,7 @@
 # Issue #3: Normalizer가 "Dark Souls 3"를 "DARK SOULS II"로 잘못 매핑
 
 > **유형**: bug-log · **상태**: deprecated · **갱신**: 2026-06-29
-> 상위: [ISSUES.md](../ISSUES.md)
+> 상위: [ISSUES.md](../ISSUES.md) · 정본: [README.md](../../README.md) · [ROADMAP.md](../ROADMAP.md)
 
 
 ## Symptom

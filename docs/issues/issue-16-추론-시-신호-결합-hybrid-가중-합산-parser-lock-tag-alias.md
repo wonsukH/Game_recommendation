@@ -1,7 +1,7 @@
 # Issue #16: 추론 시 신호 결합 — Hybrid 가중 합산 + Parser lock + Tag alias
 
 > **유형**: bug-log · **상태**: deprecated · **갱신**: 2026-06-29
-> 상위: [ISSUES.md](../ISSUES.md)
+> 상위: [ISSUES.md](../ISSUES.md) · 정본: [README.md](../../README.md) · [ROADMAP.md](../ROADMAP.md)
 
 
 ## Symptom
