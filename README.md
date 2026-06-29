@@ -1,5 +1,7 @@
 # Steam Game Recommendation — Personalized Agent
 
+> **유형**: overview · **상태**: active · **갱신**: 2026-06-29
+
 > 당신의 Steam 라이브러리(플레이한 게임·시간)를 읽고 "다음에 뭐 할까"를 개인화 추천하는 멀티에이전트.
 > 그리고 — **이 시스템이 프론티어 LLM을 *어디서* 이기고 *어디서* 지는지**를 사전등록·CI로 정직하게 검증한 기록.
 

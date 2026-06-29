@@ -1,5 +1,7 @@
 # experiments/ — 구조 안내 (목적별 정리)
 
+> **유형**: index · **상태**: active · **갱신**: 2026-06-29
+
 > 위치 주의: 이 폴더는 **프로젝트 최상위 `experiments/`** 다. (예전엔 `outputs/experiments/`에 있었으나, `outputs/`는 build_offline로 재생성되는 *파이프라인 산출물*용이자 `.gitignore` 대상이라, 재생성 불가능한 *연구 증거*인 실험을 그 안에 두는 건 부적절 → 최상위로 분리. 코드의 출력 경로도 `REPO_ROOT/experiments`로 갱신됨.)
 
 이 폴더는 "이 추천 시스템의 구성이 의미 있는가"를 검증한 모든 실험의 **증거(artifact)** 모음이다.

@@ -1,5 +1,7 @@
 # Experiment Index — every comparison, where its log lives
 
+> **유형**: index · **상태**: active · **갱신**: 2026-06-29
+
 > **폴더 정리됨 (목적별).** 아티팩트는 이제 하위폴더에 있다: `01_similar_eval/`, `02_vibe_walign/`,
 > `03_decisive_tags_vs_llm/`, `04_paradigm_vs_llm/`, `05_personalization/`, `_workflow_scripts/`.
 > 구조 지도는 `README.md` 참고. 아래 표의 파일명은 해당 단계 하위폴더 기준(P0/L/P1/P2a→01, P2b→02, P2d→03, P2c·P2e·P2f→04, P3→05).

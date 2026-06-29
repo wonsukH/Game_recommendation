@@ -1,7 +1,8 @@
 # ROADMAP & HANDOFF — 여기부터 보면 됨 (세션 리셋용)
 
+> **유형**: roadmap · **상태**: active · **갱신**: 2026-06-26 · **브랜치**: `feat/personalization-agent-and-data-infra` · origin = github.com/wonsukH/Game_recommendation
+
 > 컨텍스트가 리셋돼도 이 문서 + 메모리(`~/.claude/.../memory/`) + `experiments/DELIBERATION_LOG.md`만 보면 이어갈 수 있다.
-> 최종 갱신: 2026-06-26. 브랜치 `feat/personalization-agent-and-data-infra`, origin = github.com/wonsukH/Game_recommendation.
 
 ## 한 줄 현황
 태그-유사도(삭제됨, LLM에 ~96% 패배) → **개인화 CF moat + LangGraph 에이전트**로 피벗 완료. 지금은 **데이터 층을 리뷰-CSV → 행동-SQLite(`steam.db`)로 재구축** 중이며, 그 결과 추천 입력·"liked" 정의·품질신호·평가를 전부 재배선해야 한다(아래 P4~P9).
