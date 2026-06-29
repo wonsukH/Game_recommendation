@@ -6,7 +6,7 @@
 
 ## 0. 왜 이렇게 하나 — 에이전트 검색 최적화
 
-미래의 세션에서 Claude가 질문에 답할 때 (a) 맞는 파일을 빨리 찾고 (b) 필요한 부분만 읽어 (c) 정확·현행 정보만 인용하도록 만든다. 그래서:
+문서 전체를 **LLM이 항해하는 위키**로 설계한다: 홈([`README.md`](README.md))에서 출발해, 각 문서는 한 주제의 article(상태 + lead 요약 + 본문 + `See also`/링크)이고, 허브↔자식·`상위:`·`정본:` 링크로 촘촘히 연결된다. 그 목적은 — 미래의 세션에서 Claude가 질문에 답할 때 (a) 맞는 파일을 빨리 찾고 (b) 필요한 부분만 읽어 (c) 정확·현행 정보만 인용하도록 — 다. 그래서:
 
 1. **자명한 파일명·H1** — grep/glob 한 번에 맞는 파일에 도달.
 2. **메타블록 `상태`(active/deprecated/frozen)** — 폐기 정보를 현행으로 **잘못 인용하는 사고를 차단**(현행 정본은 `상태: active` + `README.md`/`ROADMAP.md`).
@@ -61,7 +61,7 @@
 | `portfolio` | 채용·발표용 | `docs/portfolio/*` |
 | `html-reference` | HTML 참고자료 | `docs/technical_reference.html` |
 
-**experiment-report 골격**(answer-first; 생성기가 `RunLogger.standard_report`로 생성):
+**experiment-report 골격**(answer-first; `RunLogger.write_report(md, decision=...)`가 H1 아래에 메타블록+`결정(TL;DR)`을 자동 주입 — 생성기 스크립트는 본문만 만들면 됨):
 ```
 # <run_id> — <한 줄 요지>
 
