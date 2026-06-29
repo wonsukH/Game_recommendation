@@ -35,7 +35,7 @@ comparison isolates the steering operator itself.
 **Caveats (honest).** n=12 is modest; the win is clean partly because plain-CF
 structurally repeats the user's genres (the very gap steering targets). The harder,
 non-circular evidence is the behavioral new-genre hold-out recall (`steering_large/
-report.md`, n=102, all β significant). Steering is shipped as an explicit opt-in
+report.md`, n=153, all β significant). Steering is shipped as an explicit opt-in
 explore mode, not the default, because it trades overall recall for new-genre reach.
 
 Artifacts: `steering_judge_result.json` (per-case votes), `steering_cases.json`

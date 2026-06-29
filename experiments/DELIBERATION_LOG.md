@@ -261,3 +261,10 @@
 **코호트 편향 후속(보강)**: "편향 측정되면 처음부터?" → 아니오. steam.db append-only + 아티팩트 오프라인 재빌드라 **증분 보정**(유저 추가 or 재가중(데이터0) or 수용+보고). "얼마나 필요?" → 모르니 **포화곡선으로 멈춤**(recall vs N 기울기 평평). 재시작 강제는 스키마 오류뿐(이미 닫음).
 
 **세션 핸드오프 + 새 행동규칙**: 컨텍스트만 리셋하고 이어가게 `docs/ROADMAP.md`(시작점) + README 현행화 + 메모리 정리. **새 최우선 행동규칙 추가**: 방식 추천 시 항상 최악경우·단점·놓칠점·대안 약점을 깊이 고민하고 그래도 나은 이유까지 제시(아니면 추천 변경). 행동규칙을 메모리 최우선 그룹으로.
+
+
+## (정정) steering_large 신장르 유저 수 n=102 → n=153
+- 위 "(신기능 F) 방향성 스티어링" 절(:182, :186)의 "n=102 신장르유저"는 **오기**. 참값 **n=153**.
+- 근거: steering_large/aggregate.json(`n_newgenre_users:153`, 모든 newgenre·diff stat `"n":153`), egistry.jsonl, 코드 pipeline/orchestration/steering_eval.py:138(n_newgenre_users 카운트) 및 자동생성 steering_large/report.md("153 have >=1 NEW-genre")·이 로그 자동엔트리(:176 "153명 신장르 holdout") — 전부 153.
+- 오기 추정 원인: cf 신장르 recall = 0.00980392 = 1.5/153 인데 우연히 1/102 와 동일 → recall 에서 n 을 1/recall 로 역산하다 102 로 기재. recall·CI·판정·결론은 영향 없음(전부 153 기반).
+- 함께 정정(in-place): experiments/05_personalization/steering_judge_report.md, docs/technical_reference.html(2곳). append-only 원칙상 본문 :182/:186 은 보존하고 여기에 정정 기록.
