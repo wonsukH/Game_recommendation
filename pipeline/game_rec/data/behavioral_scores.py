@@ -273,6 +273,41 @@ def per_user_cap(inter, game_stats, user_stats, base: str = "pctl_game",
 
 
 # --------------------------------------------------------------------------
+# Round 3 — D-family (unlocktime temporal) on top of current best
+# --------------------------------------------------------------------------
+
+def cap_blend_recency(inter, game_stats, user_stats, lam: float = 0.4,
+                      alpha: float = 0.3, tau_days: float = 365.0, beta: float = 0.5):
+    """D: unlock recency multiplier on best(cap x blend) — 최근 실진행 게임 부스트.
+
+    anchor = 데이터 내 최신 unlocktime(재현 결정성 — wall clock 미사용)."""
+    b = per_user_cap(inter, game_stats, user_stats, base="blend", alpha=alpha, lam=lam)
+    anchor = float(np.nanmax(inter["unlock_last"].values))
+    age_days = (anchor - inter["unlock_last"]) / 86400.0
+    rec = np.exp(-age_days.clip(lower=0) / tau_days)
+    mult = np.where(inter["unlock_last"].notna(), beta + (1 - beta) * rec, 1.0)
+    b["s"] = (b["s"].values * mult).astype(np.float32)
+    return b
+
+
+def cap_blend_span(inter, game_stats, user_stats, lam: float = 0.4,
+                   alpha: float = 0.3, w_span: float = 0.3):
+    """D: 참여 시간폭(첫~마지막 해금, within-game pctl) 부스트 — 주말벼락 vs 장기 재방문."""
+    b = per_user_cap(inter, game_stats, user_stats, base="blend", alpha=alpha, lam=lam)
+    d = inter.copy()
+    span = (d["unlock_last"] - d["unlock_first"]) / 86400.0
+    d["sp"] = np.where(d["n_unlocks_t"].fillna(0) >= 2, span, np.nan)
+    spos = d[d["sp"].notna()]
+    r = spos.groupby("appid")["sp"].rank(method="average")
+    n = spos.groupby("appid")["sp"].transform("size")
+    sp_p = pd.Series(np.nan, index=d.index)
+    sp_p.loc[spos.index] = ((r - 0.5) / n).values
+    mult = 1.0 + w_span * sp_p.fillna(0.0)
+    b["s"] = (b["s"].values * mult.values).astype(np.float32)
+    return b
+
+
+# --------------------------------------------------------------------------
 # registry
 # --------------------------------------------------------------------------
 
@@ -293,6 +328,9 @@ REGISTRY: dict[str, dict] = {
     "resid2way_completion": dict(fn=resid2way_completion, family="achievement-C", hypothesis="완료성향(유저)·난이도(게임) 주효과 제거 — 완료율 신호의 순도를 높이면 blend 리프트 증폭 가설"),
     "bm25_sat": dict(fn=bm25_sat, family="magnitude-sat", hypothesis="탐험쿼터: rank 밖 연속-포화 family — R0에서 magnitude가 죽은 게 포화 부재 탓인지 검증"),
     "per_user_cap": dict(fn=per_user_cap, family="robustness", hypothesis="탐험쿼터+#28 실증근거: 파밍/whale 계정의 그래프 질량 캡이 support 오염을 줄이는지"),
+    # ---- Round 3 (D가족 — unlocktime) ----
+    "cap_blend_recency": dict(fn=cap_blend_recency, family="temporal-D", hypothesis="최근 실진행(해금) 게임이 현재 취향을 더 예측 — best 위 recency 승수"),
+    "cap_blend_span": dict(fn=cap_blend_span, family="temporal-D", hypothesis="장기 재방문(해금 시간폭)=durable 애착 — 주말벼락과 구분되면 리프트"),
 }
 
 

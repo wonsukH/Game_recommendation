@@ -62,7 +62,14 @@ def extract(db_path: Path, out_dir: Path) -> dict:
         "FROM owned o JOIN users u ON u.steamid=o.steamid "
         "WHERE u.public=1 AND u.complete=1"))
     pga = _read_sql(conn, "SELECT steamid, appid, unlocked, total FROM player_game_ach")
+    # D-family temporal signals: per-(u,g) first/last unlock timestamps
+    ua = _read_sql(conn, (
+        "SELECT ua.steamid, ga.appid, MIN(ua.unlocktime) AS unlock_first, "
+        "MAX(ua.unlocktime) AS unlock_last, COUNT(*) AS n_unlocks_t "
+        "FROM user_achievement ua JOIN game_achievement ga ON ga.ach_id=ua.ach_id "
+        "WHERE ua.unlocktime > 0 GROUP BY ua.steamid, ga.appid"))
     inter = owned.merge(pga, on=["steamid", "appid"], how="left")
+    inter = inter.merge(ua, on=["steamid", "appid"], how="left")
     inter = inter.rename(columns={"unlocked": "ach_unlocked", "total": "ach_total"})
     inter["playtime_forever"] = inter["playtime_forever"].fillna(0.0)
     inter["playtime_2weeks"] = inter["playtime_2weeks"].fillna(0.0)

@@ -61,3 +61,10 @@
 - **paired**: ① 신기록 vs R1승자 **+0.0100 유의**. ② alpha 0.3>0.5 **+0.0101 유의**(캡 강화 이득), 0.3 vs 0 +0.0049 ns. ③ blend 한계기여 at a03: +0.0036 ns — cap이 완료율 이득 일부 흡수(둘 다 파밍 행 타격 = 겹침; 직교는 부분만). ④ **SNIPS에선 a0 > a03 +0.0099 유의 — Pareto 분기**: NDCG 최적(a03)≠인기보정 최적(a0, 완전균등질량=발굴형). **cap_a03_blend04(주축형)·cap_a0_blend04(발굴형) 둘 다 비지배 shortlist 유지**(플랜 Pareto 원칙 첫 실전 발동). ⑤ cap_dblq .2524 경쟁력(rank-double이 캡 하에 부활) / cap_logratio — **magnitude 3연속 사망 확정**(순수·포화·캡 하 전패 — 이 축 freeze).
 - **freeze(ablation)**: magnitude 축 동결. combo(AFK×blend)·resid2way 형태 폐기 유지.
 - **다음(R3)**: ⓐ extract 확장 — user_achievement에서 per-(u,g) first/last unlocktime → **D가족(recency·span·still-progressing)** 첫 투입 ⓑ **graph-knob 귀속 분리** — binary-C+graded-w_p 하니스 플래그(cap 이득이 그래프측인지 w_p측인지) ⓒ alpha 미세(0.2/0.35/0.4) 소형 ⓓ blend lam은 0.4 고정(플랫 확인됨).
+
+## [2026-07-03 07:32] T8 — Round 3: 귀속 확정 + D가족 음성 + plateau 1연속
+- **풀 성장 주의**: 크롤이 type을 채우며 풀 19,734→20,249 → 절대값 비교는 라운드 내 ref로만(설계대로). best 절대값 .2621→.2585는 풀 확대 효과지 퇴행 아님.
+- **paired 판정**: ① **weighted-C vs binary-C +0.0392 유의(대차)** — cap 이득의 귀속처 = **그래프 간선 가중**(w_p 아님). 플랜의 두-knob gotcha 결정적 해소, weighted-C 확정. binary-C는 pctl_ref보다도 나쁨 — 간선 가중 제거가 cap 재분배 효과를 통째로 죽임. ② **D가족 음성**: recency +0.0009 ns·span −0.0009 ns — unlocktime 시간축은 이 그레인에서 무익(데이터는 dense했으나 신호가 rel과 겹침 추정). D축 freeze. ③ alpha 0.2≈0.3 플랫(robust). ④ **discovery(a0): NDCG −0.0011 ns + SNIPS +0.0128 유의** — R2(+0.0099)와 일관: **a0 = NDCG 무손실 인기보정 = 비지배 최강 후보로 부상**. shortlist 주력을 a0/a03 쌍으로.
+- **plateau 카운트 1**(R3 유의 개선 0). 규칙상 R4 한 번 더 → 노이즈면 Stage B.
+- **R4 계획(마지막 탐험 라운드)**: ⓐ 소셜 F5 — extract에 friends 조인(per-(u,g) n_friends_played) → social_boost 후보 ⓑ w_p-flat 귀속(weighted-C+균일 w_p — 반대쪽 knob 마무리) ⓒ (재량 재확인 후보) pvalue×walk은 Stage B에서 EASE·워크 계열과 함께 정식 비교.
+- **안 판 방향+이유**: 학습형(#20 isotonic/GBM) — plateau 확정 후 Stage B 결과를 보고 투입 여부 판단(단순 조합이 아직 개선 중이었어서 보류했음; B 후 재평가). 의도 tier ablation — 팩-블록 전처리 필요, 우선순위 뒤.

@@ -136,7 +136,7 @@ class GradedCF:
     """
 
     def __init__(self, scores: pd.DataFrame, train_users: list[int], pool: set[int],
-                 min_cooc: int = MIN_COOC):
+                 min_cooc: int = MIN_COOC, graph_mode: str = "weighted"):
         t = time.time()
         d = scores[(scores["s"] > 0) & scores["appid"].isin(pool)]
         d = d[d["steamid"].isin(set(train_users))]
@@ -145,7 +145,10 @@ class GradedCF:
         urow = {u: i for i, u in enumerate(sorted(d["steamid"].unique()))}
         r = d["steamid"].map(urow).values
         c = d["appid"].map(self.col).values
-        v = d["s"].values.astype(np.float32)
+        # graph_mode="binary": s gates MEMBERSHIP only (edge weights all-ones),
+        # while profile w_p stays graded — the two-knob attribution ablation.
+        v = (np.ones(len(d), np.float32) if graph_mode == "binary"
+             else d["s"].values.astype(np.float32))
         n_u, n_i = len(urow), len(self.items)
         self.Xw = sparse.csr_matrix((v, (r, c)), shape=(n_u, n_i))
         self.Xb = sparse.csr_matrix((np.ones_like(v), (r, c)), shape=(n_u, n_i))
@@ -310,7 +313,7 @@ def intrinsic_prefilter(scores: pd.DataFrame, inter: pd.DataFrame,
 
 def eval_candidate(name: str, params: dict, inter, game_stats, user_stats, pool,
                    rel, panels, splits, prop, pop_pct, k: int, panel_users: list[int],
-                   rankers=("cf",)) -> dict:
+                   rankers=("cf",), graph_mode: str = "weighted") -> dict:
     t0 = time.time()
     scores = bs.compute(name, inter, game_stats, user_stats, **(params or {}))
     fam = bs.REGISTRY.get(name, {}).get("family", "")
@@ -325,7 +328,7 @@ def eval_candidate(name: str, params: dict, inter, game_stats, user_stats, pool,
     per_user = []
     for ranker in rankers:
         if ranker == "cf":
-            model = GradedCF(scores, panels["train"], pool)
+            model = GradedCF(scores, panels["train"], pool, graph_mode=graph_mode)
             need = sorted({a for u in panel_users for a in splits[u]["profile"]})
             S, amap = model.sim_columns(need)
         else:
@@ -381,7 +384,8 @@ def run_round(round_name: str, cand_specs: list[tuple[str, dict]], panel: str = 
                  alias, params, panel, len(users), rankers)
         try:
             row = eval_candidate(name, params, inter, game_stats, user_stats, pool,
-                                 rel, panels, splits, prop, pop_pct, k, users, rankers)
+                                 rel, panels, splits, prop, pop_pct, k, users, rankers,
+                                 graph_mode=spec.get("graph", "weighted"))
         except Exception as e:  # 자율운행: 기록 후 계속
             log.exception("candidate %s failed", alias)
             row = {"candidate": alias, "params": json.dumps(params),
