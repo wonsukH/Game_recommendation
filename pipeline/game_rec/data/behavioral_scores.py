@@ -173,12 +173,31 @@ def afk_joint_gate(inter, game_stats, user_stats, hi_pctl: float = 0.8, floor: f
 
 
 def random_s(inter, game_stats, user_stats, seed: int = 42):
-    """F2 anchor: uniform-random s on played rows — metric health check."""
+    """Weights-null probe: random s on REAL played support.
+
+    NOT a full null — the co-play support structure stays intact, so this
+    measures how much *weighting* adds over raw support (smoke01 finding)."""
     rng = np.random.default_rng(seed)
     s = pd.Series(0.0, index=inter.index)
     played = inter["playtime_forever"] > 0
     s[played] = rng.random(int(played.sum()))
     return _out(inter, s)
+
+
+def random_support(inter, game_stats, user_stats, seed: int = 42):
+    """TRUE null anchor (F2 metric-health): shuffle appids within each user.
+
+    Destroys the real co-play support (library size distribution preserved) —
+    if this ranks near real candidates, the metric/harness is broken."""
+    rng = np.random.default_rng(seed)
+    played = inter[inter["playtime_forever"] > 0]
+    all_apps = played["appid"].values
+    perm = rng.permutation(all_apps)  # global shuffle preserves app popularity
+    out = played[["steamid"]].copy()
+    out["appid"] = perm
+    out["s"] = rng.random(len(out)).astype(np.float32)
+    out = out.drop_duplicates(["steamid", "appid"])
+    return out[["steamid", "appid", "s"]]
 
 
 # --------------------------------------------------------------------------
@@ -187,7 +206,8 @@ def random_s(inter, game_stats, user_stats, seed: int = 42):
 
 REGISTRY: dict[str, dict] = {
     "anchor_binary": dict(fn=anchor_binary, family="anchor", hypothesis="구 review-liked의 행동 등가물 — 그레이드가 이걸 이겨야 magnitude가 정당"),
-    "random_s": dict(fn=random_s, family="anchor", hypothesis="지표 건강 체크(F2) — 진짜 후보와 붙으면 지표 고장"),
+    "random_s": dict(fn=random_s, family="anchor", hypothesis="가중치-널 프로브 — support 대비 weighting의 한계기여 측정(완전 널 아님, smoke01 발견)"),
+    "random_support": dict(fn=random_support, family="anchor", hypothesis="진짜 널(F2 지표건강) — support 파괴; 진짜 후보와 붙으면 하니스 고장"),
     "pctl_game": dict(fn=pctl_game, family="rank", hypothesis="per-game 순위가 whale/F2P/타입을 전부 흡수(통일 원리) — 게이트 유력"),
     "logratio_median": dict(fn=logratio_median, family="magnitude", hypothesis="rank가 버리는 절대 몰입량이 신호일 수 있음(반대 가설 대표)"),
     "pvalue_lognorm_eb": dict(fn=pvalue_lognorm_eb, family="parametric", hypothesis="사용자 p-value seed — 분포 적합이 ECDF보다 저오너 게임에서 안정(EB shrink)"),

@@ -3,7 +3,7 @@
   "rtime_verdict": "UNRECOVERABLE - Valve no longer returns rtime_last_played to 3rd-party keys (3 param variants probed 07-03). Fallback: random 70/30 split; recency via playtime_2weeks+recently. Backfill skipped (saves 1.7k calls).",
   "plan_file": "C:/Users/82107/.claude/plans/recursive-dreaming-moore.md",
   "driver": "main-loop",
-  "last_tick_ts": "2026-07-03T19:40:00+09:00",
+  "last_tick_ts": "2026-07-03T06:37:30+09:00",
   "current_step": "step1-2-behavioral-extract-and-registry",
   "current_round": null,
   "crawler": {
