@@ -75,3 +75,10 @@
 - **plateau 2연속 확정**(R3·R4 유의 개선 0) → 규칙대로 **Stage A 닫고 Stage B 전환**.
 - **Stage A 최종 요약(5라운드·46평가)**: 승자 쌍 = **cap_a03_blend04**(NDCG 주축) + **cap_a0_blend04**(SNIPS 발굴형, NDCG 동률) — per-game pctl × 완료율 blend(lam .4) × per-user 질량캡. 살아남은 원리: per-game 정규화(통일 원리)·완료율(유일 유효 업적신호)·계정 질량캡(최대 레버)·그래프 간선 가중(귀속처). 죽은 축(전부 기록): magnitude(3연속)·pt등급화 단독·AFK게이트 중복·resid 과제거·D시간축·소셜(측정불가)·pvalue(CF에선; walk 전용 프로필로 Stage B 재조명).
 - **Stage B 설계**: 랭커 8종 × top 선호 2종 고정. 구현 필요: plain-cosine/Jaccard/PPMI(condcos 변형), P3α(rp3b β=0), **EASE(Woodbury: 필요 컬럼만 P[:,cols]=(1/λ)(I−Xᵀ M⁻¹ X), M=λI+XXᵀ 1.1k dense)**, user-KNN. 패자부활전 후보 선별 기준: 내재-외재 불일치(pvalue 계열 최우선).
+
+## [2026-07-03 07:28] T10 — Stage B 일제전: **판 뒤집힘 — user-KNN이 프로덕션 공식을 이김**
+- **리더보드(cap_a03_blend04 기준)**: **userknn25 .2827 ≈ userknn100 .2823** > rp3b .2748 > **condcos(프로덕션) .2585** > condasym .2300 > p3a .2240 > EASE(λ50/200/800) .2124~.2224 > jaccard .2060 > ppmi .0372(고장 수준).
+- **paired**: **userknn vs condcos +0.0242 유의** — 프로덕션 item-item 공식이 user-based CF에 유의하게 패배. userknn ≈ rp3b(+0.0078 ns). **SNIPS는 rp3b가 userknn에 +0.0108 유의** → **비지배 랭커 쌍 {userknn(NDCG), rp3b(SNIPS·발굴)}**, condcos는 양축 모두 밀림.
+- **해석**: 1.1k 유저·조밀 라이브러리(수백/유저) 체제에선 유저-유사도가 아이템 co-occurrence보다 신호 활용이 좋음(아이템 쌍은 support floor로 잘리는 반면 유저 코사인은 전체 라이브러리를 씀). EASE 약세는 유저 수 부족(릿지 과정규화; λ↓가 최선인 게 그 증거) — **유저 10k 도달 후 재평가 필수 항목**으로 기록. PPMI는 이 밀도에서 표류(positive-clip이 저support만 남김).
+- **함의(사용자 결정 항목으로 승격)**: "CF 수식 불변" 전제가 랭커 차원에서 흔들림 — P5 재배선 시 **랭커 교체(userknn or rp3b) vs condcos 유지**는 서빙 구조 영향이 있어 **사용자 확정 필요**. 단 유저 규모가 커지면(10k) 순위가 다시 바뀔 수 있음(EASE 포함) — OOD·규모 재평가와 묶어 결정 권고.
+- **Stage C+부활전 발사**: {pvalue_eb(내재-외재 불일치 시그니처), pctl_game, anchor_binary} × {userknn25, rp3b, condcos} — pvalue가 walk/knn 계열에서 cap-blend를 위협하는지, cap 이득이 userknn에서도 유지되는지(선호×랭커 상호작용 소교차).
