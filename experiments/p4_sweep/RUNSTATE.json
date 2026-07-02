@@ -1,0 +1,16 @@
+{
+  "mission": "P4 behavioral preference shortlisting — autonomous run UNTIL USER STOPS, max 2026-07-10 (7 days). Monday 07-06 noon = checkpoint report, not end.",
+  "rtime_verdict": "UNRECOVERABLE - Valve no longer returns rtime_last_played to 3rd-party keys (3 param variants probed 07-03). Fallback: random 70/30 split; recency via playtime_2weeks+recently. Backfill skipped (saves 1.7k calls).",
+  "plan_file": "C:/Users/82107/.claude/plans/recursive-dreaming-moore.md",
+  "driver": "main-loop",
+  "last_tick_ts": "2026-07-03T18:55:00+09:00",
+  "current_step": "step0-persistence",
+  "current_round": null,
+  "crawler": {
+    "mode": "games-only",
+    "expected_cmd": "crawl_unified --forever --phases games",
+    "switch_to_users_after_caught_up": true
+  },
+  "running_jobs": {},
+  "notes": "session-only cron heartbeat @ :23 hourly (id bc56b95d). If Claude app itself dies, heartbeat dies too — unrecoverable from inside; documented residual risk."
+}

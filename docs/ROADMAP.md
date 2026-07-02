@@ -1,6 +1,6 @@
 # ROADMAP & HANDOFF — 여기부터 보면 됨 (세션 리셋용)
 
-> **유형**: roadmap · **상태**: active · **갱신**: 2026-07-02 · **브랜치**: `feat/personalization-agent-and-data-infra` · origin = github.com/wonsukH/Game_recommendation
+> **유형**: roadmap · **상태**: active · **갱신**: 2026-07-03 · **브랜치**: `main`(feat 브랜치는 PR#1로 머지·삭제) · origin = github.com/wonsukH/Game_recommendation · **작업 머신: 데탑 이전(07-03) — games-only 크롤 데탑에서 가동 중**
 
 > 컨텍스트가 리셋돼도 이 문서 + 메모리(`~/.claude/.../memory/`) + `experiments/DELIBERATION_LOG.md`만 보면 이어갈 수 있다.
 
