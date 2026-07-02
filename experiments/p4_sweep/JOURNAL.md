@@ -49,3 +49,9 @@
 - **함의(유저-크롤 allowlist 입력)**: 완료율 리프트 유의 → 업적 콜은 신호 값어치 있음. 어떤 게임에서 값어치 있는지는 라운드 누적 후 판단.
 - **Round 1 설계(가설주도, 14 spec)**: H1 완료율 강화 — blend lam 0.4/0.8 스윕, mult gamma 0.2, comp_afk_combo(1위×3위 결합), **resid2way_completion**(완료성향·난이도 주효과 제거 — C가족 ⭐) / H2 pvalue×walk 규명 — k_shrink 5/50 / H3 탐험쿼터 — bm25_sat(포화 magnitude, "magnitude 죽음이 포화 부재 탓?" 반명제), per_user_cap(#28 파밍 실증근거) / 기준선 4종 동봉.
 - **안 판 방향+이유**: unlocktime D가족(extract에 unlocktime 미포함 — 확장 필요, R2 후보) · 소셜 friends/groups(별도 로더 필요, R2+) · graph-knob 분리(binary-C vs graded-C — 하니스 플래그 필요, R2) · EASE 조기 투입(Stage B에서 일제전이 원칙 — 단 pvalue×walk 상호작용이 커지면 재량 재확인 발동 고려).
+
+## [2026-07-03 07:12] T6 — Round 1 결과: 탐험 쿼터의 승리 + Round 2 발사
+- **리더보드(top)**: **per_user_cap .2521** > blend_lam04 .2450 > blend06 .2432 > mult_g02 .2430 > combo .2414 … bm25 둘은 pctl 이하, 널 .1585.
+- **paired 판정**: ① **cap vs pctl +0.0161 [+0.0070,+0.0252] 유의** — 완료율 리프트의 2배. **새 지배 가설: 계정 편중(파밍/whale) 통제 = 최대 레버**(#28 프로브 실증근거가 예측 적중; 탐험 쿼터 3개 중 1개가 1위 = 매몰방지 장치의 즉각적 가치 실증). ② cap vs blend04 +0.0070 ns → **직교 레버 추정(계정축 vs 행신뢰축) → R2 최우선 = cap×blend 결합**. ③ blend lam 0.4≈0.6 플랫. ④ combo(blend×AFK) ns — 완료율이 AFK 정보 흡수(게이트 중복 무익, 음성결과). ⑤ **resid2way −0.0112 유의 악화** — 완료성향 주효과에 진짜 취향 포함, 과제거(음성결과·해당 형태 폐기). ⑥ pvalue: CF 무반응(k 스윕 무차별)·RP3β 최상위 유지(.2837/.2857) — walk-전용 프로필 확정, Stage B에서 재조명. ⑦ bm25 포화 magnitude도 실패 — "magnitude 무익" 반명제 시험까지 완료(탐험 쿼터의 정직한 음성결과).
+- **Round 2(13 spec) 발사**: cap×blend(lam 0.2/0.4 × alpha 0/0.3/0.5) 그리드 소형 + blend lam 0.2/0.3 마무리 + 탐험(cap_dblq·cap_logratio — magnitude가 캡 하에 부활하는지) + refs.
+- **안 판 방향+이유**: unlocktime·소셜·graph-knob 분리 — R3 이후(extract/하니스 확장 필요); EASE 재량 투입 보류(Stage B 임박).

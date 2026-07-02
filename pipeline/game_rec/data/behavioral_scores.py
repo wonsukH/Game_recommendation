@@ -251,15 +251,25 @@ def bm25_sat(inter, game_stats, user_stats, k: float = 1.0):
     return _out(d, s)
 
 
-def per_user_cap(inter, game_stats, user_stats):
-    """H3 robustness(#28, 파밍군집 실증근거): pctl_game 후 per-user L1 정규화.
+def per_user_cap(inter, game_stats, user_stats, base: str = "pctl_game",
+                 alpha: float = 0.5, lam: float = 0.6):
+    """Robustness(#28, R1 winner +0.0161 SIG): per-user L1 mass cap over a base score.
 
-    파밍/whale 계정이 그래프에 붓는 총 질량을 유저당 동일하게 캡."""
-    base = pctl_game(inter, game_stats, user_stats)
-    tot = base.groupby("steamid")["s"].transform("sum").replace(0, np.nan)
-    n_lib = base.groupby("steamid")["s"].transform("size")
-    base["s"] = (base["s"] / tot * np.sqrt(n_lib)).fillna(0).astype(np.float32)
-    return base
+    s <- s / sum_u(s) * n_lib^alpha — 파밍/whale 계정의 그래프 총 질량을 캡.
+    alpha=0.5(=sqrt, R1 원형) / 0=완전 균등 / 1=캡 없음과 등가.
+    base: pctl_game | blend(완료율) | double_quantile | logratio."""
+    if base == "blend":
+        b = ach_completion_pctl_blend(inter, game_stats, user_stats, lam=lam)
+    elif base == "double_quantile":
+        b = double_quantile(inter, game_stats, user_stats)
+    elif base == "logratio":
+        b = logratio_median(inter, game_stats, user_stats)
+    else:
+        b = pctl_game(inter, game_stats, user_stats)
+    tot = b.groupby("steamid")["s"].transform("sum").replace(0, np.nan)
+    n_lib = b.groupby("steamid")["s"].transform("size")
+    b["s"] = (b["s"] / tot * np.power(n_lib, alpha)).fillna(0).astype(np.float32)
+    return b
 
 
 # --------------------------------------------------------------------------
