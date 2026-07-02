@@ -68,3 +68,10 @@
 - **plateau 카운트 1**(R3 유의 개선 0). 규칙상 R4 한 번 더 → 노이즈면 Stage B.
 - **R4 계획(마지막 탐험 라운드)**: ⓐ 소셜 F5 — extract에 friends 조인(per-(u,g) n_friends_played) → social_boost 후보 ⓑ w_p-flat 귀속(weighted-C+균일 w_p — 반대쪽 knob 마무리) ⓒ (재량 재확인 후보) pvalue×walk은 Stage B에서 EASE·워크 계열과 함께 정식 비교.
 - **안 판 방향+이유**: 학습형(#20 isotonic/GBM) — plateau 확정 후 Stage B 결과를 보고 투입 여부 판단(단순 조합이 아직 개선 중이었어서 보류했음; B 후 재평가). 의도 tier ablation — 팩-블록 전처리 필요, 우선순위 뒤.
+
+## [2026-07-03 07:20] T9 — R4: 소셜 즉사(데이터 부재) + 귀속 4사분면 완성 → **Stage A 종료(plateau 2연속)**
+- **소셜 F5 음성(데이터 부재)**: in-cohort 친구 간선 20/69,797(유저 16명) — 셔플 시드 리뷰작성자끼리 친구일 확률≈0. **social_boost 시도 자체가 불가** → F5는 10k+·스노볼 발동 후 재개 항목으로 이관(음성 아닌 '측정불가' 기록).
+- **귀속 4사분면(paired 전 대략 분해)**: 구식등가(binC+flat) .2136 → +graded-wp만 .2193(+0.006) → +weighted-C만 .2473(+0.034) → 둘 다 .2585(+0.045). **간선 가중 ≈ 이득의 75%, w_p ≈ 25%** — R3 발견과 정합, 두-knob 완전 해소.
+- **plateau 2연속 확정**(R3·R4 유의 개선 0) → 규칙대로 **Stage A 닫고 Stage B 전환**.
+- **Stage A 최종 요약(5라운드·46평가)**: 승자 쌍 = **cap_a03_blend04**(NDCG 주축) + **cap_a0_blend04**(SNIPS 발굴형, NDCG 동률) — per-game pctl × 완료율 blend(lam .4) × per-user 질량캡. 살아남은 원리: per-game 정규화(통일 원리)·완료율(유일 유효 업적신호)·계정 질량캡(최대 레버)·그래프 간선 가중(귀속처). 죽은 축(전부 기록): magnitude(3연속)·pt등급화 단독·AFK게이트 중복·resid 과제거·D시간축·소셜(측정불가)·pvalue(CF에선; walk 전용 프로필로 Stage B 재조명).
+- **Stage B 설계**: 랭커 8종 × top 선호 2종 고정. 구현 필요: plain-cosine/Jaccard/PPMI(condcos 변형), P3α(rp3b β=0), **EASE(Woodbury: 필요 컬럼만 P[:,cols]=(1/λ)(I−Xᵀ M⁻¹ X), M=λI+XXᵀ 1.1k dense)**, user-KNN. 패자부활전 후보 선별 기준: 내재-외재 불일치(pvalue 계열 최우선).

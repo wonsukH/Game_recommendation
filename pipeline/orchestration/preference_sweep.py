@@ -313,7 +313,8 @@ def intrinsic_prefilter(scores: pd.DataFrame, inter: pd.DataFrame,
 
 def eval_candidate(name: str, params: dict, inter, game_stats, user_stats, pool,
                    rel, panels, splits, prop, pop_pct, k: int, panel_users: list[int],
-                   rankers=("cf",), graph_mode: str = "weighted") -> dict:
+                   rankers=("cf",), graph_mode: str = "weighted",
+                   wp_mode: str = "graded") -> dict:
     t0 = time.time()
     scores = bs.compute(name, inter, game_stats, user_stats, **(params or {}))
     fam = bs.REGISTRY.get(name, {}).get("family", "")
@@ -336,8 +337,12 @@ def eval_candidate(name: str, params: dict, inter, game_stats, user_stats, pool,
         col = f"ndcg_{ranker}"
         for u in panel_users:
             sp = splits[u]
-            prof_w = {a: smap.get((u, a), 0.0) for a in sp["profile"]}
-            prof_w = {a: w for a, w in prof_w.items() if w > 0} or dict(sp["profile"])
+            if wp_mode == "flat":
+                prof_w = {a: 1.0 for a in sp["profile"]
+                          if smap.get((u, a), 0.0) > 0} or {a: 1.0 for a in sp["profile"]}
+            else:
+                prof_w = {a: smap.get((u, a), 0.0) for a in sp["profile"]}
+                prof_w = {a: w for a, w in prof_w.items() if w > 0} or dict(sp["profile"])
             excl = set(sp["profile"])
             rec = (model.recommend(prof_w, S, amap, k, excl) if ranker == "cf"
                    else model.recommend(prof_w, k, excl))
@@ -385,7 +390,8 @@ def run_round(round_name: str, cand_specs: list[tuple[str, dict]], panel: str = 
         try:
             row = eval_candidate(name, params, inter, game_stats, user_stats, pool,
                                  rel, panels, splits, prop, pop_pct, k, users, rankers,
-                                 graph_mode=spec.get("graph", "weighted"))
+                                 graph_mode=spec.get("graph", "weighted"),
+                                 wp_mode=spec.get("wp", "graded"))
         except Exception as e:  # 자율운행: 기록 후 계속
             log.exception("candidate %s failed", alias)
             row = {"candidate": alias, "params": json.dumps(params),
