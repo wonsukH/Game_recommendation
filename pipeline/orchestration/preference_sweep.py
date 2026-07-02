@@ -374,19 +374,22 @@ def run_round(round_name: str, cand_specs: list[tuple[str, dict]], panel: str = 
 
     rankers = ("cf", "rp3b") if dual_gate else ("cf",)
     rows, per_user_frames = [], {}
-    for name, params in cand_specs:
+    for spec in cand_specs:
+        name, params = spec["name"], spec.get("params") or {}
+        alias = spec.get("alias") or name
         log.info("== evaluating %s %s on %s(%d users) rankers=%s",
-                 name, params or {}, panel, len(users), rankers)
+                 alias, params, panel, len(users), rankers)
         try:
             row = eval_candidate(name, params, inter, game_stats, user_stats, pool,
                                  rel, panels, splits, prop, pop_pct, k, users, rankers)
         except Exception as e:  # 자율운행: 기록 후 계속
-            log.exception("candidate %s failed", name)
-            row = {"candidate": name, "params": json.dumps(params or {}),
+            log.exception("candidate %s failed", alias)
+            row = {"candidate": alias, "params": json.dumps(params),
                    "status": f"error: {type(e).__name__}: {e}"}
+        row["candidate"] = alias
         pu = row.pop("_per_user", None)
         if pu is not None:
-            per_user_frames[name] = pu
+            per_user_frames[alias] = pu
         rows.append(row)
 
     lb = pd.DataFrame(rows).sort_values(
@@ -399,7 +402,7 @@ def run_round(round_name: str, cand_specs: list[tuple[str, dict]], panel: str = 
         pu.to_csv(rdir / f"per_user_{name}.csv", index=False)
     (rdir / "config.json").write_text(json.dumps({
         "round": round_name, "panel": panel, "k": k, "seed": seed,
-        "dual_gate": dual_gate, "candidates": [c for c, _ in cand_specs],
+        "dual_gate": dual_gate, "candidates": cand_specs,
         "ts": time.strftime("%Y-%m-%d %H:%M:%S"),
     }), encoding="utf-8")
     log.info("round %s done -> %s", round_name, rdir)
@@ -411,12 +414,17 @@ def main() -> int:
     ap.add_argument("--round", type=str, required=True)
     ap.add_argument("--candidates", type=str, default="ALL",
                     help="comma list or ALL (registry)")
+    ap.add_argument("--spec-file", type=Path, default=None,
+                    help="JSON list of {name, params, alias} — overrides --candidates")
     ap.add_argument("--panel", type=str, default="dev", choices=["dev", "private", "small"])
     ap.add_argument("--k", type=int, default=20)
     ap.add_argument("--no-dual", action="store_true")
     args = ap.parse_args()
-    names = list(bs.REGISTRY) if args.candidates == "ALL" else args.candidates.split(",")
-    specs = [(n, {}) for n in names]
+    if args.spec_file:
+        specs = json.loads(args.spec_file.read_text(encoding="utf-8"))
+    else:
+        names = list(bs.REGISTRY) if args.candidates == "ALL" else args.candidates.split(",")
+        specs = [{"name": n} for n in names]
     lb = run_round(args.round, specs, panel=args.panel, k=args.k,
                    dual_gate=not args.no_dual)
     cols = [c for c in ["candidate", "status", "ndcg_cf", "recall_cf", "snips_cf",

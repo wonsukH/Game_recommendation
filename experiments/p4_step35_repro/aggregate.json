@@ -1,0 +1,166 @@
+{
+  "aggregate": {
+    "CF": {
+      "recall@10": {
+        "mean": 0.0,
+        "lo": 0.0,
+        "hi": 0.0,
+        "n": 0
+      },
+      "ndcg@10": {
+        "mean": 0.0,
+        "lo": 0.0,
+        "hi": 0.0,
+        "n": 0
+      },
+      "recall@20": {
+        "mean": 0.0,
+        "lo": 0.0,
+        "hi": 0.0,
+        "n": 0
+      },
+      "ndcg@20": {
+        "mean": 0.0,
+        "lo": 0.0,
+        "hi": 0.0,
+        "n": 0
+      },
+      "recall@20_debiased": {
+        "mean": 0.0,
+        "lo": 0.0,
+        "hi": 0.0,
+        "n": 0
+      },
+      "recall@20_longtail": {
+        "mean": 0.0,
+        "lo": 0.0,
+        "hi": 0.0,
+        "n": 0
+      }
+    },
+    "LLM": {
+      "recall@10": {
+        "mean": 0.0,
+        "lo": 0.0,
+        "hi": 0.0,
+        "n": 0
+      },
+      "ndcg@10": {
+        "mean": 0.0,
+        "lo": 0.0,
+        "hi": 0.0,
+        "n": 0
+      },
+      "recall@20": {
+        "mean": 0.0,
+        "lo": 0.0,
+        "hi": 0.0,
+        "n": 0
+      },
+      "ndcg@20": {
+        "mean": 0.0,
+        "lo": 0.0,
+        "hi": 0.0,
+        "n": 0
+      },
+      "recall@20_debiased": {
+        "mean": 0.0,
+        "lo": 0.0,
+        "hi": 0.0,
+        "n": 0
+      },
+      "recall@20_longtail": {
+        "mean": 0.0,
+        "lo": 0.0,
+        "hi": 0.0,
+        "n": 0
+      }
+    },
+    "POP": {
+      "recall@10": {
+        "mean": 0.0,
+        "lo": 0.0,
+        "hi": 0.0,
+        "n": 0
+      },
+      "ndcg@10": {
+        "mean": 0.0,
+        "lo": 0.0,
+        "hi": 0.0,
+        "n": 0
+      },
+      "recall@20": {
+        "mean": 0.0,
+        "lo": 0.0,
+        "hi": 0.0,
+        "n": 0
+      },
+      "ndcg@20": {
+        "mean": 0.0,
+        "lo": 0.0,
+        "hi": 0.0,
+        "n": 0
+      },
+      "recall@20_debiased": {
+        "mean": 0.0,
+        "lo": 0.0,
+        "hi": 0.0,
+        "n": 0
+      },
+      "recall@20_longtail": {
+        "mean": 0.0,
+        "lo": 0.0,
+        "hi": 0.0,
+        "n": 0
+      }
+    },
+    "ORACLE": {
+      "recall@10": {
+        "mean": 0.0,
+        "lo": 0.0,
+        "hi": 0.0,
+        "n": 0
+      },
+      "ndcg@10": {
+        "mean": 0.0,
+        "lo": 0.0,
+        "hi": 0.0,
+        "n": 0
+      },
+      "recall@20": {
+        "mean": 0.0,
+        "lo": 0.0,
+        "hi": 0.0,
+        "n": 0
+      },
+      "ndcg@20": {
+        "mean": 0.0,
+        "lo": 0.0,
+        "hi": 0.0,
+        "n": 0
+      },
+      "recall@20_debiased": {
+        "mean": 0.0,
+        "lo": 0.0,
+        "hi": 0.0,
+        "n": 0
+      },
+      "recall@20_longtail": {
+        "mean": 0.0,
+        "lo": 0.0,
+        "hi": 0.0,
+        "n": 0
+      }
+    }
+  },
+  "comparisons": {
+    "CF - POP recall@20": {
+      "mean_diff": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "significant": false,
+      "n": 0
+    }
+  },
+  "llm_pool_miss": null
+}

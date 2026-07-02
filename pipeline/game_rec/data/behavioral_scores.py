@@ -201,6 +201,68 @@ def random_support(inter, game_stats, user_stats, seed: int = 42):
 
 
 # --------------------------------------------------------------------------
+# Round 1 candidates (hypothesis-driven from round00 findings)
+# --------------------------------------------------------------------------
+
+def comp_afk_combo(inter, game_stats, user_stats, lam: float = 0.6,
+                   hi_pctl: float = 0.8, floor: float = 0.25):
+    """H1: round00 1위(완료율 blend) x 3위(AFK 게이트) 결합 — 두 업적 채널 합산."""
+    blend = ach_completion_pctl_blend(inter, game_stats, user_stats, lam=lam)
+    pt_p = _pos_pctl_within(inter, "playtime_forever", "appid")
+    has = inter["ach_total"].fillna(0) > 0
+    suspicious = has & (inter["ach_unlocked"].fillna(0) == 0) & (pt_p >= hi_pctl)
+    gate = pd.Series(1.0, index=inter.index)
+    gate[suspicious] = floor
+    blend["s"] = (blend["s"].values * gate.values).astype(np.float32)
+    return blend
+
+
+def resid2way_completion(inter, game_stats, user_stats, lam: float = 0.6,
+                         k_user: float = 5.0):
+    """H1/C-family: 완료율에서 user(완료성향)·game(난이도) 주효과 제거한 residual.
+
+    100%-완료성향 유저의 100%는 정보 0, 대충 하는 유저의 100%는 강신호 —
+    residual을 within-game pctl로 랭크해 blend."""
+    has = inter["ach_total"].fillna(0) > 0
+    d = inter.copy()
+    d["c"] = np.where(has, d["completion"].fillna(0.0), np.nan)
+    grand = d["c"].mean()
+    g_mean = d.groupby("appid")["c"].transform("mean")
+    u_sum = d.groupby("steamid")["c"].transform("sum")
+    u_n = d.groupby("steamid")["c"].transform("count")
+    u_mean_shrunk = (u_sum + k_user * grand) / (u_n + k_user)  # EB shrink
+    d["resid"] = d["c"] - u_mean_shrunk - g_mean + grand
+    rpos = d[d["resid"].notna()].copy()
+    r = rpos.groupby("appid")["resid"].rank(method="average")
+    n = rpos.groupby("appid")["resid"].transform("size")
+    r_p = pd.Series(np.nan, index=d.index)
+    r_p.loc[rpos.index] = ((r - 0.5) / n).values
+    pt_p = _pos_pctl_within(inter, "playtime_forever", "appid")
+    s = np.where(r_p.notna(), lam * pt_p.fillna(0) + (1 - lam) * r_p.fillna(0), pt_p)
+    return _out(inter, pd.Series(s, index=inter.index))
+
+
+def bm25_sat(inter, game_stats, user_stats, k: float = 1.0):
+    """H3 탐험(rank 밖 family): BM25식 포화 s = pt/(pt + k*game_median) — 연속·유계."""
+    d = _merge_game(inter, game_stats, ["pt_pos_median"])
+    ref = d["pt_pos_median"].replace(0, np.nan).fillna(60.0)
+    s = d["playtime_forever"] / (d["playtime_forever"] + k * ref)
+    s[d["playtime_forever"] <= 0] = 0.0
+    return _out(d, s)
+
+
+def per_user_cap(inter, game_stats, user_stats):
+    """H3 robustness(#28, 파밍군집 실증근거): pctl_game 후 per-user L1 정규화.
+
+    파밍/whale 계정이 그래프에 붓는 총 질량을 유저당 동일하게 캡."""
+    base = pctl_game(inter, game_stats, user_stats)
+    tot = base.groupby("steamid")["s"].transform("sum").replace(0, np.nan)
+    n_lib = base.groupby("steamid")["s"].transform("size")
+    base["s"] = (base["s"] / tot * np.sqrt(n_lib)).fillna(0).astype(np.float32)
+    return base
+
+
+# --------------------------------------------------------------------------
 # registry
 # --------------------------------------------------------------------------
 
@@ -216,6 +278,11 @@ REGISTRY: dict[str, dict] = {
     "ach_completion_mult": dict(fn=ach_completion_mult, family="achievement-B", hypothesis="완료율 multiplier가 idle 행 감쇠 — 업적 값어치 조기 판정용"),
     "ach_completion_pctl_blend": dict(fn=ach_completion_pctl_blend, family="achievement-B", hypothesis="난이도-불변 완료율 percentile 블렌드 — 완료율의 독립 기여 측정"),
     "afk_joint_gate": dict(fn=afk_joint_gate, family="achievement-A", hypothesis="JOINT(고pt∧0해금) 다운웨이트 — 실측 7.3k 꼬리 제거의 recall 효과"),
+    # ---- Round 1 (round00 발견 기반) ----
+    "comp_afk_combo": dict(fn=comp_afk_combo, family="achievement-AB", hypothesis="R0 발견: 완료율(1위)과 AFK게이트(3위)가 서로 다른 행을 고침 → 결합 시 가산 리프트 가설"),
+    "resid2way_completion": dict(fn=resid2way_completion, family="achievement-C", hypothesis="완료성향(유저)·난이도(게임) 주효과 제거 — 완료율 신호의 순도를 높이면 blend 리프트 증폭 가설"),
+    "bm25_sat": dict(fn=bm25_sat, family="magnitude-sat", hypothesis="탐험쿼터: rank 밖 연속-포화 family — R0에서 magnitude가 죽은 게 포화 부재 탓인지 검증"),
+    "per_user_cap": dict(fn=per_user_cap, family="robustness", hypothesis="탐험쿼터+#28 실증근거: 파밍/whale 계정의 그래프 질량 캡이 support 오염을 줄이는지"),
 }
 
 

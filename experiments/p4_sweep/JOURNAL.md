@@ -36,3 +36,16 @@
 - **조기 발견 A (설계 반영)**: random_s(가중치만 랜덤·support 실제)가 pctl_game과 근접(NDCG 0.165 vs 0.181) → **support(누가-뭘-플레이)가 그래프 신호의 지배 성분, 가중은 2차 이득**. random_s는 "가중치-널 프로브"로 재해석하고, **진짜 널 `random_support`**(support 파괴) 추가 → 0.122로 명확 분리 = 지표 건강 확인. 함의: 그레이드 변형 간 델타가 작을 수 있음 — CI 병기·paired 비교가 더 중요해짐; binary 앵커와의 비교가 "그레이드 정당화"의 핵심 시험이 됨.
 - **조기 발견 B**: RP3β를 binary로 만들면 후보-무차별(candidate-blind) → **후보의 가중 X로 워크 구성**하도록 수정 — 이제 이중 관문이 진짜 두 관점(0.256 vs 널 0.079 분리 확인).
 - Step 3.5(0.293 재현) 백그라운드 실행 중(p4_step35_repro). 완료 시 Round 0(dev 200명, 전 후보 11종) 착수.
+
+## [2026-07-03 06:52] T4 — Step 3.5 1차 실패 → 원인 규명 → 재실행
+- **1차 실행 전원 0.000(ORACLE 포함)** = 재현 실패가 아니라 **자격 유저 0명**: CLI 기본 `min_liked=15`인데 리뷰 크롤 캡(~10/유저) 때문에 이 조건 충족 유저가 데이터상 0. 그런데 원 런은 78명을 썼음 → **원 런 manifest 확인: `min_liked=8`로 override 돼 있었음**(manifest에 설정·지문이 남는 RunLogger 관례 덕에 5분 만에 규명 — 관례의 가치 실증).
+- **CSV 지문 대조: sha256 `ceb22b042cc21dae`·77,750,401B 완전 일치** — 복사해온 파일이 원본과 동일 확정.
+- 재실행: `--min-liked 8 --seed 42`(p4_step35_repro2, 백그라운드). 기대 CF recall@20 ≈ 0.293(±CI). 교훈 기록: **재현은 CLI 기본값이 아니라 manifest의 실측 설정으로** — 앞으로 모든 재현·재실행은 manifest 우선.
+
+## [2026-07-03 07:02] T5 — Step 3.5 통과 ✅ + Round 0 지형도 + Round 1 설계
+- **3.5 정확 재현**: CF recall@20 = **0.293 [0.218,0.370]**(원 런과 동일치), ORACLE 1.000, POP 0.034 → 데탑 환경·CF 기계·지표 전부 원본 동치 증명. Task 5 완료.
+- **Round 0 리더보드(dev 200, NDCG_cf)**: blend .2432 > mult .2393 > afk_gate .2372 > pctl_game .2359 > binary .2350 > pvalue .2296 > logratio .2276 > dblq .2253 > pctl_user .2210 > random_s .2091 > random_support .1585.
+- **왜 이겼나(paired CI)**: ① **업적 top3 싹쓸이** — blend vs pctl_game **+0.0073 [+0.0036,+0.0110] 유의**, vs 이진앵커 +0.0082 유의(경계). ② **pctl_game vs 이진 +0.0009 ns → playtime 등급화 자체는 무익** — 그레이드의 가치는 전적으로 완료율 신호에서 옴(support-dominance 발견과 정합: 등뼈=support, pt등급≈0, 업적등급=진짜 Δ). ③ **RP3β 1위는 pvalue_eb(.2855, CF 6위)** — 선호×랭커 상호작용 실증 = 이중 관문 설계 적중. ④ 진짜 널 .1585로 바닥 분리(지표 건강 ✓). ⑤ long-tail: 78/200 유저만 lt-홀드아웃 보유·힛 0 — 지표 정상, 슬라이스가 어려운 것(20k 풀 k=20). 크롤 확장 후 재조명.
+- **함의(유저-크롤 allowlist 입력)**: 완료율 리프트 유의 → 업적 콜은 신호 값어치 있음. 어떤 게임에서 값어치 있는지는 라운드 누적 후 판단.
+- **Round 1 설계(가설주도, 14 spec)**: H1 완료율 강화 — blend lam 0.4/0.8 스윕, mult gamma 0.2, comp_afk_combo(1위×3위 결합), **resid2way_completion**(완료성향·난이도 주효과 제거 — C가족 ⭐) / H2 pvalue×walk 규명 — k_shrink 5/50 / H3 탐험쿼터 — bm25_sat(포화 magnitude, "magnitude 죽음이 포화 부재 탓?" 반명제), per_user_cap(#28 파밍 실증근거) / 기준선 4종 동봉.
+- **안 판 방향+이유**: unlocktime D가족(extract에 unlocktime 미포함 — 확장 필요, R2 후보) · 소셜 friends/groups(별도 로더 필요, R2+) · graph-knob 분리(binary-C vs graded-C — 하니스 플래그 필요, R2) · EASE 조기 투입(Stage B에서 일제전이 원칙 — 단 pvalue×walk 상호작용이 커지면 재량 재확인 발동 고려).

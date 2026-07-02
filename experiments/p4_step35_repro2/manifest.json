@@ -1,0 +1,29 @@
+{
+  "run_id": "p4_step35_repro2",
+  "phase": "personalization-holdout",
+  "n_test_users": 78,
+  "min_liked": 8,
+  "profile_frac": 0.7,
+  "min_cooc": 3,
+  "ks": [
+    10,
+    20
+  ],
+  "bootstrap": 2000,
+  "seed": 42,
+  "no_llm": true,
+  "artifacts": {
+    "scores": {
+      "path": "D:\\YBIGTA\\Newbie_project\\Game_recommendation\\outputs\\user_game_scores.csv",
+      "exists": true,
+      "sha256": "ceb22b042cc21dae",
+      "bytes": 77750401
+    },
+    "index_maps": {
+      "path": "D:\\YBIGTA\\Newbie_project\\Game_recommendation\\serving\\data\\index_maps.json",
+      "exists": true,
+      "sha256": "24df2a9a2725e789",
+      "bytes": 443858
+    }
+  }
+}
