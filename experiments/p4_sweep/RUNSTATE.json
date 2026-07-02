@@ -4,8 +4,13 @@
   "plan_file": "C:/Users/82107/.claude/plans/recursive-dreaming-moore.md",
   "driver": "main-loop",
   "last_tick_ts": "2026-07-03T07:22:00+09:00",
-  "current_step": "round03-prep-unlocktime-extract-and-graphknob",
-  "best_so_far": {"candidate": "cap_a03_blend04", "ndcg_cf": 0.2621, "discovery_profile": "cap_a0_blend04 (snips-best)"},
+  "current_step": "slow-mode: learned-candidate(#20) + CAUGHT-UP watch + report upkeep",
+  "shortlist_frozen": {
+    "S1": "pvalue_lognorm_eb x userknn25 (private 0.2943)",
+    "S2": "pctl_game x userknn25 (0.2925)",
+    "S3": "cap_a03_blend04 x rp3b (SNIPS 0.0994, discovery)",
+    "S4": "cap_a03_blend04 x condcos (production-compatible 0.2667)"
+  },
   "current_round": null,
   "crawler": {
     "mode": "games-only",
