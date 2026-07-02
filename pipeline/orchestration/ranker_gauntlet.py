@@ -197,6 +197,7 @@ PREFS = {
     "pvalue_eb": {"name": "pvalue_lognorm_eb", "params": {}},
     "pctl_game": {"name": "pctl_game", "params": {}},
     "anchor_binary": {"name": "anchor_binary", "params": {}},
+    "random_support": {"name": "random_support", "params": {}},
 }
 
 RANKERS = ["condcos", "condasym", "jaccard", "ppmi", "p3a", "rp3b",

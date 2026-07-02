@@ -82,3 +82,10 @@
 - **해석**: 1.1k 유저·조밀 라이브러리(수백/유저) 체제에선 유저-유사도가 아이템 co-occurrence보다 신호 활용이 좋음(아이템 쌍은 support floor로 잘리는 반면 유저 코사인은 전체 라이브러리를 씀). EASE 약세는 유저 수 부족(릿지 과정규화; λ↓가 최선인 게 그 증거) — **유저 10k 도달 후 재평가 필수 항목**으로 기록. PPMI는 이 밀도에서 표류(positive-clip이 저support만 남김).
 - **함의(사용자 결정 항목으로 승격)**: "CF 수식 불변" 전제가 랭커 차원에서 흔들림 — P5 재배선 시 **랭커 교체(userknn or rp3b) vs condcos 유지**는 서빙 구조 영향이 있어 **사용자 확정 필요**. 단 유저 규모가 커지면(10k) 순위가 다시 바뀔 수 있음(EASE 포함) — OOD·규모 재평가와 묶어 결정 권고.
 - **Stage C+부활전 발사**: {pvalue_eb(내재-외재 불일치 시그니처), pctl_game, anchor_binary} × {userknn25, rp3b, condcos} — pvalue가 walk/knn 계열에서 cap-blend를 위협하는지, cap 이득이 userknn에서도 유지되는지(선호×랭커 상호작용 소교차).
+
+## [2026-07-03 07:35] T11 — Stage C+부활전+private: **shortlist 확정, Stage B/C 종료**
+- **Stage C 반전 2건**: ① **pctl×userknn .2888 — cap 없는 순수 백분위가 최강**: cap 이득은 condcos 전용(유저 코사인의 norm 정규화가 whale-캡을 내장 → 중복). 선호×랭커 상호작용의 정체 규명. ② **부활전 성공**: pvalue×rp3b .2848·×userknn .2840 — "내재-외재 불일치=랭커 미스매치" 가설 실증(사용자 false-negative 지적의 승리). dev 상위 4구성 paired 전부 ns → dev 해상도 소진 → private 발동.
+- **Private 패널(150명, [F1])**: 순위 재현 — 과적합 없음. **1위 pvalue×userknn .2943**, 2위 pctl×userknn .2925(동률), 발굴 대표 cap_a03_blend04×rp3b(SNIPS .0994·recall .1756), 프로덕션-호환 최선 cap_a03_blend04×condcos .2667. null 바닥 ✓.
+- **Shortlist S1~S4 확정 → LEADERBOARD.md 신설**(종합 리더보드+발견 연쇄 7개+사용자 결정 항목+잔여 위험). Task 7 완료.
+- **사용자 결정 항목으로 승격**: 랭커 교체(userknn/rp3b vs condcos 유지) — P5 서빙 구조 영향, 10k 재평가와 묶어 판단 권고. 업적 allowlist: **완료율만 유효, 희귀도 크롤 없이도 P4 성립** — 유저크롤 업적 스코프 재논의 여지(비용 96% 절감 가능성).
+- 다음: 보고서 모드 전환 + 잔여 시간 = 학습형(#20) 시도·크롤 CAUGHT UP 감시·풀 성장 시 재확인.
