@@ -1,6 +1,6 @@
 # ROADMAP & HANDOFF — 여기부터 보면 됨 (세션 리셋용)
 
-> **유형**: roadmap · **상태**: active · **갱신**: 2026-06-26 · **브랜치**: `feat/personalization-agent-and-data-infra` · origin = github.com/wonsukH/Game_recommendation
+> **유형**: roadmap · **상태**: active · **갱신**: 2026-07-02 · **브랜치**: `feat/personalization-agent-and-data-infra` · origin = github.com/wonsukH/Game_recommendation
 
 > 컨텍스트가 리셋돼도 이 문서 + 메모리(`~/.claude/.../memory/`) + `experiments/DELIBERATION_LOG.md`만 보면 이어갈 수 있다.
 
@@ -8,7 +8,8 @@
 태그-유사도(삭제됨, LLM에 ~96% 패배) → **개인화 CF moat + LangGraph 에이전트**로 피벗 완료. 지금은 **데이터 층을 리뷰-CSV → 행동-SQLite(`steam.db`)로 재구축** 중이며, 그 결과 추천 입력·"liked" 정의·품질신호·평가를 전부 재배선해야 한다(아래 P4~P9).
 
 ## 지금 돌아가는 것 (리셋 후 먼저 확인)
-- **라이브 크롤**(`data_collection/crawl_unified.py --forever ... --stop-at-users 10000`). 목표 10k 공개유저, 2026-06-26 기준 ~29명, ETA ~10–16일.
+- **라이브 크롤**(`data_collection/crawl_unified.py --forever ... --stop-at-users 10000`). 목표 10k 공개유저, **2026-07-02 기준 1,669명**(owned 726k·업적 5.6M·distinct 게임 40.6k). games 차원(희소 메타) 채움 11,775 / **백로그 28,836**. 실측 유저 페이스 ~255명/일(다운타임·쓰로틀 포함) → **현실 ETA 3~5주**. ⚠️ `daily_crawl.bat`에 `--stop-at-users` 미지정(자동정지 안 함)·워치독 없음(06-28~29 ~20h, **07-01 08:23~07-02 16:21 ~32h 무가동 2회째** → 07-02 재기동) → 생존 점검 필수.
+- **⚠️ 일시 모드(07-02 16:49~)**: 게임 메타가 너무 희소해 실험 불가(사용자) → **games-only 전용 런**(`--phases games --forever --limit 90000`, 임시 bat는 세션 스크래치패드)으로 백로그 28.8k 우선 소진 중. **유저 크롤은 그동안 일시정지.** 실측(07-02 17:35): 게임당 ~5콜·콜당 ~1.0s(RTT) → 분당 ~11.5개, **ETA ~07-04 오전**(예산 정지 없음 — 이 페이스면 90k/day 미달). **소진 후 `scripts\daily_crawl.bat`(users+games)로 복귀할 것.**
 - **리셋되면 백그라운드 크롤이 죽을 수 있음** → 살아있는지 확인 후 없으면 재시작(재개형, steam.db에서 이어받음, 손실 0):
   ```
   scripts\daily_crawl.bat
@@ -24,7 +25,7 @@
 - **로그/증거**: `experiments/DELIBERATION_LOG.md`(고민·결정의 서사, append-only) · `experiments/registry.jsonl`(run 수치) · `experiments/INDEX.md`.
 - **문서**: `docs/`(INTENT·ISSUES·README_PIPELINE·technical_reference.html·runbook). 이 로드맵 = `docs/ROADMAP.md`.
 - **상위 플랜 원본**: `C:\Users\hwons\.claude\plans\jiggly-meandering-whale.md`.
-- **메모리(세션 간 자동 로드)**: `~/.claude/projects/D--YBIGTA-Newbie-project/memory/` — 행동규칙·역할·평가원칙·현황.
+- **메모리(세션 간 자동 로드)**: `~/.claude/projects/D--YBIGTA-Newbie-project-Game-recommendation/memory/` — 행동규칙·역할·평가원칙·현황. (구 경로 `…/D--YBIGTA-Newbie-project/memory/`에도 백업 사본 있음; **반드시 프로젝트 루트 `Game_recommendation\`에서 실행**해야 이 메모리가 로드됨.)
 
 ## 핵심 검증 결과 (왜 이 방향인가)
 - 개인화 **CF가 LLM-with-library 이김**: recall@20 0.293 vs 0.173, Δ+0.120 [+0.049,+0.192] 유의.
@@ -47,12 +48,12 @@
 ---
 
 ## 포워드 로드맵 (각 Pillar = 착수 시 **전용 상세 플랜** 작성; 세부 결정은 그때 사용자와)
-순서: 크롤(진행) → **P4(게이트)** → P5 → P6 → [P7] → P8 ; P9 상시.
+순서: 크롤(진행) → **P4(게이트)** → P5 → P6 → P7 → P8 ; P9 상시.
 
-- **P4 — 행동 기반 "liked"/선호 정의 (게이트, 먼저)**: playtime(+업적)으로 liked 정의 → 행동-liked CF가 구 리뷰-liked CF recall 재현/상회하는지 사전등록 검증. 신규 `data/behavioral_scores.py`. *결정할 것*: 임계방식(median비율/백분위/절대), 업적보정, 통과기준. 의존: 크롤 데이터 충분(수천+).
-- **P5 — 빌더 재배선(CSV→steam.db) + 아티팩트 재생성**: cf/coplay, tag_vocab/game_tag_matrix(→index_maps·X_game_tag), game_popularity, build_quality(출처교체), 제목, `tools.CatalogMeta`(런타임CSV 제거), steam_library.proxy_library. *결정*: 품질출처, **풀 9956 유지 vs 확장**. 의존: P4.
+- **P4 — 행동 기반 "liked"/선호 정의 (게이트, 먼저)**: playtime(+업적)으로 liked 정의 → 행동-liked CF가 구 리뷰-liked CF recall 재현/상회하는지 사전등록 검증. 신규 `data/behavioral_scores.py`. *결정할 것*: 임계방식(median비율/백분위/절대 — 코호트 편향에 강건한 **유저상대(비율/백분위) 우선**), 업적보정, 통과기준. 의존: 크롤 데이터 충분(수천+) — **행동 방식은 리뷰 방식보다 유저당 신호가 조밀**(중앙값 214 owned·89 liked후보·~1.2k유저에서 co-play쌍 ~92M)이라 **현재 ~1.2k로도 P4 본분석 착수 가능**. 5k/10k 목표는 꼬리(long-tail) 커버·OOD 검정력용이고, 코호트 편향은 인원수가 아니라 P6 랜덤-OOD로 해소(인원/풍부도로는 편향 안 풀림).
+- **P5 — 빌더 재배선(CSV→steam.db) + 아티팩트 재생성**: cf/coplay, tag_vocab/game_tag_matrix(→index_maps·X_game_tag), game_popularity, build_quality(출처교체), 제목, `tools.CatalogMeta`(런타임CSV 제거), steam_library.proxy_library. **풀 = 크롤 따라 확장(확정; 현재 games≈30.6k, 코드상 상한 없음)**. *결정*: 품질출처. 의존: P4.
 - **P6 — 평가 재실행(풍부데이터) + OOD 편향**: ranker 재벤치(CF/EASE/ALS), CF vs LLM, 풍부 owned가 구 리뷰-CF 넘는지; **랜덤 accountID OOD hold-out**으로 코호트 편향 정량화 + 포화곡선으로 크롤 정지시점. 의존: P5.
-- **P7 — 선호-가중 학습모델 (업적 회수처; 할지 포함)**: `w_p=f(playtime,완료율,희귀도,recency)` 학습형 vs 고정 log식, 사전등록 비교(휴리스틱/GBM/NN). 이기면 채택, 지면 음성결과. 의존: P5–6.
+- **P7 — 선호-가중 학습모델 (업적 회수처; 필수)**: 업적 크롤(비용의 ~96%)의 회수처이므로 **수행 자체는 확정**. `w_p=f(playtime,완료율,희귀도,recency)` 학습형 vs 고정 log식, 사전등록 비교(휴리스틱/GBM/NN) — 열린 건 *어느 쪽이 이기나*(학습형이 지면 음성결과로 고정식 유지). 의존: P5–6.
 - **P8 — 서빙 갱신**: agent_graph/main_agent를 재생성 아티팩트로; 품질게이트·ContentLayer·CatalogMeta 새 소스; 5라우트 end-to-end + pytest. 의존: P5(–7).
 - **P9 — 지속/모니터링(상시)**: 크롤 목표까지; 누적분으로 P5–6 주기 재실행; Pillar마다 커밋+push.
 
