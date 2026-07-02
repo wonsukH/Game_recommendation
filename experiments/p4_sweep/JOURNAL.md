@@ -55,3 +55,9 @@
 - **paired 판정**: ① **cap vs pctl +0.0161 [+0.0070,+0.0252] 유의** — 완료율 리프트의 2배. **새 지배 가설: 계정 편중(파밍/whale) 통제 = 최대 레버**(#28 프로브 실증근거가 예측 적중; 탐험 쿼터 3개 중 1개가 1위 = 매몰방지 장치의 즉각적 가치 실증). ② cap vs blend04 +0.0070 ns → **직교 레버 추정(계정축 vs 행신뢰축) → R2 최우선 = cap×blend 결합**. ③ blend lam 0.4≈0.6 플랫. ④ combo(blend×AFK) ns — 완료율이 AFK 정보 흡수(게이트 중복 무익, 음성결과). ⑤ **resid2way −0.0112 유의 악화** — 완료성향 주효과에 진짜 취향 포함, 과제거(음성결과·해당 형태 폐기). ⑥ pvalue: CF 무반응(k 스윕 무차별)·RP3β 최상위 유지(.2837/.2857) — walk-전용 프로필 확정, Stage B에서 재조명. ⑦ bm25 포화 magnitude도 실패 — "magnitude 무익" 반명제 시험까지 완료(탐험 쿼터의 정직한 음성결과).
 - **Round 2(13 spec) 발사**: cap×blend(lam 0.2/0.4 × alpha 0/0.3/0.5) 그리드 소형 + blend lam 0.2/0.3 마무리 + 탐험(cap_dblq·cap_logratio — magnitude가 캡 하에 부활하는지) + refs.
 - **안 판 방향+이유**: unlocktime·소셜·graph-knob 분리 — R3 이후(extract/하니스 확장 필요); EASE 재량 투입 보류(Stage B 임박).
+
+## [2026-07-03 07:20] T7 — Round 2: 신기록 + Pareto 분기 발견
+- **리더보드**: **cap_a03_blend04 .2621**(신기록) > cap_a03_pctl .2584 > cap_a0_blend04 .2571 > … > cap_logratio .2389 > pctl_ref .2359. 궤적 R0 .2432→R1 .2521→R2 .2621(라운드당 ~+0.010, plateau 아님 → A 계속).
+- **paired**: ① 신기록 vs R1승자 **+0.0100 유의**. ② alpha 0.3>0.5 **+0.0101 유의**(캡 강화 이득), 0.3 vs 0 +0.0049 ns. ③ blend 한계기여 at a03: +0.0036 ns — cap이 완료율 이득 일부 흡수(둘 다 파밍 행 타격 = 겹침; 직교는 부분만). ④ **SNIPS에선 a0 > a03 +0.0099 유의 — Pareto 분기**: NDCG 최적(a03)≠인기보정 최적(a0, 완전균등질량=발굴형). **cap_a03_blend04(주축형)·cap_a0_blend04(발굴형) 둘 다 비지배 shortlist 유지**(플랜 Pareto 원칙 첫 실전 발동). ⑤ cap_dblq .2524 경쟁력(rank-double이 캡 하에 부활) / cap_logratio — **magnitude 3연속 사망 확정**(순수·포화·캡 하 전패 — 이 축 freeze).
+- **freeze(ablation)**: magnitude 축 동결. combo(AFK×blend)·resid2way 형태 폐기 유지.
+- **다음(R3)**: ⓐ extract 확장 — user_achievement에서 per-(u,g) first/last unlocktime → **D가족(recency·span·still-progressing)** 첫 투입 ⓑ **graph-knob 귀속 분리** — binary-C+graded-w_p 하니스 플래그(cap 이득이 그래프측인지 w_p측인지) ⓒ alpha 미세(0.2/0.35/0.4) 소형 ⓓ blend lam은 0.4 고정(플랫 확인됨).
