@@ -1,0 +1,296 @@
+{
+  "pool_miss_rate": 0.13333333333333333,
+  "n": 120,
+  "ve_pop_pctile": 0.5911267369830906,
+  "gem_pop_pctile": 0.6495421705366456,
+  "queries": [
+    {
+      "id": "q01",
+      "llm_gem": [
+        "Tyranny",
+        "Kenshi",
+        "Underrail",
+        "Fear & Hunger",
+        "Darkwood"
+      ],
+      "pool_miss": 1,
+      "n": 5
+    },
+    {
+      "id": "q03",
+      "llm_gem": [
+        "TOEM",
+        "Wytchwood",
+        "Carto",
+        "Bear and Breakfast",
+        "Alba: A Wildlife Adventure"
+      ],
+      "pool_miss": 1,
+      "n": 5
+    },
+    {
+      "id": "q05",
+      "llm_gem": [
+        "Revita",
+        "SYNTHETIK: Legion Rising",
+        "Slice & Dice",
+        "Nova Drift",
+        "One Step From Eden"
+      ],
+      "pool_miss": 0,
+      "n": 5
+    },
+    {
+      "id": "q06",
+      "llm_gem": [
+        "Curse of the Dead Gods",
+        "Children of Morta",
+        "West of Dead",
+        "The Last Stand: Aftermath",
+        "Have a Nice Death"
+      ],
+      "pool_miss": 0,
+      "n": 5
+    },
+    {
+      "id": "q07",
+      "llm_gem": [
+        "PlateUp!",
+        "Ship of Fools",
+        "Unrailed!",
+        "Biped",
+        "Ember Knights"
+      ],
+      "pool_miss": 0,
+      "n": 5
+    },
+    {
+      "id": "q08",
+      "llm_gem": [
+        "Signalis",
+        "Citizen Sleeper",
+        "The Red Strings Club",
+        "Primordia",
+        "Norco"
+      ],
+      "pool_miss": 0,
+      "n": 5
+    },
+    {
+      "id": "q09",
+      "llm_gem": [
+        "Against the Storm",
+        "Northgard",
+        "Songs of Conquest",
+        "Bad North: Jotunn Edition",
+        "The Battle of Polytopia"
+      ],
+      "pool_miss": 1,
+      "n": 5
+    },
+    {
+      "id": "q10",
+      "llm_gem": [
+        "The Excavation of Hob's Barrow",
+        "The Painscreek Killings",
+        "World of Horror",
+        "Mundaun",
+        "Song of Horror"
+      ],
+      "pool_miss": 2,
+      "n": 5
+    },
+    {
+      "id": "q12",
+      "llm_gem": [
+        "OMORI",
+        "LISA: The Painful",
+        "Rakuen",
+        "OneShot",
+        "Ikenfell"
+      ],
+      "pool_miss": 0,
+      "n": 5
+    },
+    {
+      "id": "q13",
+      "llm_gem": [
+        "ULTRAKILL",
+        "Furi",
+        "The Surge 2",
+        "Grime",
+        "Rain World"
+      ],
+      "pool_miss": 0,
+      "n": 5
+    },
+    {
+      "id": "q14",
+      "llm_gem": [
+        "Patrick's Parabox",
+        "A Monster's Expedition",
+        "Manifold Garden",
+        "Hexcells Infinite",
+        "Understand"
+      ],
+      "pool_miss": 1,
+      "n": 5
+    },
+    {
+      "id": "q16",
+      "llm_gem": [
+        "Against the Storm",
+        "Timberborn",
+        "Farthest Frontier",
+        "Dorfromantik",
+        "Airborne Kingdom"
+      ],
+      "pool_miss": 0,
+      "n": 5
+    },
+    {
+      "id": "q17",
+      "llm_gem": [
+        "Tacoma",
+        "Draugen",
+        "The Invincible",
+        "Observation",
+        "INFRA"
+      ],
+      "pool_miss": 0,
+      "n": 5
+    },
+    {
+      "id": "q18",
+      "llm_gem": [
+        "UnReal World",
+        "Stationeers",
+        "Cataclysm: Dark Days Ahead",
+        "NEO Scavenger",
+        "Wayward"
+      ],
+      "pool_miss": 1,
+      "n": 5
+    },
+    {
+      "id": "q20",
+      "llm_gem": [
+        "A Dance of Fire and Ice",
+        "Everhood",
+        "Spin Rhythm XD",
+        "Rhythm Doctor",
+        "Melatonin"
+      ],
+      "pool_miss": 0,
+      "n": 5
+    },
+    {
+      "id": "q21",
+      "llm_gem": [
+        "Battle Brothers",
+        "Caves of Qud",
+        "Shadow Empire",
+        "Dominions 6",
+        "Terra Invicta"
+      ],
+      "pool_miss": 2,
+      "n": 5
+    },
+    {
+      "id": "q22",
+      "llm_gem": [
+        "Shadows of Doubt",
+        "Heat Signature",
+        "The Swindle",
+        "Seven: The Days Long Gone",
+        "NEON STRUCT"
+      ],
+      "pool_miss": 2,
+      "n": 5
+    },
+    {
+      "id": "q23",
+      "llm_gem": [
+        "GRIS",
+        "A Short Hike",
+        "Webbed",
+        "Hue",
+        "Yoku's Island Express"
+      ],
+      "pool_miss": 0,
+      "n": 5
+    },
+    {
+      "id": "q24",
+      "llm_gem": [
+        "Outward",
+        "Kenshi",
+        "Sable",
+        "ELEX II",
+        "Empyrion - Galactic Survival"
+      ],
+      "pool_miss": 1,
+      "n": 5
+    },
+    {
+      "id": "q25",
+      "llm_gem": [
+        "Roots of Pacha",
+        "Kynseed",
+        "Ooblets",
+        "Littlewood",
+        "Verdant Skies"
+      ],
+      "pool_miss": 1,
+      "n": 5
+    },
+    {
+      "id": "q27",
+      "llm_gem": [
+        "The Painscreek Killings",
+        "Gnosia",
+        "Unheard",
+        "Lamplight City",
+        "Paradise Killer"
+      ],
+      "pool_miss": 1,
+      "n": 5
+    },
+    {
+      "id": "q28",
+      "llm_gem": [
+        "Against the Storm",
+        "Workers & Resources: Soviet Republic",
+        "Songs of Syx",
+        "Space Haven",
+        "Amazing Cultivation Simulator"
+      ],
+      "pool_miss": 0,
+      "n": 5
+    },
+    {
+      "id": "q29",
+      "llm_gem": [
+        "Ender Lilies: Quietus of the Knights",
+        "GRIME",
+        "Outward",
+        "Dragon's Dogma: Dark Arisen",
+        "Morbid: The Seven Acolytes"
+      ],
+      "pool_miss": 1,
+      "n": 5
+    },
+    {
+      "id": "q30",
+      "llm_gem": [
+        "Before Your Eyes",
+        "Florence",
+        "TOEM",
+        "Carto",
+        "When The Past Was Around"
+      ],
+      "pool_miss": 1,
+      "n": 5
+    }
+  ]
+}

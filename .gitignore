@@ -9,6 +9,26 @@ __pycache__/
 outputs/
 !outputs/.gitkeep
 
+# Research/evaluation evidence is TRACKED (reports, logs, judgments) — it is NOT
+# recomputable pipeline output, so it lives at top-level experiments/ (not outputs/).
+# Only large recomputable caches inside it are ignored:
+experiments/**/game_desc_vecs.npy
+
+# Crawled END-USER data (Steam Web API ToU: NEVER publish/redistribute user libraries).
+# Lives locally only. owned_libraries / SQLite store / shard caches are private.
+experiments/**/owned_libraries.json
+experiments/**/owned_all.json
+experiments/**/*owned*.json
+experiments/**/mass_shard*
+experiments/**/shard*.json
+**/*.db
+**/*.sqlite
+**/*.sqlite3
+**/*.sqlite3-journal
+data_collection/steam.db*
+data_collection/*.log
+data_collection/export/
+
 # C extensions
 *.so
 
@@ -34,7 +54,7 @@ game_recommendation.egg-info/
 MANIFEST
 
 # Portfolio working folder — never commit (use PDF export for sharing externally)
-portfolio/
+docs/portfolio/
 *.pptx
 *.bak.pptx
 
