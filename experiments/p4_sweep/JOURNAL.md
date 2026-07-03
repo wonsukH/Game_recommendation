@@ -115,3 +115,8 @@
 ## [2026-07-03 13:25] T17 — wishlist 축 첫 측정 + R5 조합 전멸
 - **wishlist 축(168 dev 유저, 최근 미보유 위시 타깃)**: 리더 4구성 0.027~0.029 vs null(인기구조 보존) 0.021 — **행동 모델이 인기 대비 +35%**, 단 리더 간 변별 없음(CI 중첩) = 이 표본에선 저해상도 보조축. 정직 기록: 발굴 과제의 난이도 실증(주축 대비 10배 낮은 recall). K=50·표본 확대는 후속 옵션.
 - **R5 승자 조합 전멸**: pvalue+완료율 blend .2901 ≈ 순수 pvalue .2898(무이득) · cap×pvalue .2817(cap은 userknn 위에서 재차 무익/해로움) → **S1(순수 pvalue×userknn)이 모든 강화 시도를 버팀**. 선호-조합 전선 소진 판정(단발 아님 — R4 이후 조합 5종 연속 ns). 남은 전선: masked-engagement 배선 · judge 가드레일(Sonnet 첫 실행) · k-강건성 · 의도 tier ablation · informed-negative BPR(기대값 낮음, 싼 시험).
+
+## [2026-07-03 13:40] T18 — k-강건성 통과 + **judge 가드레일 첫 실행: 지표-judge 분기 발견**
+- **k-강건성**: k=10/50에서도 userknn>rp3b·pvalue≈pctl 순위 유지 ✓.
+- **judge(Sonnet blinded, 12케이스, grounded 카드, S1 vs S4)**: **적합도 S4 7 : S1 4 (tie 1), 발굴 S4 6 : S1 5** — **NDCG 우승자(S1)가 judge에서 패배**. 사유 패턴: userknn 리스트는 메인스트림 AAA 쏠림(유사유저 라이브러리 합산=인기 지배), condcos 리스트는 취향-특정 인디 픽(간선별 인기 debias). **해석: NDCG(보유 재현)는 인기 쏠림을 보상, judge(질적 적합)는 특정성을 보상 — 두 목적의 실재하는 긴장**. 가드레일 설계 목적("recall이 못 보는 것") 그대로 작동한 첫 사례.
+- **함의(월요일 결정 ①에 직결)**: 랭커 교체 질문이 단면적이지 않음 — userknn은 지표 우위·condcos는 지각 적합 우위. 절충 후보: userknn+인기패널티(rp3β식 discount를 knn 집계에), 또는 Pareto 유지(용도별: 재현=knn/발굴·질감=condcos·rp3b). **후속 judge 확대(S1 vs S3, n↑)와 userknn-pop-discount 변형을 다음 라운드로.** 한계 명시: n=12·단일 judge(Sonnet)·카드 기반 — 방향 신호이지 확정 아님(Gemini 교차는 사용자 복귀 후).
