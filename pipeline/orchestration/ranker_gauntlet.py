@@ -320,6 +320,9 @@ PREFS = {
     "dblq": {"name": "double_quantile", "params": {}},
     "pvalue_comp_blend": {"name": "pvalue_comp_blend", "params": {"lam": 0.6}},
     "pvalue_comp_blend04": {"name": "pvalue_comp_blend", "params": {"lam": 0.4}},
+    # #11 의도 tier ablation
+    "intent0_e05": {"name": "pvalue_eb_intent0", "params": {"eps": 0.05}},
+    "intent0_e15": {"name": "pvalue_eb_intent0", "params": {"eps": 0.15}},
 }
 
 RANKERS = ["condcos", "condasym", "jaccard", "ppmi", "p3a", "rp3b",

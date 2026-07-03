@@ -329,6 +329,59 @@ def cap_blend_span(inter, game_stats, user_stats, lam: float = 0.4,
 # registry
 # --------------------------------------------------------------------------
 
+def pvalue_eb_intent0(inter, game_stats, user_stats, eps: float = 0.05,
+                      cont_thr: float = 0.98, min_own: int = 3):
+    """의도 tier ablation(#11): owned-0분을 ε 약긍정으로 — 팩블록 병합 전처리 필수.
+
+    전처리(플랜 확정): 소유 co-occurrence 봉쇄율 cont(i,j)=cooc/min(n_i,n_j) >=
+    cont_thr 인 (played i, 0분 j) 쌍 = 팩/에피소드 형제 → j의 ε 부여 제외
+    (취향 신호 아닌 팩 구조물 소거). 나머지 0분 소유 = 돈 낸 의도 → s=eps.
+    채택 기준: 주축(played holdout) 유의 상승 시만 — 입증 책임은 포함 쪽.
+    """
+    base = pvalue_lognorm_eb(inter, game_stats, user_stats)
+    from scipy import sparse as sp
+
+    own = inter[["steamid", "appid", "playtime_forever"]]
+    uids = {u: i for i, u in enumerate(own["steamid"].unique())}
+    aids = sorted(own["appid"].unique())
+    col = {a: j for j, a in enumerate(aids)}
+    X = sp.csr_matrix(
+        (np.ones(len(own), np.float32),
+         (own["steamid"].map(uids).values, own["appid"].map(col).values)),
+        shape=(len(uids), len(aids)))
+    n_own = np.asarray(X.sum(axis=0)).ravel()
+    C = (X.T @ X).tocoo()
+    mn = np.minimum(n_own[C.row], n_own[C.col])
+    mask = ((C.data >= cont_thr * mn) & (C.row != C.col)
+            & (n_own[C.row] >= min_own) & (n_own[C.col] >= min_own))
+    partners: dict[int, set] = {}
+    for r_, c_ in zip(C.row[mask], C.col[mask]):
+        partners.setdefault(c_, set()).add(r_)
+
+    played_by_u: dict[int, set] = {}
+    for u, a, pt in own.itertuples(index=False):
+        if pt > 0:
+            played_by_u.setdefault(u, set()).add(col[a])
+
+    s = base["s"].values.copy()
+    zero_idx = np.where(inter["playtime_forever"].values == 0)[0]
+    granted = blocked = 0
+    for i in zero_idx:
+        u, a = inter["steamid"].iat[i], inter["appid"].iat[i]
+        j = col[a]
+        sib = partners.get(j)
+        if sib and sib & played_by_u.get(u, set()):
+            blocked += 1
+            continue
+        s[i] = eps
+        granted += 1
+    out = base.copy()
+    out["s"] = s.astype(np.float32)
+    out.attrs["intent0_granted"] = granted
+    out.attrs["intent0_blocked_pack"] = blocked
+    return out
+
+
 REGISTRY: dict[str, dict] = {
     "anchor_binary": dict(fn=anchor_binary, family="anchor", hypothesis="구 review-liked의 행동 등가물 — 그레이드가 이걸 이겨야 magnitude가 정당"),
     "random_s": dict(fn=random_s, family="anchor", hypothesis="가중치-널 프로브 — support 대비 weighting의 한계기여 측정(완전 널 아님, smoke01 발견)"),
@@ -350,6 +403,8 @@ REGISTRY: dict[str, dict] = {
     # ---- Round 3 (D가족 — unlocktime) ----
     "cap_blend_recency": dict(fn=cap_blend_recency, family="temporal-D", hypothesis="최근 실진행(해금) 게임이 현재 취향을 더 예측 — best 위 recency 승수"),
     "cap_blend_span": dict(fn=cap_blend_span, family="temporal-D", hypothesis="장기 재방문(해금 시간폭)=durable 애착 — 주말벼락과 구분되면 리프트"),
+    # ---- #11 의도 tier ablation ----
+    "pvalue_eb_intent0": dict(fn=pvalue_eb_intent0, family="intent-tier", hypothesis="owned-0분=돈 낸 의도(팩블록 병합 후) ε 약긍정 — 주축 유의 상승 시만 채택(기본 제외 뒤집기, 입증책임=포함측)"),
 }
 
 
