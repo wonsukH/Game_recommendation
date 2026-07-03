@@ -1,0 +1,1 @@
+{"panel": "dev", "k": 20, "seed": 42, "rankers": ["als64", "bpr64", "nmfkl64", "userknn25"], "prefs": ["pvalue_eb", "cap_a03_blend04"], "ts": "2026-07-03 13:17:27"}

@@ -188,6 +188,98 @@ class UserKNN:
         return rec
 
 
+class MFRanker:
+    """MF family (user challenge 07-03: 'DL 오래 걸릴 텐데 벌써?' — 측정으로 답).
+
+    kind='als'  : implicit ALS (Hu 2008) — reuses ranker_benchmark.als_factors
+    kind='bpr'  : vectorized minibatch BPR-SGD (d=64)
+    kind='nmfkl': sklearn NMF with KL loss (= Poisson-MF up to constant)
+    Fold-in: profile-weighted ridge projection onto item factors."""
+
+    def __init__(self, scores, train_users, pool, kind: str = "als", d: int = 64,
+                 reg: float = 10.0, alpha: float = 40.0, iters: int = 12, seed: int = 42):
+        dd = scores[(scores["s"] > 0) & scores["appid"].isin(pool)]
+        dd = dd[dd["steamid"].isin(set(train_users))]
+        self.items = np.array(sorted(dd["appid"].unique()))
+        self.col = {a: j for j, a in enumerate(self.items)}
+        urow = {u: i for i, u in enumerate(sorted(dd["steamid"].unique()))}
+        r = dd["steamid"].map(urow).values
+        c = dd["appid"].map(self.col).values
+        n_u, n_i = len(urow), len(self.items)
+        t0 = time.time()
+        rng = np.random.default_rng(seed)
+        if kind == "als":
+            from pipeline.orchestration.ranker_benchmark import als_factors
+            user_items = [[] for _ in range(n_u)]
+            item_users = [[] for _ in range(n_i)]
+            for ri, ci in zip(r, c):
+                user_items[ri].append(ci)
+                item_users[ci].append(ri)
+            _, self.V = als_factors(user_items, item_users, n_i, d=d, reg=reg,
+                                    alpha=alpha, iters=iters, seed=seed)
+        elif kind == "bpr":
+            X = sparse.csr_matrix((np.ones(len(dd), np.float32), (r, c)), shape=(n_u, n_i))
+            U = rng.normal(0, 0.05, (n_u, d)).astype(np.float32)
+            V = rng.normal(0, 0.05, (n_i, d)).astype(np.float32)
+            pos_u, pos_i = X.nonzero()
+            n_pos = len(pos_u)
+            lr, breg, epochs, B = 0.05, 0.002, 20, 8192
+            for ep in range(epochs):
+                perm = rng.permutation(n_pos)
+                for s0 in range(0, n_pos, B):
+                    idx = perm[s0:s0 + B]
+                    uu, ii = pos_u[idx], pos_i[idx]
+                    jj = rng.integers(0, n_i, size=len(idx))
+                    x = np.einsum("bd,bd->b", U[uu], V[ii] - V[jj])
+                    g = 1.0 / (1.0 + np.exp(x))  # dsigmoid
+                    gu = g[:, None] * (V[ii] - V[jj]) - breg * U[uu]
+                    gi = g[:, None] * U[uu] - breg * V[ii]
+                    gj = -g[:, None] * U[uu] - breg * V[jj]
+                    np.add.at(U, uu, lr * gu)
+                    np.add.at(V, ii, lr * gi)
+                    np.add.at(V, jj, lr * gj)
+            self.V = V.astype(np.float64)
+        else:  # nmfkl (Poisson-MF proxy)
+            from sklearn.decomposition import NMF
+            X = sparse.csr_matrix((dd["s"].values.astype(np.float64), (r, c)),
+                                  shape=(n_u, n_i))
+            m = NMF(n_components=d, beta_loss="kullback-leibler", solver="mu",
+                    max_iter=120, init="nndsvda", random_state=seed)
+            m.fit_transform(X)
+            self.V = m.components_.T  # items x d
+        self.reg = reg
+        log.info("MF[%s] fit d=%d: %dx%d (%.1fs)", kind, d, n_u, n_i, time.time() - t0)
+
+    def recommend(self, profile: dict[int, float], k: int, exclude: set[int]) -> list[int]:
+        rows, w = [], []
+        for a, wv in profile.items():
+            j = self.col.get(a)
+            if j is not None:
+                rows.append(j)
+                w.append(wv)
+        if not rows:
+            return []
+        Vp = self.V[rows]
+        W = np.diag(np.asarray(w, dtype=np.float64))
+        A = Vp.T @ W @ Vp + self.reg * np.eye(self.V.shape[1])
+        b = Vp.T @ np.asarray(w, dtype=np.float64)
+        u = np.linalg.solve(A, b)
+        scores = self.V @ u
+        for a in profile:
+            j = self.col.get(a)
+            if j is not None:
+                scores[j] = -np.inf
+        order = np.argsort(-scores)
+        rec = []
+        for j in order[: k * 3]:
+            a = int(self.items[j])
+            if a not in exclude:
+                rec.append(a)
+            if len(rec) >= k:
+                break
+        return rec
+
+
 # ---------------------------------------------------------------- runner
 
 PREFS = {
@@ -246,6 +338,9 @@ def run(panel: str = "dev", k: int = 20, seed: int = 42,
                 elif rk.startswith("userknn"):
                     model = UserKNN(scores, panels["train"], pool,
                                     topk_users=int(rk.replace("userknn", "")))
+                elif rk in ("als64", "bpr64", "nmfkl64"):
+                    model = MFRanker(scores, panels["train"], pool,
+                                     kind=rk.replace("64", ""))
                 pu = []
                 for u in users:
                     sp = splits[u]
