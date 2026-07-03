@@ -1,34 +1,35 @@
-# P4 자율 운행 체크포인트 보고서 — 월요일 정오용 (초안, 지속 갱신 중)
+# P4 자율 운행 체크포인트 보고서 — 월요일 정오용 (지속 갱신 중)
 
-> **유형**: experiment-report · **상태**: active · **갱신**: 2026-07-03 (금 — 초안 v1)
+> **유형**: experiment-report · **상태**: active · **갱신**: 2026-07-03 14:25 (금 v2 — 오후 탐색 재개분 반영)
 
-> 읽는 순서: 이 보고서(요약·결정 항목) → `LEADERBOARD.md`(shortlist 상세) → `JOURNAL.md`(전 과정 서사·감사) → 개별 run 디렉토리(수치).
+> 읽는 순서: 이 보고서(요약·결정 항목) → `LEADERBOARD.md`(리더 상세) → `JOURNAL.md`(전 과정 서사·감사 T0~T23) → 개별 run 디렉토리(수치).
 
 ## TL;DR
-금요일 하루에 **P4 shortlisting이 사실상 완료**됐습니다: 하니스 구축 → 0.293 정확 재현 → Stage A 진화 5라운드(46평가) → Stage B 랭커 일제전(11구성) → Stage C 소교차+패자부활전 → **private 패널 검증**까지. 최종 shortlist 4개(S1~S4)가 동결됐고, 가장 큰 서프라이즈는 **user-KNN이 프로덕션 condcos 공식을 유의하게 이긴 것**(+0.0242)과 **당신의 p-value seed가 부활전을 거쳐 private 1위(0.2943)**가 된 것.
+금요일 오전까지 Stage A~C + private 검증으로 리더 4개(S1~S4)를 세웠고, **오후에 당신 지시("결론 내지 말고 계속 실험")로 탐색을 재개**해 크롤-독립 전선을 전부 소진했습니다. 최대 성과는 **신리더 S0 = pvalue × user-KNN+인기패널티(β0.3)**: NDCG 유의 손실 없이(SNIPS는 유의 우위) **blinded judge에서 적합도 9:0·발굴 11:1 완승** — "지표는 이기는데 추천이 메인스트림 AAA로 쏠리는" 문제(오후에 발견한 지표-judge 분기)를 한 knob으로 해소했습니다. 그 외 MF 가족(ALS/BPR/Poisson) 전패 측정, 음성결과 3종(R5 조합·의도 ε-tier·informed-neg BPR) 확정, 보조 평가축 2종(wishlist·masked-engagement) 신규 배선.
 
 ## 결정해주셔야 할 것 (우선순위순)
-1. **랭커 교체 여부**: user-KNN·RP3β가 condcos(프로덕션 공식)를 이김. P5 재배선 시 교체 vs 유지 — 서빙 구조 영향 있음. *권고: 10k 유저 재평가·OOD와 묶어 판단(1.1k에서의 순위가 규모에서 바뀔 수 있음 — EASE도 10k 재평가 플래그).*
-2. **Shortlist 최종 선정**(S1~S4 중 1~2개) → P6 OOD 재실험 대상.
-3. **유저-크롤 업적 스코프**: Stage A 판정 — **완료율(이미 dense)만 유효, 희귀도(global_pct)는 P4 신호에 불필요**했음. 유저당 ~170콜(96%)인 업적 콜을 allowlist/축소하면 10k 도달 대폭 가속 가능. *단 P7(학습형 선호가중)의 rarity 활용 여지는 남음 — 완전 중단 전 검토.*
-4. (가벼움) 학습형 #20 결과 처리 — 아래 참조.
+1. **랭커**: **S0(knnpd03)가 지표 무손실 + 질감·디바이어스 우위로 condcos 유지 명분을 크게 약화**시켰습니다. 단 β=0.3은 dev에서 고른 knob(0.6+는 붕괴)이고 OOD 미검증 — *권고: S0을 1순위 후보로 P6 OOD에 올리되, S4(condcos 호환)를 안전망으로 병행.*
+2. **Shortlist 최종 선정**(S0~S4 중 1~2개) → P6 OOD 재실험 대상. *권고: S0 + S3(발굴형).*
+3. **유저-크롤 업적 스코프**: 완료율(이미 dense)만 유효 — 업적 콜(유저당 ~170콜, 96%) allowlist/축소 검토. rarity E가족 결과(games 완주 후 실행 예정)까지 보고 결정 권고.
+4. **음성결과 3종 수용 확인**: ① 학습형 blend ns ② 의도 ε-tier 기각(팩병합 38% 차단 후에도 무이득 — "0분 소유=의도" 가설 실측 기각) ③ **informed-neg BPR −0.0514 유의 악화**(dropped는 '싫음'이 아니라 '취향인데 안 맞음' — 강한 네거티브로 쓰면 취향공간 왜곡).
 
-## Shortlist (private 150명 검증 — 상세 LEADERBOARD.md)
-S1 pvalue×userKNN **0.2943** / S2 pctl×userKNN 0.2925 / S3 cap_blend×RP3β(발굴·SNIPS 최고) / S4 cap_blend×condcos 0.2667(프로덕션-호환). null 바닥 분리 ✓, dev→private 순위 재현(과적합 없음) ✓.
+## 현재 리더 (상세 LEADERBOARD.md — "동결" 아님)
+- **S0 pvalue×knnpd03**: private NDCG 0.2789(S1 대비 −0.009 **ns**) · SNIPS 0.0925(**+0.0158 SIG**) · judge 9:0/11:1 · masked-ρ 0.1045 — **어느 축도 유의 손실 없이 3개 축 우위**.
+- S1 pvalue×userKNN 0.2943(private 최고 NDCG, 단 judge서 AAA 쏠림 노출) / S2 pctl×userKNN(최단순) / S3 cap_blend×RP3β(SNIPS 0.0994 발굴형) / S4 cap_blend×condcos(프로덕션-호환).
+- 랭커 서열(측정 완료): **userknn ≥ knnpd03 > rp3b ≈ ALS ≈ condcos > NMF/EASE > BPR** — "무거운 모델이 나은가"는 이제 추론이 아니라 측정("1.7k에선 아니다"). 10k 재평가 잔류: ALS·EASE.
 
-## 크롤 현황
-- games-only 진행: 백로그 28.8k → **(갱신 중)** — CAUGHT UP 시 users+games 복귀(자동 감시).
-- 유저 1,669(분석 풀) — 유저 크롤은 완주 후 백그라운드 재개 예정.
+## 오후 탐색 재개분 상세 (T14~T23)
+- **지표-judge 분기 발견→해소**: NDCG(보유 재현)는 인기 쏠림을 보상 → userknn이 지표 이기고 blinded judge(질적 적합)에서 짐(4:7) → **pop^0.3 discount로 양축 동시 석권**(9:0). 가드레일이 설계 목적대로 작동한 첫 사례.
+- **보조축 2종 배선**: wishlist 축(리더들 인기-null 대비 +35%, 단 리더 간 저해상도) · masked-engagement(S0 1위 0.1045, null≈0 건강).
+- **k-강건성**(k=10/50) 통과 · R5 승자조합 전멸(순수 pvalue가 강화 시도 전부 버팀 — 조합 전선 소진 판정).
+- private 패널 노출 2회째(S0 확인) 기록 — 이후 재사용 금지 선언.
+
+## 크롤 현황 (14:22)
+- games-only: 백로그 28.8k → **12,053** (~975/h, **CAUGHT UP 내일 새벽 예상**) → 자동: users+games 복귀 + 최종 재추출 + pool_recheck_final + rarity E가족 투입.
+- 유저 1,669(분석 풀) 불변. 크롤러 1회 원인미상 사망(12:06) → 워치독 경로로 복구, 이후 안정.
 
 ## 실행 중 이슈·에러 로그 (전부 저널에 상세)
-- rtime: Valve가 3rd-party 키에 미반환 확정 → 무작위 70/30 fallback (프로토콜상 무해).
-- 3.5 1차 실패(원인: CLI 기본값≠manifest 설정) → manifest 기준 재실행으로 해소. 교훈 저널화.
-- venv shim 오판으로 크롤러 1회 중단(즉시 복구, 손실 0), RUNSTATE 미래-시각 버그 교정.
-- 소셜 F5 측정불가(in-cohort 친구 간선 20개) — 10k+·스노볼 후 재개 항목.
+- rtime: Valve 미반환 확정 → 무작위 70/30 fallback / 3.5 재현은 manifest 설정으로 해소 / 크롤러 사망 1회(12:06, 원인미상·복구) / RUNSTATE 시각 버그 교정 / 소셜 F5 측정불가(간선 20) / ALS seed 인자 버그 1회(수정 후 정상).
 
 ## 잔여 위험 (구조적으로 못 본 곳)
-in-cohort 편향(최종 판정은 P6 OOD) · 풀 성장 중(절대값 라운드 간 비교 불가, ref로 통제) · long-tail 슬라이스 사실상 미측정(rp3b만 non-zero) · EASE/랭커 순위의 규모 의존성.
-
-## 학습형 #20 · 주말 잔여 작업 로그
-- **학습형 blend: 음성(사전 선언대로)** — train-내부 12-simplex 탐색의 최적 가중도 dev에서 pctl 단독 대비 +0.0013 ns. ROADMAP P7의 "지면 음성결과로 고정식 유지" 조항 이행: **학습형 선호가중은 현 규모에서 불채택**, 단순 형태(pctl/pvalue)가 최종. (10k·OOD에서 재시도 여지는 열어둠 — P7의 rarity 활용과 함께.)
-- 이후: games 크롤 완주 감시 → users 복귀 / 풀 성장 시 top-4 재확인 / 이 보고서 갱신.
+in-cohort 편향(최종 판정 P6 OOD) · **β=0.3이 dev-튜닝 knob**(OOD에서 재검 필요) · judge n=12·단일 Sonnet(Gemini 교차 대기) · long-tail ~0 상존 · 랭커 순위의 규모 의존성(10k서 ALS/EASE 재평가).
