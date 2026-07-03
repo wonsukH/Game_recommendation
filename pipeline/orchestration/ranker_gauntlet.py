@@ -143,7 +143,11 @@ class EaseRanker:
 
 
 class UserKNN:
-    def __init__(self, scores, train_users, pool, topk_users: int = 50):
+    """User-based CF. pop_beta>0 discounts aggregated scores by item-popularity^beta
+    (judge-divergence fix attempt: keep KNN's NDCG, shed its mainstream skew)."""
+
+    def __init__(self, scores, train_users, pool, topk_users: int = 50,
+                 pop_beta: float = 0.0):
         d = scores[(scores["s"] > 0) & scores["appid"].isin(pool)]
         d = d[d["steamid"].isin(set(train_users))]
         self.items = np.array(sorted(d["appid"].unique()))
@@ -155,6 +159,9 @@ class UserKNN:
                                    shape=(len(urow), len(self.items)))
         self.row_norm = np.sqrt(np.asarray(self.X.multiply(self.X).sum(axis=1)).ravel())
         self.topk_users = topk_users
+        i_pop = np.asarray((self.X > 0).sum(axis=0)).ravel()
+        self.pop_disc = (1.0 / np.power(np.maximum(i_pop, 1), pop_beta)
+                         if pop_beta > 0 else None)
 
     def recommend(self, profile: dict[int, float], k: int, exclude: set[int]) -> list[int]:
         p = np.zeros(len(self.items), dtype=np.float32)
@@ -171,6 +178,8 @@ class UserKNN:
         top = np.argsort(-sims)[: self.topk_users]
         wts = np.maximum(sims[top], 0)
         agg = np.asarray((sparse.diags(wts) @ self.X[top]).sum(axis=0)).ravel()
+        if self.pop_disc is not None:
+            agg = agg * self.pop_disc
         for a in profile:
             j = self.col.get(a)
             if j is not None:
@@ -280,6 +289,22 @@ class MFRanker:
         return rec
 
 
+class _Ensemble:
+    """condcos + userknn reciprocal-rank blend: metric(knn) + specificity(condcos)."""
+
+    def __init__(self, cf, S, amap, knn):
+        self.cf, self.S, self.amap, self.knn = cf, S, amap, knn
+
+    def recommend(self, profile, k, exclude):
+        r1 = self.cf.recommend(profile, self.S, self.amap, k * 3, exclude)
+        r2 = self.knn.recommend(profile, k * 3, exclude)
+        score = {}
+        for lst in (r1, r2):
+            for i, a in enumerate(lst):
+                score[a] = score.get(a, 0.0) + 1.0 / (i + 10)  # RRF, k0=10
+        return [a for a, _ in sorted(score.items(), key=lambda x: -x[1])][:k]
+
+
 # ---------------------------------------------------------------- runner
 
 PREFS = {
@@ -292,6 +317,7 @@ PREFS = {
     "random_support": {"name": "random_support", "params": {}},
     # R5 combos
     "cap_pvalue": {"name": "per_user_cap", "params": {"base": "pvalue", "alpha": 0.3}},
+    "dblq": {"name": "double_quantile", "params": {}},
     "pvalue_comp_blend": {"name": "pvalue_comp_blend", "params": {"lam": 0.6}},
     "pvalue_comp_blend04": {"name": "pvalue_comp_blend", "params": {"lam": 0.4}},
 }
@@ -336,9 +362,20 @@ def run(panel: str = "dev", k: int = 20, seed: int = 42,
                     model = RP3B(scores, panels["train"], pool, beta=0.0)
                 elif rk == "rp3b":
                     model = RP3B(scores, panels["train"], pool, beta=0.6)
+                elif rk.startswith("rp3b"):  # rp3b03 -> beta 0.3
+                    model = RP3B(scores, panels["train"], pool,
+                                 beta=float(rk.replace("rp3b", "")) / 10)
+                elif rk == "ensemble":  # condcos + userknn rank-blend (judge-divergence fix)
+                    m1 = VariantCF(scores, panels["train"], pool, kind="condcos")
+                    S1_, amap1 = m1.sim_columns(need)
+                    m2 = UserKNN(scores, panels["train"], pool, topk_users=25)
+                    model = _Ensemble(m1, S1_, amap1, m2)
                 elif rk.startswith("ease"):
                     model = EaseRanker(scores, panels["train"], pool,
                                        lam=float(rk.split("_l")[1]))
+                elif rk.startswith("knnpd"):  # e.g. knnpd03 = userknn25 + pop^0.3
+                    model = UserKNN(scores, panels["train"], pool, topk_users=25,
+                                    pop_beta=float(rk.replace("knnpd", "")) / 10)
                 elif rk.startswith("userknn"):
                     model = UserKNN(scores, panels["train"], pool,
                                     topk_users=int(rk.replace("userknn", "")))

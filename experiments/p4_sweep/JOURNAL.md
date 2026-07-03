@@ -120,3 +120,10 @@
 - **k-강건성**: k=10/50에서도 userknn>rp3b·pvalue≈pctl 순위 유지 ✓.
 - **judge(Sonnet blinded, 12케이스, grounded 카드, S1 vs S4)**: **적합도 S4 7 : S1 4 (tie 1), 발굴 S4 6 : S1 5** — **NDCG 우승자(S1)가 judge에서 패배**. 사유 패턴: userknn 리스트는 메인스트림 AAA 쏠림(유사유저 라이브러리 합산=인기 지배), condcos 리스트는 취향-특정 인디 픽(간선별 인기 debias). **해석: NDCG(보유 재현)는 인기 쏠림을 보상, judge(질적 적합)는 특정성을 보상 — 두 목적의 실재하는 긴장**. 가드레일 설계 목적("recall이 못 보는 것") 그대로 작동한 첫 사례.
 - **함의(월요일 결정 ①에 직결)**: 랭커 교체 질문이 단면적이지 않음 — userknn은 지표 우위·condcos는 지각 적합 우위. 절충 후보: userknn+인기패널티(rp3β식 discount를 knn 집계에), 또는 Pareto 유지(용도별: 재현=knn/발굴·질감=condcos·rp3b). **후속 judge 확대(S1 vs S3, n↑)와 userknn-pop-discount 변형을 다음 라운드로.** 한계 명시: n=12·단일 judge(Sonnet)·카드 기반 — 방향 신호이지 확정 아님(Gemini 교차는 사용자 복귀 후).
+
+## [2026-07-03 13:40] T19 — **knnpd03: 지표-judge 분기 해소, 전축 지배 후보 등극**
+- 가설(T18 절충안): userknn 집계에 pop^β discount → **β 스윕: 0.3만 성립**(NDCG 0.2898 동률 유지 + SNIPS 0.0801→0.0888), β≥0.6 붕괴(과감쇠 — 예산: knn 합산의 인기 질량이 rp3β보다 커서 같은 β라도 더 세게 작동하는 듯).
+- 조합 확장(4선호×5랭커): pvalue×knnpd03 공동 1위 · dblq×knnpd03 0.2864(SNIPS 0.0882)도 강세 · **앙상블(RRF condcos+knn) 기대 이하**(열세 쪽 희석 — 폐기) · rp3β는 0.6이 스윗스팟 재확인(0.3/0.9 열세).
+- **judge 재실행(S1'=pvalue×knnpd03 vs S4, 동일 프로토콜 n=12)**: **적합도 9:0(무3), 발굴 11:1** — 라운드1의 4:7 패배가 β=0.3 하나로 완전 역전. 사유 패턴: knnpd03 리스트가 "취향 클러스터 직격 + 덜 뻔한 픽"으로 일관 평가.
+- **리더 갱신(동결 아님)**: **S0 = pvalue_lognorm_eb × userknn25+popdiscount(β0.3)** — NDCG 공동1위·SNIPS 우위·judge 압승 = 현존 유일의 전축 비지배→지배 후보. 한계 동일(n=12·단일 judge) — Gemini 교차·OOD는 복귀 후.
+- 다음: #9 masked-engagement 배선 → #11 의도 ablation → #12 → (CAUGHT UP 시) rarity E가족.

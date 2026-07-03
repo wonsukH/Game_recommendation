@@ -61,10 +61,10 @@
   ],
   "list_A": [
    {
-    "appid": 98800,
-    "name": "Dungeons of Dredmor",
-    "genres": "Casual, Indie, RPG",
-    "desc": "Test your luck and cunning in this exciting RPG as you craft, cast, and pillage your way through Lord Dredmor's Dungeons."
+    "appid": 212680,
+    "name": "FTL: Faster Than Light",
+    "genres": "Indie, Simulation, Strategy",
+    "desc": "This &quot;spaceship simulation roguelike-like&quot; allows you to take your ship and crew on an adventure through a randomly generated galaxy filled with glory"
    },
    {
     "appid": 248820,
@@ -73,34 +73,10 @@
     "desc": "Risk of Rain is an action platformer with roguelike elements. With permanent death as a primary feature, players will have to play their best to get as far as p"
    },
    {
-    "appid": 212680,
-    "name": "FTL: Faster Than Light",
-    "genres": "Indie, Simulation, Strategy",
-    "desc": "This &quot;spaceship simulation roguelike-like&quot; allows you to take your ship and crew on an adventure through a randomly generated galaxy filled with glory"
-   },
-   {
-    "appid": 98200,
-    "name": "Frozen Synapse",
-    "genres": "Indie, Strategy",
-    "desc": "Brings the simultaneous turn-based strategy genre up-to-date and lets you give detailed, accurate orders to your squad."
-   },
-   {
-    "appid": 211420,
-    "name": "DARK SOULS™: Prepare To Die™ Edition",
-    "genres": "Action, RPG",
-    "desc": "Dark Souls will be the most deeply challenging game you play this year. Can you live through a million deaths and earn your legacy?"
-   },
-   {
-    "appid": 239350,
-    "name": "Spelunky",
-    "genres": "Indie",
-    "desc": "Spelunky is a unique platformer with randomized levels that offer a challenging new experience each time you play. Journey deep underground and explore fantasti"
-   },
-   {
-    "appid": 42910,
-    "name": "Magicka",
-    "genres": "Action, RPG",
-    "desc": "Magicka is a satirical action-adventure game set in a rich fantasy world based on Norse mythology. The player assumes the role of a wizard from a sacred order t"
+    "appid": 550,
+    "name": "Left 4 Dead 2",
+    "genres": "Action",
+    "desc": "Set in the zombie apocalypse, Left 4 Dead 2 is a co-operative action horror FPS takes you and your friends through the cities, swamps and cemeteries of the Deep"
    },
    {
     "appid": 219150,
@@ -109,10 +85,34 @@
     "desc": "Hotline Miami is a high-octane action game overflowing with raw brutality, hard-boiled gunplay and skull crushing close combat."
    },
    {
-    "appid": 206190,
-    "name": "Gunpoint",
-    "genres": "Action, Indie, Strategy",
-    "desc": "Gunpoint is a stealth puzzle game that lets you rewire its levels to trick people. You play a freelance spy who takes jobs from his clients to break into high s"
+    "appid": 98800,
+    "name": "Dungeons of Dredmor",
+    "genres": "Casual, Indie, RPG",
+    "desc": "Test your luck and cunning in this exciting RPG as you craft, cast, and pillage your way through Lord Dredmor's Dungeons."
+   },
+   {
+    "appid": 22380,
+    "name": "Fallout: New Vegas",
+    "genres": "Action, RPG",
+    "desc": "Welcome to Vegas. New Vegas. Enjoy your stay!"
+   },
+   {
+    "appid": 211420,
+    "name": "DARK SOULS™: Prepare To Die™ Edition",
+    "genres": "Action, RPG",
+    "desc": "Dark Souls will be the most deeply challenging game you play this year. Can you live through a million deaths and earn your legacy?"
+   },
+   {
+    "appid": 42910,
+    "name": "Magicka",
+    "genres": "Action, RPG",
+    "desc": "Magicka is a satirical action-adventure game set in a rich fantasy world based on Norse mythology. The player assumes the role of a wizard from a sacred order t"
+   },
+   {
+    "appid": 72850,
+    "name": "The Elder Scrolls V: Skyrim",
+    "genres": "RPG",
+    "desc": "EPIC FANTASY REBORN The next chapter in the highly anticipated Elder Scrolls saga arrives from the makers of the 2006 and 2008 Games of the Year, Bethesda Game "
    },
    {
     "appid": 8930,
@@ -308,42 +308,6 @@
   ],
   "list_B": [
    {
-    "appid": 200510,
-    "name": "XCOM: Enemy Unknown",
-    "genres": "Strategy",
-    "desc": "The XCOM: Enemy Unknown - Slingshot Pack is Now Available!"
-   },
-   {
-    "appid": 435150,
-    "name": "Divinity: Original Sin 2 - Definitive Edition",
-    "genres": "Adventure, RPG, Strategy",
-    "desc": "The critically acclaimed RPG that raised the bar, from the creators of Baldur's Gate 3. Gather your party. Master deep, tactical combat. Venture as a party of u"
-   },
-   {
-    "appid": 240760,
-    "name": "Wasteland 2: Director's Cut",
-    "genres": "Adventure, Indie, RPG, Strategy",
-    "desc": "From the producer of the original Fallout comes Wasteland 2. With over 80 hours of gameplay, deck out your Ranger squad with devastating weaponry, test the limi"
-   },
-   {
-    "appid": 346940,
-    "name": "Shadowrun: Hong Kong - Extended Edition",
-    "genres": "Adventure, Indie, RPG, Strategy",
-    "desc": "Shadowrun: Hong Kong - Extended Edition is the capstone title in Harebrained Schemes' Shadowrun series - and now includes the all-new, 6+ hr Shadows of Hong Kon"
-   },
-   {
-    "appid": 20920,
-    "name": "The Witcher 2: Assassins of Kings Enhanced Edition",
-    "genres": "RPG",
-    "desc": "A time of untold chaos has come. Mighty forces clash behind the scenes in a struggle for power and influence. The Northern Kingdoms mobilize for war. But armies"
-   },
-   {
-    "appid": 1328670,
-    "name": "Mass Effect™ Legendary Edition",
-    "genres": "Action, RPG",
-    "desc": "The Mass Effect™ Legendary Edition includes single-player base content and over 40 DLC from the highly acclaimed Mass Effect, Mass Effect 2, and Mass Effect 3 g"
-   },
-   {
     "appid": 292030,
     "name": "The Witcher 3: Wild Hunt",
     "genres": "RPG",
@@ -356,16 +320,52 @@
     "desc": "Cyberpunk 2077 is an open-world, action-adventure RPG set in the dark future of Night City — a dangerous megalopolis obsessed with power, glamor, and ceaseless "
    },
    {
-    "appid": 870780,
-    "name": "CONTROL Ultimate Edition",
-    "genres": "Action, Adventure",
-    "desc": "Winner of over 80 awards, CONTROL is a visually stunning third-person action-adventure that will keep you on the edge of your seat."
+    "appid": 200510,
+    "name": "XCOM: Enemy Unknown",
+    "genres": "Strategy",
+    "desc": "The XCOM: Enemy Unknown - Slingshot Pack is Now Available!"
+   },
+   {
+    "appid": 435150,
+    "name": "Divinity: Original Sin 2 - Definitive Edition",
+    "genres": "Adventure, RPG, Strategy",
+    "desc": "The critically acclaimed RPG that raised the bar, from the creators of Baldur's Gate 3. Gather your party. Master deep, tactical combat. Venture as a party of u"
+   },
+   {
+    "appid": 20920,
+    "name": "The Witcher 2: Assassins of Kings Enhanced Edition",
+    "genres": "RPG",
+    "desc": "A time of untold chaos has come. Mighty forces clash behind the scenes in a struggle for power and influence. The Northern Kingdoms mobilize for war. But armies"
+   },
+   {
+    "appid": 632470,
+    "name": "Disco Elysium - The Final Cut",
+    "genres": "RPG",
+    "desc": "Disco Elysium - The Final Cut is a groundbreaking role playing game. You’re a detective with a unique skill system at your disposal and a whole city to carve yo"
+   },
+   {
+    "appid": 22380,
+    "name": "Fallout: New Vegas",
+    "genres": "Action, RPG",
+    "desc": "Welcome to Vegas. New Vegas. Enjoy your stay!"
    },
    {
     "appid": 319630,
     "name": "Life is Strange - Episode 1",
     "genres": "Action, Adventure",
     "desc": "Episode 1 now FREE! Life is Strange is an award-winning and critically acclaimed episodic adventure game that allows the player to rewind time and affect the pa"
+   },
+   {
+    "appid": 870780,
+    "name": "CONTROL Ultimate Edition",
+    "genres": "Action, Adventure",
+    "desc": "Winner of over 80 awards, CONTROL is a visually stunning third-person action-adventure that will keep you on the edge of your seat."
+   },
+   {
+    "appid": 203160,
+    "name": "Tomb Raider Game of the Year",
+    "genres": "Action, Adventure",
+    "desc": "Tomb Raider explores the intense origin story of Lara Croft and her ascent from a young woman to a hardened survivor."
    }
   ]
  },
@@ -437,28 +437,10 @@
     "desc": "SEGA’s collection of Mega Drive &amp; Genesis Classics comes to a new generation, now updated with even more features: online multiplayer, achievements, mirror "
    },
    {
-    "appid": 234390,
-    "name": "Teleglitch: Die More Edition",
-    "genres": "Action, Indie",
-    "desc": "In a cold, dark future dominated by mega-corporations, a small lonely planet on the edge of habitable space is the site of a shadowy research facility specializ"
-   },
-   {
-    "appid": 218820,
-    "name": "Mercenary Kings: Reloaded Edition",
-    "genres": "Action, Adventure, Indie, RPG",
-    "desc": "Craft your arsenal to avenge your fallen comrades and save the world from the fearsome forces of CLAW!"
-   },
-   {
     "appid": 1250,
     "name": "Killing Floor",
     "genres": "Action",
     "desc": "6-player co-op survival horror at its finest! Free updates, free special events and a ridiculous amount of fun!"
-   },
-   {
-    "appid": 225260,
-    "name": "Brutal Legend",
-    "genres": "Action, Adventure, Strategy",
-    "desc": "Brütal Legend is an action-adventure that marries visceral action combat with open-world freedom. Set in a universe somewhere between Lord of the Rings and Spin"
    },
    {
     "appid": 17410,
@@ -467,28 +449,46 @@
     "desc": "In a city where information is heavily monitored, couriers called Runners transport sensitive data. In this seemingly utopian paradise, a crime has been committ"
    },
    {
-    "appid": 210770,
-    "name": "Sanctum 2",
-    "genres": "Action, Indie, Strategy",
-    "desc": "Sanctum 2 is the sequel to the world’s first Tower Defense/FPS hybrid game. Pick from four unique character classes and embark on a mission to protect the oxyge"
-   },
-   {
-    "appid": 204300,
-    "name": "Awesomenauts",
-    "genres": "Action, Indie, Strategy",
-    "desc": "Use your power, show your might! Play this Multiplayer Online Battle Arena (MOBA) game! AWESOMENAUTS combines 2D platforming with team-based strategy and hero b"
-   },
-   {
-    "appid": 233720,
-    "name": "Surgeon Simulator",
-    "genres": "Action, Indie, Simulation",
-    "desc": "Surgeon Simulator is an over-the-top operation sim, stitching together pitch-black humour with life-saving surgery. Become Dr. Burke, a would-be surgeon with a "
+    "appid": 225260,
+    "name": "Brutal Legend",
+    "genres": "Action, Adventure, Strategy",
+    "desc": "Brütal Legend is an action-adventure that marries visceral action combat with open-world freedom. Set in a universe somewhere between Lord of the Rings and Spin"
    },
    {
     "appid": 8190,
     "name": "Just Cause 2",
     "genres": "Action, Adventure",
     "desc": "Dive into an adrenaline-fuelled free-roaming adventure with 400 square miles of rugged terrain and hundreds of weapons and vehicles."
+   },
+   {
+    "appid": 239030,
+    "name": "Papers, Please",
+    "genres": "Adventure, Indie",
+    "desc": "Congratulations. The October labor lottery is complete. Your name was pulled. For immediate placement, report to the Ministry of Admission at Grestin Border Che"
+   },
+   {
+    "appid": 730,
+    "name": "Counter-Strike 2",
+    "genres": "Action, Free To Play",
+    "desc": "For over two decades, Counter-Strike has offered an elite competitive experience, one shaped by millions of players from across the globe. And now the next chap"
+   },
+   {
+    "appid": 210770,
+    "name": "Sanctum 2",
+    "genres": "Action, Indie, Strategy",
+    "desc": "Sanctum 2 is the sequel to the world’s first Tower Defense/FPS hybrid game. Pick from four unique character classes and embark on a mission to protect the oxyge"
+   },
+   {
+    "appid": 379720,
+    "name": "DOOM",
+    "genres": "Action",
+    "desc": "Now includes all three premium DLC packs (Unto the Evil, Hell Followed, and Bloodfall), maps, modes, and weapons, as well as all feature updates including Arcad"
+   },
+   {
+    "appid": 205100,
+    "name": "Dishonored",
+    "genres": "Action, Adventure",
+    "desc": "Dishonored is an immersive first-person action game that casts you as a supernatural assassin driven by revenge. With Dishonored’s flexible combat system, creat"
    }
   ],
   "list_B": [
@@ -622,12 +622,6 @@
     "desc": "Reprise your role as a supernatural assassin in Dishonored 2. Declared a “masterpiece” by Eurogamer and hailed “a must-play revenge tale” by Game Informer, Dish"
    },
    {
-    "appid": 55110,
-    "name": "Red Faction®: Armageddon™",
-    "genres": "Action",
-    "desc": "Red Faction: Armageddon Path to War includes 4 new missions, 2 unlockable items and 10 new achievements!"
-   },
-   {
     "appid": 205100,
     "name": "Dishonored",
     "genres": "Action, Adventure",
@@ -640,28 +634,22 @@
     "desc": "A deadly virus engulfs the residents of Raccoon City in September of 1998, plunging the city into chaos as flesh eating zombies roam the streets for survivors. "
    },
    {
-    "appid": 1190460,
-    "name": "DEATH STRANDING",
-    "genres": "Action, Adventure",
-    "desc": "From legendary game creator Hideo Kojima comes an all-new, genre-defying experience. Sam Bridges must brave a world utterly transformed by the Death Stranding. "
+    "appid": 292030,
+    "name": "The Witcher 3: Wild Hunt",
+    "genres": "RPG",
+    "desc": "You are Geralt of Rivia, mercenary monster slayer. Before you stands a war-torn, monster-infested continent you can explore at will. Your current contract? Trac"
    },
    {
-    "appid": 287390,
-    "name": "Metro: Last Light Redux",
+    "appid": 22380,
+    "name": "Fallout: New Vegas",
+    "genres": "Action, RPG",
+    "desc": "Welcome to Vegas. New Vegas. Enjoy your stay!"
+   },
+   {
+    "appid": 286690,
+    "name": "Metro 2033 Redux",
     "genres": "Action",
-    "desc": "It is the year 2034. Beneath the ruins of post-apocalyptic Moscow, in the tunnels of the Metro, the remnants of mankind are besieged by deadly threats from outs"
-   },
-   {
-    "appid": 6860,
-    "name": "Hitman: Blood Money",
-    "genres": "Action",
-    "desc": "Money Talks. Silence Pays. Prepare to Make a Killing. When assassins from Agent 47's contract agency, The ICA, are eliminated in a series of hits, it seems a la"
-   },
-   {
-    "appid": 261030,
-    "name": "The Walking Dead: Season Two",
-    "genres": "Adventure",
-    "desc": "The Walking Dead: Season Two continues the story of Clementine, a young girl orphaned by the undead apocalypse. Left to fend for herself, she has been forced to"
+    "desc": "In 2013 the world was devastated by an apocalyptic event, annihilating almost all mankind and turning the Earth's surface into a poisonous wasteland. A handful "
    },
    {
     "appid": 208650,
@@ -670,10 +658,22 @@
     "desc": "Batman™: Arkham Knight brings the award-winning Arkham trilogy from Rocksteady Studios to its epic conclusion. Developed exclusively for New-Gen platforms, Batm"
    },
    {
-    "appid": 412020,
-    "name": "Metro Exodus",
+    "appid": 287390,
+    "name": "Metro: Last Light Redux",
     "genres": "Action",
-    "desc": "Flee the shattered ruins of the Moscow Metro and embark on an epic, continent-spanning journey across the post-apocalyptic Russian wilderness. Explore vast, non"
+    "desc": "It is the year 2034. Beneath the ruins of post-apocalyptic Moscow, in the tunnels of the Metro, the remnants of mankind are besieged by deadly threats from outs"
+   },
+   {
+    "appid": 524220,
+    "name": "NieR:Automata™",
+    "genres": "Action, RPG",
+    "desc": "NieR: Automata tells the story of androids 2B, 9S and A2 and their battle to reclaim the machine-driven dystopia overrun by powerful machines."
+   },
+   {
+    "appid": 254700,
+    "name": "Resident Evil 4 (2005)",
+    "genres": "Action, Adventure",
+    "desc": "(Release: 2014) Special agent Leon S. Kennedy is sent on a mission to rescue the U.S. President’s daughter who has been kidnapped."
    }
   ],
   "list_B": [
@@ -801,16 +801,16 @@
   ],
   "list_A": [
    {
-    "appid": 252490,
-    "name": "Rust",
-    "genres": "Action, Adventure, Indie, Massively Multiplayer",
-    "desc": "The only aim in Rust is to survive. Everything wants you to die - the island’s wildlife, other inhabitants, the environment, and other survivors. Do whatever it"
-   },
-   {
     "appid": 359550,
     "name": "Tom Clancy's Rainbow Six Siege",
     "genres": "Action, Free To Play",
     "desc": "Tom Clancy's Rainbow Six Siege is an elite, tactical team-based shooter where superior planning and execution triumph."
+   },
+   {
+    "appid": 550,
+    "name": "Left 4 Dead 2",
+    "genres": "Action",
+    "desc": "Set in the zombie apocalypse, Left 4 Dead 2 is a co-operative action horror FPS takes you and your friends through the cities, swamps and cemeteries of the Deep"
    },
    {
     "appid": 892970,
@@ -825,10 +825,28 @@
     "desc": "Use stunning live wallpapers on your desktop. Animate your own images to create new wallpapers or import videos/websites and share them on the Steam Workshop!"
    },
    {
-    "appid": 346010,
-    "name": "Besiege",
-    "genres": "Indie, Simulation",
-    "desc": "Besiege is a physics building game about constructing medieval machines to annihilate armies, obliterate castles and overcome challenging obstacles. Conquer the"
+    "appid": 252490,
+    "name": "Rust",
+    "genres": "Action, Adventure, Indie, Massively Multiplayer",
+    "desc": "The only aim in Rust is to survive. Everything wants you to die - the island’s wildlife, other inhabitants, the environment, and other survivors. Do whatever it"
+   },
+   {
+    "appid": 1091500,
+    "name": "Cyberpunk 2077",
+    "genres": "RPG",
+    "desc": "Cyberpunk 2077 is an open-world, action-adventure RPG set in the dark future of Night City — a dangerous megalopolis obsessed with power, glamor, and ceaseless "
+   },
+   {
+    "appid": 578080,
+    "name": "PUBG: BATTLEGROUNDS",
+    "genres": "Action, Adventure, Massively Multiplayer, Free To Play",
+    "desc": "PUBG: BATTLEGROUNDS, the high-stakes winner-take-all shooter that started the Battle Royale craze, is free-to-play! Drop into diverse maps, loot unique weapons "
+   },
+   {
+    "appid": 346110,
+    "name": "ARK: Survival Evolved",
+    "genres": "Action, Adventure, Indie, Massively Multiplayer",
+    "desc": "Stranded on the shores of a mysterious island, you must learn to survive. Use your cunning to kill or tame the primeval creatures roaming the land, and encounte"
    },
    {
     "appid": 225540,
@@ -837,28 +855,10 @@
     "desc": "With over 1000 km² of complete freedom from sky to seabed, Rico Rodriguez returns to unleash chaos in the most creative and explosive ways imaginable."
    },
    {
-    "appid": 291480,
-    "name": "Warface: Clutch",
-    "genres": "Action, Massively Multiplayer, Free To Play",
-    "desc": "𝗪𝗮𝗿𝗳𝗮𝗰𝗲: 𝗖𝗹𝘂𝘁𝗰𝗵 𝗶𝘀 𝗮 𝗰𝗼𝗻𝘁𝗲𝗺𝗽𝗼𝗿𝗮𝗿𝘆 𝗠𝗠𝗢 𝗳𝗶𝗿𝘀𝘁 𝗽𝗲𝗿𝘀𝗼𝗻 𝘀𝗵𝗼𝗼𝘁𝗲𝗿 𝘄𝗶𝘁𝗵 𝗺𝗶𝗹𝗹𝗶𝗼𝗻𝘀 𝗼𝗳 𝗳𝗮𝗻𝘀 𝗮𝗿𝗼𝘂𝗻𝗱 𝘁𝗵𝗲 𝘄𝗼𝗿𝗹𝗱. 𝗜𝘁 𝗼𝗳𝗳𝗲𝗿𝘀 𝗶𝗻𝘁𝗲𝗻𝘀𝗲 𝗣𝘃𝗣 𝗺𝗼𝗱𝗲𝘀, 𝗰𝗼𝗺𝗽𝗲𝗹𝗹𝗶𝗻𝗴 𝗣𝘃𝗘 𝗺𝗶𝘀𝘀𝗶𝗼𝗻𝘀 𝗮𝗻𝗱 𝗿𝗮𝗶𝗱"
-   },
-   {
-    "appid": 333930,
-    "name": "Dirty Bomb®",
-    "genres": "Action, Free To Play",
-    "desc": "Work together or die alone! Fight to restore peace to London or tear it down for profit in the most challenging team based shooter around."
-   },
-   {
-    "appid": 550,
-    "name": "Left 4 Dead 2",
+    "appid": 553850,
+    "name": "HELLDIVERS™ 2",
     "genres": "Action",
-    "desc": "Set in the zombie apocalypse, Left 4 Dead 2 is a co-operative action horror FPS takes you and your friends through the cities, swamps and cemeteries of the Deep"
-   },
-   {
-    "appid": 394360,
-    "name": "Hearts of Iron IV",
-    "genres": "Simulation, Strategy",
-    "desc": "Victory is at your fingertips! Your ability to lead your nation is your supreme weapon, the strategy game Hearts of Iron IV lets you take command of any nation "
+    "desc": "The Galaxy’s Last Line of Offence. Enlist in the Helldivers and join the fight for freedom across a hostile galaxy in a fast, frantic, and ferocious third-perso"
    }
   ],
   "list_B": [
@@ -1048,28 +1048,10 @@
   ],
   "list_B": [
    {
-    "appid": 304050,
-    "name": "Trove",
-    "genres": "Action, Adventure, Casual, Massively Multiplayer",
-    "desc": "Grab your friends, hone your blades, and set off for an epic procedurally generated adventure in Trove! Battle the Shadow in realms filled with dungeons and ite"
-   },
-   {
-    "appid": 383980,
-    "name": "Rivals of Aether",
-    "genres": "Indie",
-    "desc": "RIVALS OF AETHER is an indie fighting game where warring civilizations summon the power of Fire, Water, Air, and Earth. Play with up to four players either loca"
-   },
-   {
     "appid": 322330,
     "name": "Don't Starve Together",
     "genres": "Action, Adventure, Indie, RPG",
     "desc": "Fight, Farm, Build and Explore Together in the standalone multiplayer expansion to the uncompromising wilderness survival game, Don't Starve."
-   },
-   {
-    "appid": 582010,
-    "name": "Monster Hunter: World",
-    "genres": "Action",
-    "desc": "Welcome to a new world! In Monster Hunter: World, the latest installment in the series, you can enjoy the ultimate hunting experience, using everything at your "
    },
    {
     "appid": 230410,
@@ -1078,34 +1060,52 @@
     "desc": "Awaken as an unstoppable warrior and battle alongside your friends in this story-driven free-to-play online action game"
    },
    {
-    "appid": 265630,
-    "name": "Fistful of Frags",
-    "genres": "Action, Free To Play, Indie",
-    "desc": "Multiplayer based, first person enabled, action packed and skill demanding shooter set in the Wild West times. A unique combination of non stop action and slow "
-   },
-   {
     "appid": 945360,
     "name": "Among Us",
     "genres": "Casual",
     "desc": "An online and local party game of teamwork and betrayal for 4-15 players...in space!"
    },
    {
+    "appid": 304050,
+    "name": "Trove",
+    "genres": "Action, Adventure, Casual, Massively Multiplayer",
+    "desc": "Grab your friends, hone your blades, and set off for an epic procedurally generated adventure in Trove! Battle the Shadow in realms filled with dungeons and ite"
+   },
+   {
+    "appid": 582010,
+    "name": "Monster Hunter: World",
+    "genres": "Action",
+    "desc": "Welcome to a new world! In Monster Hunter: World, the latest installment in the series, you can enjoy the ultimate hunting experience, using everything at your "
+   },
+   {
+    "appid": 367520,
+    "name": "Hollow Knight",
+    "genres": "Action, Adventure, Indie",
+    "desc": "Forge your own path in Hollow Knight! An epic action adventure through a vast ruined kingdom of insects and heroes. Explore twisting caverns, battle tainted cre"
+   },
+   {
+    "appid": 553850,
+    "name": "HELLDIVERS™ 2",
+    "genres": "Action",
+    "desc": "The Galaxy’s Last Line of Offence. Enlist in the Helldivers and join the fight for freedom across a hostile galaxy in a fast, frantic, and ferocious third-perso"
+   },
+   {
+    "appid": 286160,
+    "name": "Tabletop Simulator",
+    "genres": "Casual, Indie, RPG, Simulation",
+    "desc": "Tabletop Simulator is the only simulator where you can let your aggression out by flipping the table! There are no rules to follow: just you, a physics sandbox,"
+   },
+   {
+    "appid": 892970,
+    "name": "Valheim",
+    "genres": "Action, Adventure, Indie, RPG",
+    "desc": "A brutal exploration and survival game for 1-10 players, set in a procedurally-generated purgatory inspired by viking culture. Battle, build, and conquer your w"
+   },
+   {
     "appid": 304390,
     "name": "FOR HONOR™",
     "genres": "Action",
     "desc": "Fight alone or with friends in For Honor, a third-person hero-based melee fighting game. Enter the chaos of war as a Knight, a Viking, a Samurai, a Wu Lin, or a"
-   },
-   {
-    "appid": 799960,
-    "name": "Wizard101",
-    "genres": "Adventure, Casual, Massively Multiplayer, RPG",
-    "desc": "Unleash your inner magic and prepare to unravel the mysteries surrounding a death professor gone rogue. Darkness threatens to engulf the Spiral as you master po"
-   },
-   {
-    "appid": 1262350,
-    "name": "SIGNALIS",
-    "genres": "Action, Adventure, Indie",
-    "desc": "A classic survival horror experience set in a dystopian future where humanity has uncovered a dark secret. Unravel a cosmic mystery, escape terrifying creatures"
    }
   ]
  },
@@ -1183,34 +1183,10 @@
     "desc": "Hotline Miami is a high-octane action game overflowing with raw brutality, hard-boiled gunplay and skull crushing close combat."
    },
    {
-    "appid": 360,
-    "name": "Half-Life Deathmatch: Source",
-    "genres": "Action",
-    "desc": "Half-Life Deathmatch: Source is a recreation of the first multiplayer game set in the Half-Life universe. Features all the classic weapons and most-played maps,"
-   },
-   {
-    "appid": 10090,
-    "name": "Call of Duty: World at War",
-    "genres": "Action",
-    "desc": "Call of Duty is back, redefining war like you've never experienced before. Building on the Call of Duty 4®: Modern Warfare engine, Call of Duty: World at War im"
-   },
-   {
-    "appid": 287700,
-    "name": "METAL GEAR SOLID V: THE PHANTOM PAIN",
-    "genres": "Action, Adventure",
-    "desc": "Ushering in a new era for the METAL GEAR franchise with cutting-edge technology powered by the Fox Engine, METAL GEAR SOLID V: The Phantom Pain, will provide pl"
-   },
-   {
-    "appid": 265630,
-    "name": "Fistful of Frags",
-    "genres": "Action, Free To Play, Indie",
-    "desc": "Multiplayer based, first person enabled, action packed and skill demanding shooter set in the Wild West times. A unique combination of non stop action and slow "
-   },
-   {
-    "appid": 1196590,
-    "name": "Resident Evil Village",
-    "genres": "Action",
-    "desc": "Experience survival horror like never before in the 8th major installment in the Resident Evil franchise - Resident Evil Village. With detailed graphics, intens"
+    "appid": 105600,
+    "name": "Terraria",
+    "genres": "Action, Adventure, Indie, RPG",
+    "desc": "Dig, fight, explore, build! Nothing is impossible in this action-packed adventure game. Four Pack also available!"
    },
    {
     "appid": 359550,
@@ -1219,16 +1195,40 @@
     "desc": "Tom Clancy's Rainbow Six Siege is an elite, tactical team-based shooter where superior planning and execution triumph."
    },
    {
-    "appid": 225840,
-    "name": "Sven Co-op",
-    "genres": "Action, Casual, Indie, Free To Play",
-    "desc": "Sven Co-op is a co-operative game originally based around Valve Software's Half-Life. In this game players must work together against computer controlled enemie"
+    "appid": 271590,
+    "name": "Grand Theft Auto V Legacy",
+    "genres": "Action, Adventure",
+    "desc": "Grand Theft Auto V for PC offers players the option to explore the award-winning world of Los Santos and Blaine County in resolutions of up to 4k and beyond, as"
    },
    {
-    "appid": 546560,
-    "name": "Half-Life: Alyx",
+    "appid": 287700,
+    "name": "METAL GEAR SOLID V: THE PHANTOM PAIN",
     "genres": "Action, Adventure",
-    "desc": "Half-Life: Alyx is Valve’s VR return to the Half-Life series. It’s the story of an impossible fight against a vicious alien race known as the Combine, set betwe"
+    "desc": "Ushering in a new era for the METAL GEAR franchise with cutting-edge technology powered by the Fox Engine, METAL GEAR SOLID V: The Phantom Pain, will provide pl"
+   },
+   {
+    "appid": 391540,
+    "name": "Undertale",
+    "genres": "Indie, RPG",
+    "desc": "UNDERTALE! The RPG game where you don't have to destroy anyone."
+   },
+   {
+    "appid": 22380,
+    "name": "Fallout: New Vegas",
+    "genres": "Action, RPG",
+    "desc": "Welcome to Vegas. New Vegas. Enjoy your stay!"
+   },
+   {
+    "appid": 205100,
+    "name": "Dishonored",
+    "genres": "Action, Adventure",
+    "desc": "Dishonored is an immersive first-person action game that casts you as a supernatural assassin driven by revenge. With Dishonored’s flexible combat system, creat"
+   },
+   {
+    "appid": 377160,
+    "name": "Fallout 4",
+    "genres": "RPG",
+    "desc": "From Bethesda Game Studios, the award-winning creators of Starfield and The Elder Scrolls V: Skyrim, comes Fallout 4. A landmark in open-world RPG design and wi"
    }
   ],
   "list_B": [
@@ -1430,16 +1430,16 @@
     "desc": "Escape a chaotic alien planet by fighting through hordes of frenzied monsters – with your friends, or on your own. Combine loot in surprising ways and master ea"
    },
    {
-    "appid": 629760,
-    "name": "MORDHAU",
-    "genres": "Action, Indie",
-    "desc": "MORDHAU is a multiplayer medieval slasher. Create your mercenary and fight in brutal battles where you will experience fast paced combat, castle sieges, cavalry"
+    "appid": 976730,
+    "name": "Halo: The Master Chief Collection",
+    "genres": "Action",
+    "desc": "The Master Chief’s iconic journey includes six games, built for PC and collected in a single integrated experience. Whether you’re a long-time fan or meeting Sp"
    },
    {
-    "appid": 304390,
-    "name": "FOR HONOR™",
-    "genres": "Action",
-    "desc": "Fight alone or with friends in For Honor, a third-person hero-based melee fighting game. Enter the chaos of war as a Knight, a Viking, a Samurai, a Wu Lin, or a"
+    "appid": 620,
+    "name": "Portal 2",
+    "genres": "Action, Adventure",
+    "desc": "The &quot;Perpetual Testing Initiative&quot; has been expanded to allow you to design co-op puzzles for you and your friends!"
    },
    {
     "appid": 252490,
@@ -1448,34 +1448,34 @@
     "desc": "The only aim in Rust is to survive. Everything wants you to die - the island’s wildlife, other inhabitants, the environment, and other survivors. Do whatever it"
    },
    {
-    "appid": 219640,
-    "name": "Chivalry: Medieval Warfare",
-    "genres": "Action, Indie",
-    "desc": "Besiege castles and raid villages in Chivalry: Medieval Warfare, a fast-paced medieval first person slasher with a focus on multiplayer battles"
+    "appid": 1085660,
+    "name": "Destiny 2",
+    "genres": "Action, Adventure, Free To Play",
+    "desc": "Explore the mysteries of Sol and experience exhilirating first-person shooter combat in Destiny 2. Unlock powerful abilities and collect unique gear across stor"
    },
    {
-    "appid": 460930,
-    "name": "Tom Clancy's Ghost Recon® Wildlands",
-    "genres": "Action, Adventure",
-    "desc": "Create a team with up to 3 friends in Tom Clancy’s Ghost Recon® Wildlands and enjoy the ultimate military shooter experience set in a massive, dangerous, and re"
-   },
-   {
-    "appid": 976730,
-    "name": "Halo: The Master Chief Collection",
+    "appid": 220,
+    "name": "Half-Life 2",
     "genres": "Action",
-    "desc": "The Master Chief’s iconic journey includes six games, built for PC and collected in a single integrated experience. Whether you’re a long-time fan or meeting Sp"
+    "desc": "Reawakened from stasis in the occupied metropolis of City 17, Gordon Freeman is joined by Alyx Vance as he leads a desperate human resistance. Experience the la"
    },
    {
-    "appid": 393380,
-    "name": "Squad",
-    "genres": "Action, Indie, Massively Multiplayer, Strategy",
-    "desc": "Squad is a tactical FPS that provides authentic combat experiences through teamwork, communication, and realistic combat. It bridges the gap between arcade shoo"
+    "appid": 1174180,
+    "name": "Red Dead Redemption 2",
+    "genres": "Action, Adventure",
+    "desc": "Arthur Morgan and the Van der Linde Gang are outlaws on the run. With federal agents and bounty hunters massing on their heels, the gang must rob, steal, and fi"
    },
    {
-    "appid": 552990,
-    "name": "World of Warships",
-    "genres": "Action, Massively Multiplayer, Simulation, Strategy",
-    "desc": "Immerse yourself in thrilling naval battles and assemble an armada of over 800 ships from the first half of the 20th century — from stealthy destroyers to gigan"
+    "appid": 374320,
+    "name": "DARK SOULS™ III",
+    "genres": "Action",
+    "desc": "Dark Souls continues to push the boundaries with the latest, ambitious chapter in the critically-acclaimed and genre-defining series. Prepare yourself and Embra"
+   },
+   {
+    "appid": 304390,
+    "name": "FOR HONOR™",
+    "genres": "Action",
+    "desc": "Fight alone or with friends in For Honor, a third-person hero-based melee fighting game. Enter the chaos of war as a Knight, a Viking, a Samurai, a Wu Lin, or a"
    }
   ]
  },
@@ -1541,34 +1541,16 @@
   ],
   "list_A": [
    {
-    "appid": 632360,
-    "name": "Risk of Rain 2",
-    "genres": "Action, Indie",
-    "desc": "Escape a chaotic alien planet by fighting through hordes of frenzied monsters – with your friends, or on your own. Combine loot in surprising ways and master ea"
-   },
-   {
     "appid": 730,
     "name": "Counter-Strike 2",
     "genres": "Action, Free To Play",
     "desc": "For over two decades, Counter-Strike has offered an elite competitive experience, one shaped by millions of players from across the globe. And now the next chap"
    },
    {
-    "appid": 960090,
-    "name": "Bloons TD 6",
-    "genres": "Strategy",
-    "desc": "The Bloons are back and better than ever! Get ready for a massive 3D tower defense game designed to give you hours and hours of the best strategy gaming availab"
-   },
-   {
-    "appid": 1229490,
-    "name": "ULTRAKILL",
-    "genres": "Action, Indie, Early Access",
-    "desc": "ULTRAKILL is a fast-paced ultra-violent retro FPS that combines the skill-based style scoring of character action games with the unadulterated carnage inspired "
-   },
-   {
-    "appid": 674940,
-    "name": "Stick Fight: The Game",
-    "genres": "Action, Casual, Indie",
-    "desc": "Stick Fight is a physics-based couch/online fighting game where you battle it out as the iconic stick figures from the golden age of the internet."
+    "appid": 632360,
+    "name": "Risk of Rain 2",
+    "genres": "Action, Indie",
+    "desc": "Escape a chaotic alien planet by fighting through hordes of frenzied monsters – with your friends, or on your own. Combine loot in surprising ways and master ea"
    },
    {
     "appid": 359550,
@@ -1577,16 +1559,16 @@
     "desc": "Tom Clancy's Rainbow Six Siege is an elite, tactical team-based shooter where superior planning and execution triumph."
    },
    {
-    "appid": 871720,
-    "name": "Ultimate Custom Night",
-    "genres": "Action, Free To Play, Indie",
-    "desc": "Welcome to the ultimate FNAF mashup, featuring 50 selectable characters and custom difficulties!"
-   },
-   {
     "appid": 391540,
     "name": "Undertale",
     "genres": "Indie, RPG",
     "desc": "UNDERTALE! The RPG game where you don't have to destroy anyone."
+   },
+   {
+    "appid": 960090,
+    "name": "Bloons TD 6",
+    "genres": "Strategy",
+    "desc": "The Bloons are back and better than ever! Get ready for a massive 3D tower defense game designed to give you hours and hours of the best strategy gaming availab"
    },
    {
     "appid": 739630,
@@ -1595,10 +1577,28 @@
     "desc": "Phasmophobia is a 4 player online co-op psychological horror. Paranormal activity is on the rise and it’s up to you and your team to use all the ghost-hunting e"
    },
    {
-    "appid": 782330,
-    "name": "DOOM Eternal",
+    "appid": 674940,
+    "name": "Stick Fight: The Game",
+    "genres": "Action, Casual, Indie",
+    "desc": "Stick Fight is a physics-based couch/online fighting game where you battle it out as the iconic stick figures from the golden age of the internet."
+   },
+   {
+    "appid": 431960,
+    "name": "Wallpaper Engine",
+    "genres": "Casual, Indie, Animation & Modeling, Design & Illustration",
+    "desc": "Use stunning live wallpapers on your desktop. Animate your own images to create new wallpapers or import videos/websites and share them on the Steam Workshop!"
+   },
+   {
+    "appid": 1229490,
+    "name": "ULTRAKILL",
+    "genres": "Action, Indie, Early Access",
+    "desc": "ULTRAKILL is a fast-paced ultra-violent retro FPS that combines the skill-based style scoring of character action games with the unadulterated carnage inspired "
+   },
+   {
+    "appid": 70,
+    "name": "Half-Life",
     "genres": "Action",
-    "desc": "Hell’s armies have invaded Earth. Become the Slayer in an epic single-player campaign to conquer demons across dimensions and stop the final destruction of huma"
+    "desc": "Named Game of the Year by over 50 publications, Valve's debut title blends action and adventure with award-winning technology to create a frighteningly realisti"
    }
   ],
   "list_B": [
@@ -1788,6 +1788,12 @@
   ],
   "list_B": [
    {
+    "appid": 4000,
+    "name": "Garry's Mod",
+    "genres": "Casual, Indie, Simulation",
+    "desc": "Garry's Mod is a physics sandbox. There aren't any predefined aims or goals. We give you the tools and leave you to play."
+   },
+   {
     "appid": 1118200,
     "name": "People Playground",
     "genres": "Action, Casual, Indie, Simulation",
@@ -1800,22 +1806,10 @@
     "desc": "Battlefield™ 1 takes you back to The Great War, WW1, where new technology and worldwide conflict changed the face of warfare forever."
    },
    {
-    "appid": 508440,
-    "name": "Totally Accurate Battle Simulator",
-    "genres": "Indie, Simulation, Strategy",
-    "desc": "Be the leader of wobblers from ancient lands, spooky places, and fantasy worlds. Watch them fight in simulations made with the wobbliest physics system ever cre"
-   },
-   {
-    "appid": 4000,
-    "name": "Garry's Mod",
-    "genres": "Casual, Indie, Simulation",
-    "desc": "Garry's Mod is a physics sandbox. There aren't any predefined aims or goals. We give you the tools and leave you to play."
-   },
-   {
-    "appid": 471710,
-    "name": "Rec Room",
-    "genres": "Adventure, Casual, Massively Multiplayer, Free To Play",
-    "desc": "Rec Room is the best place to build and play games together. Party up with friends from all around the world to chat, hang out, explore MILLIONS of player-creat"
+    "appid": 550,
+    "name": "Left 4 Dead 2",
+    "genres": "Action",
+    "desc": "Set in the zombie apocalypse, Left 4 Dead 2 is a co-operative action horror FPS takes you and your friends through the cities, swamps and cemeteries of the Deep"
    },
    {
     "appid": 700330,
@@ -1824,28 +1818,34 @@
     "desc": "Deep within a secure underground facility, a sudden containment breach allows many of the secured anomalies to escape from their chambers. Assist the Foundation"
    },
    {
-    "appid": 429050,
-    "name": "Feed and Grow: Fish",
-    "genres": "Action, Indie, Simulation, Early Access",
-    "desc": "Hunt and eat other fish - simply, grow into larger beasts!"
+    "appid": 508440,
+    "name": "Totally Accurate Battle Simulator",
+    "genres": "Indie, Simulation, Strategy",
+    "desc": "Be the leader of wobblers from ancient lands, spooky places, and fantasy worlds. Watch them fight in simulations made with the wobbliest physics system ever cre"
    },
    {
-    "appid": 552100,
-    "name": "Brick Rigs",
-    "genres": "Simulation",
-    "desc": "Do whatever you want in a physics sandbox full of chaotic destruction, endless player-made creations and unpredictable adventures. Build, destroy, roleplay and "
+    "appid": 220,
+    "name": "Half-Life 2",
+    "genres": "Action",
+    "desc": "Reawakened from stasis in the occupied metropolis of City 17, Gordon Freeman is joined by Alyx Vance as he leads a desperate human resistance. Experience the la"
    },
    {
-    "appid": 738060,
-    "name": "Freddy Fazbear's Pizzeria Simulator",
-    "genres": "Free To Play, Indie, Simulation",
-    "desc": "Start your own Freddy Fazbear's Pizzeria with Freddy Fazbear Pizzeria Simulator!"
+    "appid": 271590,
+    "name": "Grand Theft Auto V Legacy",
+    "genres": "Action, Adventure",
+    "desc": "Grand Theft Auto V for PC offers players the option to explore the award-winning world of Los Santos and Blaine County in resolutions of up to 4k and beyond, as"
    },
    {
-    "appid": 107410,
-    "name": "Arma 3",
-    "genres": "Action, Simulation, Strategy",
-    "desc": "Experience true combat gameplay in a massive military sandbox. Deploy with a wide variety of single- and multiplayer content, a massive arsenal of modern weapon"
+    "appid": 431960,
+    "name": "Wallpaper Engine",
+    "genres": "Casual, Indie, Animation & Modeling, Design & Illustration",
+    "desc": "Use stunning live wallpapers on your desktop. Animate your own images to create new wallpapers or import videos/websites and share them on the Steam Workshop!"
+   },
+   {
+    "appid": 218620,
+    "name": "PAYDAY 2",
+    "genres": "Action, RPG",
+    "desc": "PAYDAY 2 is an action-packed, four-player co-op shooter that once again lets gamers don the masks of the original PAYDAY crew - Dallas, Hoxton, Wolf and Chains "
    }
   ]
  },
@@ -1985,6 +1985,12 @@
     "desc": "Enter the Gungeon is a bullet hell dungeon crawler following a band of misfits seeking to shoot, loot, dodge roll and table-flip their way to personal absolutio"
    },
    {
+    "appid": 391540,
+    "name": "Undertale",
+    "genres": "Indie, RPG",
+    "desc": "UNDERTALE! The RPG game where you don't have to destroy anyone."
+   },
+   {
     "appid": 588650,
     "name": "Dead Cells",
     "genres": "Action, Adventure, Indie",
@@ -2003,10 +2009,10 @@
     "desc": "Help Madeline survive her inner demons on her journey to the top of Celeste Mountain, in this super-tight platformer from the creators of TowerFall. Brave hundr"
    },
    {
-    "appid": 391540,
-    "name": "Undertale",
-    "genres": "Indie, RPG",
-    "desc": "UNDERTALE! The RPG game where you don't have to destroy anyone."
+    "appid": 322330,
+    "name": "Don't Starve Together",
+    "genres": "Action, Adventure, Indie, RPG",
+    "desc": "Fight, Farm, Build and Explore Together in the standalone multiplayer expansion to the uncompromising wilderness survival game, Don't Starve."
    },
    {
     "appid": 548430,
@@ -2015,22 +2021,16 @@
     "desc": "Deep Rock Galactic is a 1-4 player co-op FPS featuring dwarven space miners, procedurally-generated destructible environments, and endless hordes of alien monst"
    },
    {
-    "appid": 322330,
-    "name": "Don't Starve Together",
-    "genres": "Action, Adventure, Indie, RPG",
-    "desc": "Fight, Farm, Build and Explore Together in the standalone multiplayer expansion to the uncompromising wilderness survival game, Don't Starve."
+    "appid": 945360,
+    "name": "Among Us",
+    "genres": "Casual",
+    "desc": "An online and local party game of teamwork and betrayal for 4-15 players...in space!"
    },
    {
     "appid": 268910,
     "name": "Cuphead",
     "genres": "Action, Indie",
     "desc": "Cuphead is a classic run and gun action game heavily focused on boss battles. Inspired by cartoons of the 1930s, the visuals and audio are painstakingly created"
-   },
-   {
-    "appid": 1057090,
-    "name": "Ori and the Will of the Wisps",
-    "genres": "Action",
-    "desc": "Play the critically acclaimed masterpiece. Embark on a new journey in a vast, exotic world where you’ll encounter towering enemies and challenging puzzles on yo"
    }
   ]
  },
@@ -2158,16 +2158,10 @@
   ],
   "list_B": [
    {
-    "appid": 20,
-    "name": "Team Fortress Classic",
-    "genres": "Action",
-    "desc": "One of the most popular online action games of all time, Team Fortress Classic features over nine character classes -- from Medic to Spy to Demolition Man -- en"
-   },
-   {
-    "appid": 362890,
-    "name": "Black Mesa",
-    "genres": "Action, Adventure, Indie",
-    "desc": "Relive Half-Life."
+    "appid": 620,
+    "name": "Portal 2",
+    "genres": "Action, Adventure",
+    "desc": "The &quot;Perpetual Testing Initiative&quot; has been expanded to allow you to design co-op puzzles for you and your friends!"
    },
    {
     "appid": 400,
@@ -2176,16 +2170,10 @@
     "desc": "Portal™ is a new single player game from Valve. Set in the mysterious Aperture Science Laboratories, Portal has been called one of the most innovative new games"
    },
    {
-    "appid": 620,
-    "name": "Portal 2",
-    "genres": "Action, Adventure",
-    "desc": "The &quot;Perpetual Testing Initiative&quot; has been expanded to allow you to design co-op puzzles for you and your friends!"
-   },
-   {
-    "appid": 12150,
-    "name": "Max Payne 2: The Fall of Max Payne",
-    "genres": "Action",
-    "desc": "Max Payne 2: The Fall of Max Payne is a violent, film-noir love story. Dark, tragic and intense, the in-depth story is a thrill-ride of shocking twists and reve"
+    "appid": 362890,
+    "name": "Black Mesa",
+    "genres": "Action, Adventure, Indie",
+    "desc": "Relive Half-Life."
    },
    {
     "appid": 976730,
@@ -2194,28 +2182,40 @@
     "desc": "The Master Chief’s iconic journey includes six games, built for PC and collected in a single integrated experience. Whether you’re a long-time fan or meeting Sp"
    },
    {
-    "appid": 1148590,
-    "name": "DOOM 64",
-    "genres": "Action",
-    "desc": "Play the enhanced version of the original game released on the Nintendo 64 in 1997. Years have passed since you stopped Hell’s invasion of Earth. Quarantined fo"
+    "appid": 105600,
+    "name": "Terraria",
+    "genres": "Action, Adventure, Indie, RPG",
+    "desc": "Dig, fight, explore, build! Nothing is impossible in this action-packed adventure game. Four Pack also available!"
    },
    {
-    "appid": 311210,
-    "name": "Call of Duty®: Black Ops III",
+    "appid": 304930,
+    "name": "Unturned",
+    "genres": "Action, Adventure, Casual, Indie",
+    "desc": "You're a survivor in the zombie infested ruins of society, and must work with your friends and forge alliances to remain among the living."
+   },
+   {
+    "appid": 438100,
+    "name": "VRChat",
+    "genres": "Adventure, Casual, Massively Multiplayer, Simulation",
+    "desc": "Join our growing community as you explore, play, and help craft the future of social VR. Create worlds and custom avatars. Welcome to VRChat."
+   },
+   {
+    "appid": 20,
+    "name": "Team Fortress Classic",
+    "genres": "Action",
+    "desc": "One of the most popular online action games of all time, Team Fortress Classic features over nine character classes -- from Medic to Spy to Demolition Man -- en"
+   },
+   {
+    "appid": 782330,
+    "name": "DOOM Eternal",
+    "genres": "Action",
+    "desc": "Hell’s armies have invaded Earth. Become the Slayer in an epic single-player campaign to conquer demons across dimensions and stop the final destruction of huma"
+   },
+   {
+    "appid": 12210,
+    "name": "Grand Theft Auto IV: The Complete Edition",
     "genres": "Action, Adventure",
-    "desc": "Call of Duty®: Black Ops III Zombies Chronicles Edition includes the full base game plus the Zombies Chronicles content expansion."
-   },
-   {
-    "appid": 9050,
-    "name": "DOOM 3",
-    "genres": "Action",
-    "desc": "A massive demonic invasion has overwhelmed the Union Aerospace Corporation's (UAC) Mars Research Facility, leaving only chaos and horror in its wake. As one of "
-   },
-   {
-    "appid": 2280,
-    "name": "DOOM + DOOM II",
-    "genres": "Action",
-    "desc": "Developed by id Software, and originally released in 1993 and 1994, the definitive, newly enhanced versions of DOOM + DOOM II are available as a combined produc"
+    "desc": "Niko Bellic, Johnny Klebitz and Luis Lopez all have one thing in common - they live in the worst city in America. Liberty City worships money and status, and is"
    }
   ]
  }

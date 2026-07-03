@@ -56,7 +56,10 @@ def main() -> int:
         scores = bs.compute(spec["name"], inter, game_stats, user_stats, **spec["params"])
         smap = {(int(u), int(a)): float(s) for u, a, s in
                 scores[scores["s"] > 0][["steamid", "appid", "s"]].values}
-        if ranker == "userknn":
+        if ranker == "knnpd03":
+            model = UserKNN(scores, panels["train"], pool, topk_users=25, pop_beta=0.3)
+            S = amap = None
+        elif ranker == "userknn":
             model = UserKNN(scores, panels["train"], pool, topk_users=25)
             S = amap = None
         else:
@@ -72,7 +75,12 @@ def main() -> int:
                       else model.recommend(prof, K, excl))
         return out
 
-    s1 = recs_for({"name": "pvalue_lognorm_eb", "params": {}}, "userknn")
+    import os
+    variant = os.environ.get("JUDGE_VARIANT", "s1_vs_s4")
+    if variant == "s1pd_vs_s4":
+        s1 = recs_for({"name": "pvalue_lognorm_eb", "params": {}}, "knnpd03")
+    else:
+        s1 = recs_for({"name": "pvalue_lognorm_eb", "params": {}}, "userknn")
     s4 = recs_for({"name": "per_user_cap",
                    "params": {"base": "blend", "lam": 0.4, "alpha": 0.3}}, "condcos")
 
