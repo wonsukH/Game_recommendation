@@ -3,14 +3,9 @@
  "rtime_verdict": "UNRECOVERABLE - Valve no longer returns rtime_last_played to 3rd-party keys (3 param variants probed 07-03). Fallback: random 70/30 split; recency via playtime_2weeks+recently. Backfill skipped (saves 1.7k calls).",
  "plan_file": "C:/Users/82107/.claude/plans/recursive-dreaming-moore.md",
  "driver": "main-loop",
- "last_tick_ts": "2026-07-03T13:36:11+09:00",
- "current_step": "combo-expansion: knnpd03 rises (Pareto-dominates S1); judge round2 running",
- "shortlist_frozen": {
-  "S1": "pvalue_lognorm_eb x userknn25 (private 0.2943)",
-  "S2": "pctl_game x userknn25 (0.2925)",
-  "S3": "cap_a03_blend04 x rp3b (SNIPS 0.0994, discovery)",
-  "S4": "cap_a03_blend04 x condcos (production-compatible 0.2667)"
- },
+ "last_tick_ts": "2026-07-04T02:12:22+09:00",
+ "current_step": "crawl-independent frontier EXHAUSTED (T14-T23); slow loop: CAUGHT-UP watch -> users switch + final recheck + rarity-E; report upkeep",
+ "shortlist_frozen": null,
  "current_round": null,
  "crawler": {
   "mode": "games-only",
@@ -18,5 +13,12 @@
   "switch_to_users_after_caught_up": true
  },
  "running_jobs": {},
- "notes": "session-only cron heartbeat @ :23 hourly (id bc56b95d). If Claude app itself dies, heartbeat dies too — unrecoverable from inside; documented residual risk."
+ "notes": "session-only cron heartbeat @ :23 hourly (id bc56b95d). If Claude app itself dies, heartbeat dies too — unrecoverable from inside; documented residual risk.",
+ "current_leaders": {
+  "S0": "pvalue_eb x knnpd03 (no-loss + SNIPS/judge/masked gains)",
+  "S1": "pvalue_eb x userknn25",
+  "S2": "pctl_game x userknn25",
+  "S3": "cap_a03_blend04 x rp3b",
+  "S4": "cap_a03_blend04 x condcos"
+ }
 }

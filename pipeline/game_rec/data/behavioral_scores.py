@@ -329,6 +329,30 @@ def cap_blend_span(inter, game_stats, user_stats, lam: float = 0.4,
 # registry
 # --------------------------------------------------------------------------
 
+def rarity_mastery_blend(inter, game_stats, user_stats, lam: float = 0.4):
+    """E1 (games-크롤 후): rarity-가중 mastery — 해금 업적의 평균 surprisal
+    (-ln global_pct)의 within-game pctl을 완료율 자리에 blend.
+
+    가설: 희귀도는 코호트-독립(Steam-global)이라 완료율보다 overfit-무관 mastery 축.
+    형태는 승자 blend(ach_completion_pctl_blend)와 동형 → 직접 비교 가능."""
+    pt_p = _pos_pctl_within(inter, "playtime_forever", "appid").fillna(0.0)
+    rs_p = _pos_pctl_within(inter, "rar_mean_surp", "appid")
+    s = np.where(rs_p.notna(), lam * pt_p + (1 - lam) * rs_p.fillna(0),
+                 pt_p)
+    return _out(inter, pd.Series(s, index=inter.index))
+
+
+def rarity_depth_blend(inter, game_stats, user_stats, lam: float = 0.4):
+    """E2: 끝판-도달 depth — 해금한 가장 희귀한 업적(min global_pct)의 깊이
+    (100-min_pct)의 within-game pctl을 blend. '얼마나 깊이 갔나' 단일축."""
+    d = inter.copy()
+    d["depth"] = np.where(d["rar_min_pct"].notna(), 100.0 - d["rar_min_pct"], np.nan)
+    pt_p = _pos_pctl_within(d, "playtime_forever", "appid").fillna(0.0)
+    dp_p = _pos_pctl_within(d, "depth", "appid")
+    s = np.where(dp_p.notna(), lam * pt_p + (1 - lam) * dp_p.fillna(0), pt_p)
+    return _out(d, pd.Series(s, index=d.index))
+
+
 def pvalue_eb_intent0(inter, game_stats, user_stats, eps: float = 0.05,
                       cont_thr: float = 0.98, min_own: int = 3):
     """의도 tier ablation(#11): owned-0분을 ε 약긍정으로 — 팩블록 병합 전처리 필수.
@@ -403,6 +427,9 @@ REGISTRY: dict[str, dict] = {
     # ---- Round 3 (D가족 — unlocktime) ----
     "cap_blend_recency": dict(fn=cap_blend_recency, family="temporal-D", hypothesis="최근 실진행(해금) 게임이 현재 취향을 더 예측 — best 위 recency 승수"),
     "cap_blend_span": dict(fn=cap_blend_span, family="temporal-D", hypothesis="장기 재방문(해금 시간폭)=durable 애착 — 주말벼락과 구분되면 리프트"),
+    # ---- E가족 (games-크롤 완주 후, 07-04) ----
+    "rarity_mastery_blend": dict(fn=rarity_mastery_blend, family="rarity-E", hypothesis="희귀도(코호트-독립)가 완료율보다 overfit-무관 mastery 신호인가 — 동형 blend 직접 비교"),
+    "rarity_depth_blend": dict(fn=rarity_depth_blend, family="rarity-E", hypothesis="끝판 도달(최희귀 해금 깊이) 단일축 — 완주와 다른 '몰입 깊이' 변별 가설"),
     # ---- #11 의도 tier ablation ----
     "pvalue_eb_intent0": dict(fn=pvalue_eb_intent0, family="intent-tier", hypothesis="owned-0분=돈 낸 의도(팩블록 병합 후) ε 약긍정 — 주축 유의 상승 시만 채택(기본 제외 뒤집기, 입증책임=포함측)"),
 }

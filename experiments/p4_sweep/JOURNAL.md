@@ -149,3 +149,9 @@
 - paired CI: **NDCG 차 −0.0090 [−0.0195, +0.0018] = ns** / **SNIPS 차 +0.0158 [+0.0093, +0.0236] = SIG**.
 - 판정: dev의 "NDCG 동률"은 private에서 소폭 후퇴(ns) — S0의 정확한 지위 = **"어느 축도 유의 손실 없음 + SNIPS(디바이어스)·judge(질감)·masked(강도) 유의/일관 우위"**. 전축-지배 표현은 리더보드에서 교정. 최종 관문 = OOD(P6).
 - 크롤-독립 전선 소진 재확인 — 이후 루프: CAUGHT UP 감시(→ users 전환·최종 재추출·rarity E) + REPORT_MONDAY 갱신.
+
+## [2026-07-04 02:40] T24 — **games 크롤 완주 → CAUGHT UP 핸들러 완결** (백로그 28.8k→0)
+- 02:12 백로그 0 감지 → games-only 종료 → **daily_crawl.bat(users+games) 전환**(유저 크롤 재개) → 재추출: **최종 풀 38,435**(+53%, typed 39,142; 미타입 1,491=상장폐지류 제외) + rarity 집계(211k 쌍) + 게임 업적 프로파일 ②난이도(ach_pct_median/iqr/deep_frac) ③정보량(n_ach_defined) 컬럼 추가.
+- **pool_recheck_final(38.4k)**: 순위 유지 + **S0(pvalue×knnpd03)가 NDCG 0.2808 단독 1위**(userknn 0.2745 추월) + SNIPS 0.0748 최고 — 카탈로그 커질수록(롱테일↑) 인기 패널티가 더 유효. 절대값 하락은 풀 확대 효과(정상).
+- **E가족(rarity) 판정: 음성** — rarity_mastery 0.2670·rarity_depth 0.2663 < pctl 단독 0.2724 ≪ pvalue 0.2808 (rp3b 동일 패턴, blend 동형 직접 비교). 희귀도의 '코호트-독립' 이론 매력이 실측 신호로 이어지지 않음. **함의: 유저-크롤 업적 allowlist 축소(96% 절감) 논거 완성** — P4 신호는 완료율(이미 dense)로 충분, 희귀도는 P7 학습형 재료 여지만 남음.
+- 이로써 #12 완료 — 플랜의 크롤-의존 항목 전부 소화. 남은 루프: users 크롤 진행 감시(10k 적립) + 보고서 최종화.

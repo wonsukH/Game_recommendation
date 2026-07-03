@@ -323,6 +323,9 @@ PREFS = {
     # #11 의도 tier ablation
     "intent0_e05": {"name": "pvalue_eb_intent0", "params": {"eps": 0.05}},
     "intent0_e15": {"name": "pvalue_eb_intent0", "params": {"eps": 0.15}},
+    # E가족 rarity (07-04)
+    "rarity_mastery": {"name": "rarity_mastery_blend", "params": {"lam": 0.4}},
+    "rarity_depth": {"name": "rarity_depth_blend", "params": {"lam": 0.4}},
 }
 
 RANKERS = ["condcos", "condasym", "jaccard", "ppmi", "p3a", "rp3b",

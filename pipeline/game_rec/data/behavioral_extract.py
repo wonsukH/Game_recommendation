@@ -68,8 +68,22 @@ def extract(db_path: Path, out_dir: Path) -> dict:
         "MAX(ua.unlocktime) AS unlock_last, COUNT(*) AS n_unlocks_t "
         "FROM user_achievement ua JOIN game_achievement ga ON ga.ach_id=ua.ach_id "
         "WHERE ua.unlocktime > 0 GROUP BY ua.steamid, ga.appid"))
+    # E-family rarity signals (post games-crawl: global_pct dense) ----------
+    rar_raw = _read_sql(conn, (
+        "SELECT ua.steamid, ga.appid, ga.global_pct "
+        "FROM user_achievement ua JOIN game_achievement ga ON ga.ach_id=ua.ach_id "
+        "WHERE ga.global_pct IS NOT NULL"))
+    if len(rar_raw):
+        surp = -np.log(rar_raw["global_pct"].clip(lower=0.1, upper=100.0) / 100.0)
+        rar_raw = rar_raw.assign(surp=surp)
+        g = rar_raw.groupby(["steamid", "appid"])
+        rar = pd.DataFrame({"rar_mean_surp": g["surp"].mean(),
+                            "rar_min_pct": g["global_pct"].min()}).reset_index()
+    else:
+        rar = pd.DataFrame(columns=["steamid", "appid", "rar_mean_surp", "rar_min_pct"])
     inter = owned.merge(pga, on=["steamid", "appid"], how="left")
     inter = inter.merge(ua, on=["steamid", "appid"], how="left")
+    inter = inter.merge(rar, on=["steamid", "appid"], how="left")
     inter = inter.rename(columns={"unlocked": "ach_unlocked", "total": "ach_total"})
     inter["playtime_forever"] = inter["playtime_forever"].fillna(0.0)
     inter["playtime_2weeks"] = inter["playtime_2weeks"].fillna(0.0)
@@ -99,6 +113,18 @@ def extract(db_path: Path, out_dir: Path) -> dict:
     game_stats["n_ach_rows"] = comp.groupby("appid").size()
     game_stats["completion_median"] = comp.groupby("appid")["completion"].median()
     game_stats["completion_mean"] = comp.groupby("appid")["completion"].mean()
+    # ② difficulty profile + ③ achievement informativeness (global_pct shape)
+    ga_all = _read_sql(conn, (
+        "SELECT appid, global_pct FROM game_achievement WHERE global_pct IS NOT NULL"))
+    if len(ga_all):
+        gg = ga_all.groupby("appid")["global_pct"]
+        ach_prof = pd.DataFrame({
+            "n_ach_defined": gg.size(),
+            "ach_pct_median": gg.median(),
+            "ach_pct_iqr": gg.quantile(0.75) - gg.quantile(0.25),
+            "ach_deep_frac": gg.apply(lambda s: float((s < 5.0).mean())),
+        })
+        game_stats = game_stats.join(ach_prof)
     game_stats = game_stats.reset_index().merge(games_meta, on="appid", how="left")
 
     # ---- user-level stats (per-user normalization references) -------------

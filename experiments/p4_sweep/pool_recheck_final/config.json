@@ -1,0 +1,1 @@
+{"panel": "dev", "k": 20, "seed": 42, "rankers": ["knnpd03", "userknn25", "rp3b", "condcos"], "prefs": ["pvalue_eb", "pctl_game", "cap_a03_blend04"], "ts": "2026-07-04 02:23:05"}
