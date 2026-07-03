@@ -111,3 +111,7 @@
 - **결과(dev, 25k 풀)**: **ALS64 0.2656~0.2678**(MF 최강, seed 인자 버그 1회 수정) > NMF-KL(Poisson) 0.219 ≈ EASE 0.21~0.22 > **BPR64 0.183~0.186**(최하). 전부 **userknn(0.2825~0.2898)에 열세**.
 - **판정**: "무거운 학습형이 이 규모에서 이기나" — 이제 추론이 아니라 측정으로 **아니오**. 최종 랭커 서열: userknn > rp3b ≈ ALS ≈ condcos > NMF/EASE > BPR > jaccard > ppmi. MF는 10k 유저 재평가 목록에 ALS만 잔류(나머지 기대값 낮음).
 - wishlist 2차 축(wishlist_axis.py 신규) 실행 중 — 리더 4구성+null의 "표명된 욕망 발굴력" 첫 측정.
+
+## [2026-07-03 13:25] T17 — wishlist 축 첫 측정 + R5 조합 전멸
+- **wishlist 축(168 dev 유저, 최근 미보유 위시 타깃)**: 리더 4구성 0.027~0.029 vs null(인기구조 보존) 0.021 — **행동 모델이 인기 대비 +35%**, 단 리더 간 변별 없음(CI 중첩) = 이 표본에선 저해상도 보조축. 정직 기록: 발굴 과제의 난이도 실증(주축 대비 10배 낮은 recall). K=50·표본 확대는 후속 옵션.
+- **R5 승자 조합 전멸**: pvalue+완료율 blend .2901 ≈ 순수 pvalue .2898(무이득) · cap×pvalue .2817(cap은 userknn 위에서 재차 무익/해로움) → **S1(순수 pvalue×userknn)이 모든 강화 시도를 버팀**. 선호-조합 전선 소진 판정(단발 아님 — R4 이후 조합 5종 연속 ns). 남은 전선: masked-engagement 배선 · judge 가드레일(Sonnet 첫 실행) · k-강건성 · 의도 tier ablation · informed-negative BPR(기대값 낮음, 싼 시험).

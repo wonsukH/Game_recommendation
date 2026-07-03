@@ -290,6 +290,10 @@ PREFS = {
     "pctl_game": {"name": "pctl_game", "params": {}},
     "anchor_binary": {"name": "anchor_binary", "params": {}},
     "random_support": {"name": "random_support", "params": {}},
+    # R5 combos
+    "cap_pvalue": {"name": "per_user_cap", "params": {"base": "pvalue", "alpha": 0.3}},
+    "pvalue_comp_blend": {"name": "pvalue_comp_blend", "params": {"lam": 0.6}},
+    "pvalue_comp_blend04": {"name": "pvalue_comp_blend", "params": {"lam": 0.4}},
 }
 
 RANKERS = ["condcos", "condasym", "jaccard", "ppmi", "p3a", "rp3b",

@@ -264,6 +264,8 @@ def per_user_cap(inter, game_stats, user_stats, base: str = "pctl_game",
         b = double_quantile(inter, game_stats, user_stats)
     elif base == "logratio":
         b = logratio_median(inter, game_stats, user_stats)
+    elif base == "pvalue":
+        b = pvalue_lognorm_eb(inter, game_stats, user_stats)
     else:
         b = pctl_game(inter, game_stats, user_stats)
     tot = b.groupby("steamid")["s"].transform("sum").replace(0, np.nan)
@@ -275,6 +277,22 @@ def per_user_cap(inter, game_stats, user_stats, base: str = "pctl_game",
 # --------------------------------------------------------------------------
 # Round 3 — D-family (unlocktime temporal) on top of current best
 # --------------------------------------------------------------------------
+
+def pvalue_comp_blend(inter, game_stats, user_stats, lam: float = 0.6):
+    """R5: 두 승자 신호 결합 — lam*pvalue + (1-lam)*완료율-pctl (S1 강화 가설)."""
+    pv = pvalue_lognorm_eb(inter, game_stats, user_stats)
+    has = inter["ach_total"].fillna(0) > 0
+    comp = inter.copy()
+    comp["c"] = np.where(has, inter["completion"].fillna(0.0), np.nan)
+    cpos = comp[comp["c"].notna()].copy()
+    r = cpos.groupby("appid")["c"].rank(method="average")
+    n = cpos.groupby("appid")["c"].transform("size")
+    c_p = pd.Series(np.nan, index=comp.index)
+    c_p.loc[cpos.index] = ((r - 0.5) / n).values
+    s = np.where(c_p.notna(), lam * pv["s"].values + (1 - lam) * c_p.fillna(0).values,
+                 pv["s"].values)
+    return _out(inter, pd.Series(s, index=inter.index))
+
 
 def cap_blend_recency(inter, game_stats, user_stats, lam: float = 0.4,
                       alpha: float = 0.3, tau_days: float = 365.0, beta: float = 0.5):
@@ -328,6 +346,7 @@ REGISTRY: dict[str, dict] = {
     "resid2way_completion": dict(fn=resid2way_completion, family="achievement-C", hypothesis="완료성향(유저)·난이도(게임) 주효과 제거 — 완료율 신호의 순도를 높이면 blend 리프트 증폭 가설"),
     "bm25_sat": dict(fn=bm25_sat, family="magnitude-sat", hypothesis="탐험쿼터: rank 밖 연속-포화 family — R0에서 magnitude가 죽은 게 포화 부재 탓인지 검증"),
     "per_user_cap": dict(fn=per_user_cap, family="robustness", hypothesis="탐험쿼터+#28 실증근거: 파밍/whale 계정의 그래프 질량 캡이 support 오염을 줄이는지"),
+    "pvalue_comp_blend": dict(fn=pvalue_comp_blend, family="parametric-achievement", hypothesis="R5: S1(pvalue)에 유일한 유효 업적신호(완료율) 결합 — userknn에서 가산 리프트 가설"),
     # ---- Round 3 (D가족 — unlocktime) ----
     "cap_blend_recency": dict(fn=cap_blend_recency, family="temporal-D", hypothesis="최근 실진행(해금) 게임이 현재 취향을 더 예측 — best 위 recency 승수"),
     "cap_blend_span": dict(fn=cap_blend_span, family="temporal-D", hypothesis="장기 재방문(해금 시간폭)=durable 애착 — 주말벼락과 구분되면 리프트"),
