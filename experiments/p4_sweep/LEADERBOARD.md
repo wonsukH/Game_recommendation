@@ -9,14 +9,14 @@
 
 | # | 구성 (선호 × 랭커) | NDCG@20 | SNIPS | judge | masked-ρ | 성격 |
 |---|---|---|---|---|---|---|
-| **S0** | **pvalue_eb × userknn25+popdiscount(β0.3)** | **0.2898**(dev, S1 동률) | **0.0888** | **적합 9:0·발굴 11:1 vs S4** | **0.1045** | **전 측정축 선두** — β=0.3 인기패널티가 지표 무손실로 메인스트림 쏠림 제거(지표-judge 분기 해소) |
+| **S0** | **pvalue_eb × userknn25+popdiscount(β0.3)** | 0.2789(private; vs S1 차 −0.009 **ns**) | **0.0925**(vs S1 **+0.0158 SIG**) | **적합 9:0·발굴 11:1 vs S4** | **0.1045** | **NDCG 유의 손실 없음 + SNIPS·judge·masked 우위** — β=0.3 인기패널티가 메인스트림 쏠림 제거(지표-judge 분기 해소) |
 | S1 | pvalue_lognorm_eb × user-KNN25 | 0.2943(private) | 0.0878 | 적합 4:7 **패** | 0.0771 | private 1위·패자부활전 부활자 — 단 judge에서 AAA 쏠림 노출 |
 | S2 | pctl_game × user-KNN25 | 0.2925(private) | 0.0916 | — | — | 가장 단순·해석 용이 |
 | S3 | cap_a03_blend04 × RP3β(0.6) | 0.2800(private) | **0.0994** | — | — | 발굴형(SNIPS 최고) — Pareto 비지배 |
 | S4 | cap_a03_blend04 × condcos | 0.2667(private) | 0.0860 | 적합 7:4 승(vs S1)·**0:9 패(vs S0)** | 0.0686 | 프로덕션-호환(랭커 교체 없는 경우) |
 | — | random_support × * (null) | 0.126~0.180 | — | — | −0.006 | 바닥 분리 ✓ (전 축 지표 건강) |
 
-※ S0의 private/25k-pool 확인은 미실시(dev 기준) — **사용자 확정 전 private 1회 + OOD(P6)가 관문**. judge는 n=12·단일 Sonnet(방향 신호; Gemini 교차는 복귀 후).
+※ S0 private 1회 확인 완료(13:49, **패널 2번째 노출** — 사유: 리더 갱신에 따른 확인, 이후 private 재사용 금지). dev의 "NDCG 동률"은 private에서 "−0.009 ns"로 소폭 후퇴 — 과대포장 없이 기록. **최종 관문은 OOD(P6)**. judge는 n=12·단일 Sonnet(방향 신호; Gemini 교차는 복귀 후).
 
 ## 핵심 발견 연쇄 (서사는 JOURNAL, 여기는 요약)
 1. **support(누가-뭘-플레이)가 그래프 신호의 등뼈** — 가중은 2차 (smoke01).
