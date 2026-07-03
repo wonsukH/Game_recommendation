@@ -127,3 +127,8 @@
 - **judge 재실행(S1'=pvalue×knnpd03 vs S4, 동일 프로토콜 n=12)**: **적합도 9:0(무3), 발굴 11:1** — 라운드1의 4:7 패배가 β=0.3 하나로 완전 역전. 사유 패턴: knnpd03 리스트가 "취향 클러스터 직격 + 덜 뻔한 픽"으로 일관 평가.
 - **리더 갱신(동결 아님)**: **S0 = pvalue_lognorm_eb × userknn25+popdiscount(β0.3)** — NDCG 공동1위·SNIPS 우위·judge 압승 = 현존 유일의 전축 비지배→지배 후보. 한계 동일(n=12·단일 judge) — Gemini 교차·OOD는 복귀 후.
 - 다음: #9 masked-engagement 배선 → #11 의도 ablation → #12 → (CAUGHT UP 시) rarity E가족.
+
+## [2026-07-03 13:42] T20 — masked-engagement 축 배선·측정 (#9 완료): S0 4축 석권
+- 설계 준수: 타깃 = 중립 rel(후보 자기-s 금지 — 예측가능성 함정), holdout≥5 유저 199명, per-user Spearman.
+- **결과: S0(pvalue×knnpd03) rho 0.1045 [0.068,0.139] > S1 0.0771 > S4 0.0686 > null −0.006**(축 건강 ✓). S0가 NDCG·SNIPS·judge·masked-engagement **측정한 전 축 선두** — 현 리더 지위 강화. 정직 기록: rho 절대값 자체는 낮음(강도 예측은 본질적으로 어려움; 보조축 역할에 충실).
+- 다음: #11 의도 tier ablation(condcos≈1.0 동일오너셋 팩블록 병합 → ε-tier), #12 informed-negative BPR, CAUGHT UP 대기(rarity E).
