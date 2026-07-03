@@ -307,3 +307,12 @@
 **풀·크롤·기타(사용자 확정)**: 평가풀 = `type='game'`+미출시 제외+오너 하한 없음(a안). P5 = 최종 확정까지 대기. 유저 크롤 = 백그라운드 필러(P4 분석은 현 1,669명 풀). **rtime 진단 종결: Valve가 3rd-party 키에 rtime_last_played 미반환(파라미터 3종 실증 — 크롤 NULL의 진범, 파싱버그 아님) → 복구 불가, fallback 무작위 70/30(구 프로토콜과 일치 = 비교 일관성↑), recency는 2weeks/recently, 백필 스킵(1.7k콜 절약).**
 
 **자율 운행 개시(사용자 지시)**: 데탑 이전 완료(git main 최신화 — feat는 PR#1 머지·삭제 = **정본 브랜치 main**; venv 3.11.9 재구성 pip check clean; bat 머신-무관화; games-only 크롤 데탑 가동). **사용자가 멈출 때까지(최대 7일 ~07-10) 질문 금지·정지 금지·전 예외 무중단**: ScheduleWakeup 주 루프 + 매시 크론 하트비트(rate-limit 재진입) + 틱 워치독(크롤러 재시작; CAUGHT UP 시 daily_crawl 복귀) + RUNSTATE/저널 = 파일 기억. 절전 차단(powercfg). 월 07-06 정오 = 체크포인트 보고(종료 아님).
+
+## (실행) 개인화 hold-out 결과 — run `p4_step35_repro`
+- 0 users. recall@20: CF=0.000, LLM=0.000, POP=0.000, ORACLE=0.000
+- 상세: experiments/p4_step35_repro/report.md
+
+
+## (실행) 개인화 hold-out 결과 — run `p4_step35_repro2`
+- 78 users. recall@20: CF=0.293, LLM=0.000, POP=0.034, ORACLE=1.000
+- 상세: experiments/p4_step35_repro2/report.md
