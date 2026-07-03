@@ -1,22 +1,22 @@
 {
-  "mission": "P4 behavioral preference shortlisting — autonomous run UNTIL USER STOPS, max 2026-07-10 (7 days). Monday 07-06 noon = checkpoint report, not end.",
-  "rtime_verdict": "UNRECOVERABLE - Valve no longer returns rtime_last_played to 3rd-party keys (3 param variants probed 07-03). Fallback: random 70/30 split; recency via playtime_2weeks+recently. Backfill skipped (saves 1.7k calls).",
-  "plan_file": "C:/Users/82107/.claude/plans/recursive-dreaming-moore.md",
-  "driver": "main-loop",
-  "last_tick_ts": "2026-07-03T07:22:00+09:00",
-  "current_step": "slow-mode: learned-candidate(#20) + CAUGHT-UP watch + report upkeep",
-  "shortlist_frozen": {
-    "S1": "pvalue_lognorm_eb x userknn25 (private 0.2943)",
-    "S2": "pctl_game x userknn25 (0.2925)",
-    "S3": "cap_a03_blend04 x rp3b (SNIPS 0.0994, discovery)",
-    "S4": "cap_a03_blend04 x condcos (production-compatible 0.2667)"
-  },
-  "current_round": null,
-  "crawler": {
-    "mode": "games-only",
-    "expected_cmd": "crawl_unified --forever --phases games",
-    "switch_to_users_after_caught_up": true
-  },
-  "running_jobs": {},
-  "notes": "session-only cron heartbeat @ :23 hourly (id bc56b95d). If Claude app itself dies, heartbeat dies too — unrecoverable from inside; documented residual risk."
+ "mission": "P4 behavioral preference shortlisting — autonomous run UNTIL USER STOPS, max 2026-07-10 (7 days). Monday 07-06 noon = checkpoint report, not end.",
+ "rtime_verdict": "UNRECOVERABLE - Valve no longer returns rtime_last_played to 3rd-party keys (3 param variants probed 07-03). Fallback: random 70/30 split; recency via playtime_2weeks+recently. Backfill skipped (saves 1.7k calls).",
+ "plan_file": "C:/Users/82107/.claude/plans/recursive-dreaming-moore.md",
+ "driver": "main-loop",
+ "last_tick_ts": "2026-07-03T12:13:08+09:00",
+ "current_step": "slow-mode: learned-candidate(#20) + CAUGHT-UP watch + report upkeep",
+ "shortlist_frozen": {
+  "S1": "pvalue_lognorm_eb x userknn25 (private 0.2943)",
+  "S2": "pctl_game x userknn25 (0.2925)",
+  "S3": "cap_a03_blend04 x rp3b (SNIPS 0.0994, discovery)",
+  "S4": "cap_a03_blend04 x condcos (production-compatible 0.2667)"
+ },
+ "current_round": null,
+ "crawler": {
+  "mode": "games-only",
+  "expected_cmd": "crawl_unified --forever --phases games",
+  "switch_to_users_after_caught_up": true
+ },
+ "running_jobs": {},
+ "notes": "session-only cron heartbeat @ :23 hourly (id bc56b95d). If Claude app itself dies, heartbeat dies too — unrecoverable from inside; documented residual risk."
 }
