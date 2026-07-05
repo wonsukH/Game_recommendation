@@ -3,8 +3,8 @@
  "rtime_verdict": "UNRECOVERABLE - Valve no longer returns rtime_last_played to 3rd-party keys (3 param variants probed 07-03). Fallback: random 70/30 split; recency via playtime_2weeks+recently. Backfill skipped (saves 1.7k calls).",
  "plan_file": "C:/Users/82107/.claude/plans/recursive-dreaming-moore.md",
  "driver": "main-loop",
- "last_tick_ts": "2026-07-04T02:12:22+09:00",
- "current_step": "crawl-independent frontier EXHAUSTED (T14-T23); slow loop: CAUGHT-UP watch -> users switch + final recheck + rarity-E; report upkeep",
+ "last_tick_ts": "2026-07-05T18:15:09+09:00",
+ "current_step": "ALL plan work exhausted (T24: games crawl done, 38.4k recheck, rarity NEGATIVE). Slow loop: users-crawl watch (10k accrual) + report finalization Mon AM",
  "shortlist_frozen": null,
  "current_round": null,
  "crawler": {
@@ -20,5 +20,6 @@
   "S2": "pctl_game x userknn25",
   "S3": "cap_a03_blend04 x rp3b",
   "S4": "cap_a03_blend04 x condcos"
- }
+ },
+ "crawler_mode": "daily_crawl.bat (users+games)"
 }
