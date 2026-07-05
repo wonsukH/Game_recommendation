@@ -38,11 +38,22 @@ def card(meta, a):
 
 
 def main() -> int:
+    import os
+    variant = os.environ.get("JUDGE_VARIANT", "s1_vs_s4")
+    n_users = int(os.environ.get("JUDGE_N", N_USERS))
+
     inter, game_stats, user_stats, pool = load_artifacts()
     rel = build_relevance(inter, pool)
     panels = get_panels(rel)
     rng = np.random.default_rng(99)
-    users = sorted(rng.choice(panels["dev"], size=N_USERS, replace=False).tolist())
+    if variant.endswith("_fresh"):
+        frozen = (set(panels["train"]) | set(panels["dev"])
+                  | set(panels["private"]))
+        counts = rel.groupby("steamid").size()
+        cand = [int(u) for u in counts[counts >= 12].index if int(u) not in frozen]
+        users = sorted(rng.choice(cand, size=n_users, replace=False).tolist())
+    else:
+        users = sorted(rng.choice(panels["dev"], size=n_users, replace=False).tolist())
 
     con = sqlite3.connect(REPO_ROOT / "data_collection" / "steam.db")
     meta = {int(r[0]): (r[1], r[2], r[3]) for r in con.execute(
@@ -75,21 +86,24 @@ def main() -> int:
                       else model.recommend(prof, K, excl))
         return out
 
-    import os
-    variant = os.environ.get("JUDGE_VARIANT", "s1_vs_s4")
-    if variant == "s1pd_vs_s4":
-        s1 = recs_for({"name": "pvalue_lognorm_eb", "params": {}}, "knnpd03")
-    else:
-        s1 = recs_for({"name": "pvalue_lognorm_eb", "params": {}}, "userknn")
-    s4 = recs_for({"name": "per_user_cap",
-                   "params": {"base": "blend", "lam": 0.4, "alpha": 0.3}}, "condcos")
+    pv = {"name": "pvalue_lognorm_eb", "params": {}}
+    cap = {"name": "per_user_cap", "params": {"base": "blend", "lam": 0.4, "alpha": 0.3}}
+    if variant == "s0_vs_s1_fresh":
+        lx, ly = "S0", "S1"
+        sx, sy = recs_for(pv, "knnpd03"), recs_for(pv, "userknn")
+    elif variant == "s1pd_vs_s4":
+        lx, ly = "S1", "S4"
+        sx, sy = recs_for(pv, "knnpd03"), recs_for(cap, "condcos")
+    else:  # s1_vs_s4
+        lx, ly = "S1", "S4"
+        sx, sy = recs_for(pv, "userknn"), recs_for(cap, "condcos")
 
     cases, unblind = [], {}
     for i, u in enumerate(users):
         taste = sorted(prof_all[u].items(), key=lambda x: -x[1])[:8]
         flip = bool(rng.integers(0, 2))
-        a_list, b_list = (s4[u], s1[u]) if flip else (s1[u], s4[u])
-        unblind[f"case{i}"] = {"A": "S4" if flip else "S1", "B": "S1" if flip else "S4",
+        a_list, b_list = (sy[u], sx[u]) if flip else (sx[u], sy[u])
+        unblind[f"case{i}"] = {"A": ly if flip else lx, "B": lx if flip else ly,
                                "steamid": u}
         cases.append({
             "case": f"case{i}",
