@@ -17,7 +17,7 @@ P4의 **실측으로 방어되는 결과는 "랭커 교체"**입니다 — user-
 ## 결정해주셔야 할 것 (교정·우선순위순)
 1. **랭커(강건 결과)**: **user-KNN/RP3β로 교체 권고** — condcos 대비 +0.0242(BH-q=0.004) 유의, 전 고전랭커 압도. P5 재배선의 실질 내용. *유일 유의사항: 규모 의존성(10k서 EASE/ALS 재평가) — 현재 1.7k에선 userknn 우세.*
 2. **선호 = pvalue vs pctl_game**: 주 지표상 userknn 위에서 **구별 불가(ns)**. pvalue는 knnpd03서만·wishlist서 약하게 앞섬. *권고: 최단순 pctl_game을 기본으로, pvalue는 동급 후보로 P6 병행.*
-3. **knnpd03(구 S0) 처리**: **확정 승자 아님 → 선택적 발굴 knob(ablation)**. 채택하려면 P6의 **target-독립 지표(wishlist/구매 홀드아웃)에서 유의**해야 함 — 현재 ns.
+3. **knnpd03(구 S0) 처리**: **주지표 승자 아님(NDCG ns·recall −0.0095 SIG 손실)** — 단 웨이브2(2,655유저)에서 **target-독립 wishlist축이 +0.0073 SIG로 전환**(T34) → phantom 아닌 **정당한 발굴-지향 knob**(playtime-재현↔발굴 트레이드, 비순환 근거 확보). *권고: "playtime 재현"이 목표면 순정 userknn, "다음 구매/발굴 예측"이 목표면 knnpd03 — 제품 목표에 따라 선택. 최종은 P6 OOD로 확정.*
 4. **P6 사전등록 승인(보강본)**: `P6_PREREG.md`에 **target-독립 co-주지표(wishlist 홀드아웃)** 추가됨 — 순환 없는 판정만이 knnpd03·선호 우열을 가른다. 랜덤-accountID 패널·반증조건·비용(~하루 예산).
 5. **유저-크롤 allowlist 축소**(96% 절감): rarity E 음성으로 논거 유지 — 완료율만 유효. 채택 시 10k ETA 대폭 단축.
 6. **음성결과 수용(5종)**: 학습형 blend ns · 의도 ε-tier 기각 · informed-neg BPR −0.0514 SIG · rarity E 음성 · MF 전패. (감사에서 EASE 람다그리드·학습형 리랭커 미탐색이 열린 항목으로 지적됨 — P6 전 재검 권고.)
