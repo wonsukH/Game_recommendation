@@ -179,3 +179,22 @@
 
 ## [2026-07-06 03:20] T31 — 크롤러 2번째 사망 → 워치독 재시작
 - 03:18 틱에서 프로세스 0 감지(적립 2,585 정지, budget 진행률로 ~02:0x 사망 추정 — 원인 미상, 1번째와 마찬가지로 크래시 추정). daily_crawl.bat 재시작 완료(2프로세스), 재개형이라 손실 0. 사망 이력: 07-03 12:06, 07-06 ~02:0x — 빈도 낮음(2회/3일), 워치독 커버 범위 내.
+
+## [2026-07-06 10:55] T32 — 적대적 감사(ultracode 5렌즈 워크플로, 44에이전트) → **S0 결론 하향 교정**
+사용자 ultracode 지시로 S0="pvalue×knnpd03가 최선" 결론을 반증 시도. 39개 우려 검증(CONFIRMED 14·PLAUSIBLE 15·REFUTED 10). 5개 렌즈가 **독립적으로 같은 결함에 수렴** — 자기비판 정본화:
+
+**핵심 결함 (CONFIRMED, 수렴):**
+1. **S0의 "3축 우위"는 사실상 1축, 그 축은 순환.** 주 지표(popularity-neutral graded NDCG)에서 knnpd03의 인기패널티는 **무이득~미세손실**(recall@20은 유의 악화 Δ−0.011 [−0.017,−0.005]). S0의 "우위"는 전부 **SNIPS + judge-discovery**에서 오는데, 이 둘은 **같은 인기축을 두 번 센 것**(SNIPS=IPS 인기가중, judge=명시적으로 "덜 뻔한 픽 우대" 지시 → knnpd03이 기계적으로 인기 게임 감쇠 = 기준-기계 동어반복).
+2. **judge fit/discovery 컬럼 붕괴**: 비-tie 34/35 케이스 동일 = 독립 2축 아님. S0 리스트 16/16이 S1보다 덜 인기 → "적합 승자=항상 덜 인기 리스트" = 순환.
+3. **정답지 순환**: rel = per-game playtime 백분위. pvalue_lognorm_eb·pctl_game은 within-game playtime의 단조변환 → per-game Spearman(s, rel)≈1 by construction. **모든 검증축(masked·judge taste·fresh NDCG·심지어 P6 사전등록)이 동일 build_relevance 타깃 재사용** → 순환을 반박 못함. target-독립 신호(wishlist/구매 홀드아웃, 또는 즐김-기반 judge)만이 판정 가능.
+4. **"38.4k 단독 1위 0.2808"은 노이즈 내**(+0.0063 ns, CI 0 포함) + 튜닝(dev) 패널. 홀드아웃(private·fresh)에선 **S0 vs S1 오히려 음의 방향**(S0 뒤, ns). 크로스풀 "강건성"은 unpaired(split+pool+target+후보셋 동시 변동, 196/200 유저 NDCG 상이).
+5. **β 고원 [0.2,0.3] post-hoc·재현불가**(fresh 패널 멤버십 미영속, β=0.2가 실제 최고였음).
+6. **다중비교 미보정**(~197 페어 셀) → 일부 "SIG"(blend-vs-binary·rp3b-vs-userknn SNIPS)이 FDR 통과 불확실.
+7. **private 패널 2회 노출**로 S0 승격 → 해당 페어 통계 오염(descriptive-only).
+
+**살아남는 정직한 코어 (REFUTED된 반론 + 감사 인정):**
+- **preference main-effect 방어됨**: pvalue > pctl (+0.0033 SIG)·> dblq (+0.0041 SIG) 5랭커 풀링 → pvalue는 좋은 선호(단일 knnpd03 셀 아닌 풀링 근거로).
+- **coarse 구조 재현**: userknn/knnpd/rp3b ≫ condcos ≫ null이 fresh 무노출·리샘플에서 재현 = 넓은 레짐 일반화는 진짜.
+- 음성결과 대부분 유지(rarity paired-boot pvalue>rarity p≤0.001 등).
+
+**교정된 결론**: S0의 pop-discount는 **측정된 품질 향상이 아니라 인기/신선도 knob(제품 선택)**. "S0가 S1보다 낫다"는 **target-독립 근거로는 미입증**. → 다음: (a) 결정적 read-only 재검(순환 정량화·wishlist target-독립 재평가·BH-FDR·split-seed 안정성) (b) LEADERBOARD/REPORT 하향 교정 (c) P6_PREREG에 target-독립 주지표(wishlist 홀드아웃) 추가.
