@@ -198,3 +198,20 @@
 - 음성결과 대부분 유지(rarity paired-boot pvalue>rarity p≤0.001 등).
 
 **교정된 결론**: S0의 pop-discount는 **측정된 품질 향상이 아니라 인기/신선도 knob(제품 선택)**. "S0가 S1보다 낫다"는 **target-독립 근거로는 미입증**. → 다음: (a) 결정적 read-only 재검(순환 정량화·wishlist target-독립 재평가·BH-FDR·split-seed 안정성) (b) LEADERBOARD/REPORT 하향 교정 (c) P6_PREREG에 target-독립 주지표(wishlist 홀드아웃) 추가.
+
+## [2026-07-06 11:05] T33 — 결정적 재검(순환·target-독립·BH-FDR) → **정본 결론 재작성**
+감사 CONFIRMED 항목을 read-only로 실측(audit_verify.py·audit_fdr.py, dev 패널만·private/Gemini 미사용):
+
+**(A) 순환 정량화**: per-game Spearman(선호 s, rel 타깃) 중앙값 — pvalue **0.957**, pctl_game **0.957**, per_user_cap 0.660(9,959 게임). → pvalue/pctl은 자기 정답지의 단조 복사본. 주 지표(graded NDCG)는 "playtime 백분위를 얼마나 잘 복원하나"를 재는 셈 = 순환 확정.
+
+**(B) target-독립 검증(wishlist 홀드아웃, playtime 무관)**: S0 wl-recall 0.0201 > S1 0.0145 > S2 0.0134, **S0−S1 = +0.0056 [−0.0002,+0.0124] ns**. → 순환 없는 유일 신호에서 S0가 점추정은 앞서나 **유의하지 않음**(경계). 인기패널티가 "원하지만 미보유(=덜 인기)" 발굴에 약하게 정렬된다는 힌트이나 미입증.
+
+**(C) 주 지표 정직성(S0 vs S1, dev 페어드)**: NDCG **+0.0016 ns** · recall@20 **−0.0112 SIG** · SNIPS **+0.0081 SIG**. → knnpd03은 주 지표에서 무이득, **plain recall 유의 손실**, pop-debias 지표만 유의 이득(설계상 당연). = 품질 향상이 아니라 recall↔발굴 트레이드 knob.
+
+**BH-FDR(m=13 헤드라인 페어)**: **살아남음** — userknn≫condcos(+0.0242, q=0.004)·≫ppmi/ease/jaccard·S0-S1 SNIPS(+0.0087,q=0.0007)·recall(−0.011,q=0.002)·pvalue>pctl@knnpd03(+0.0095,q=0.003). **탈락(ns)** — **S0-S1 NDCG(+0.0001, q=0.75)**·pvalue>pctl@userknn(ns)·userknn>rp3b(ns)·R5(ns).
+
+**정본 결론(교정):**
+1. **가장 강건한 실측 = 랭커 레짐**(모든 FDR 통과): **user-KNN 계열이 프로덕션 condcos를 +0.0242(q=0.004) 유의 격파** + 전 고전랭커(ppmi/jaccard/ease) 압도. **랭커가 선호보다 크고 진짜인 레버** — P5 실행 권고의 핵심.
+2. **선호**: pvalue는 무난하나 pctl 대비 우위가 **랭커 교차 강건 아님**(knnpd03서만 SIG, userknn서 ns). 주 지표상 최단순 pctl_game과 userknn 위에서 구별 불가.
+3. **knnpd03(=S0의 pop-discount)**: **측정된 품질 향상 아님**. NDCG ns·recall SIG-손실·SNIPS/judge는 순환적 by-construction 이득. wishlist(독립)선 ns. = 제품/가치 knob(발굴 강조), 확정 승자 아님.
+4. **shortlist 재정의**: S0을 "확정 승자"에서 강등 → **P6 주후보 = S1/S2(pvalue-or-pctl × userknn), knnpd03은 ablation(발굴 knob)**. 최종 판정은 target-독립 주지표에서만.
