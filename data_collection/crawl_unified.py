@@ -407,13 +407,20 @@ class Crawler:
         return pub
 
     def run_users_chunk(self, limit) -> int:
-        if self.user_source == "random":
-            # oversample ~1.3x since ~21% of random accounts aren't public
-            sids = self._screen_public(self._random_candidates(int(limit * 1.35)))
-            if sids:
-                db.enqueue_users(self.conn, sids, depth=-1)  # depth=-1 tags random/OOD panel
-        else:
-            sids = db.next_pending_users(self.conn, limit)
+        try:
+            if self.user_source == "random":
+                # oversample ~1.35x since ~21% of random accounts aren't public
+                sids = self._screen_public(self._random_candidates(int(limit * 1.35)))
+                if sids:
+                    db.enqueue_users(self.conn, sids, depth=-1)  # depth=-1 tags random/OOD panel
+            else:
+                sids = db.next_pending_users(self.conn, limit)
+        except db.BudgetExhausted:
+            self.budget_exhausted = True
+            return 0
+        except Throttled:
+            self._cooldown()
+            return 0
         done = 0
         for sid in sids:
             try:
