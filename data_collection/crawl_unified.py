@@ -147,11 +147,19 @@ def parse_steamspy(appid: int, d: dict) -> tuple:
 # ---------------- crawler ----------------
 class Crawler:
     def __init__(self, conn, key, limit, target, ach_floor,
-                 min_target=0.7, max_target=8.0, max_throttle=5):
+                 min_target=0.7, max_target=8.0, max_throttle=5,
+                 crawl_ach=True, snowball=True, user_source="queue",
+                 random_max=1_600_000_000, random_seed=42):
         self.conn, self.key, self.limit, self.ach_floor = conn, key, limit, ach_floor
         self.target = target            # current wall-clock interval (AIMD-adapted)
         self.min_target, self.max_target = min_target, max_target
         self.max_throttle = max_throttle
+        self.crawl_ach = crawl_ach      # False -> skip per-game GetPlayerAchievements (25x faster users)
+        self.snowball = snowball        # False -> do not enqueue friends (avoid bias)
+        self.user_source = user_source  # "queue" (snowball BFS) | "random" (unbiased accountID sampling)
+        self.random_max = random_max
+        import random as _random
+        self.rng = _random.Random(random_seed)
         self._last_start = None
         self.calls = 0
         self.throttle_hits = 0
@@ -248,7 +256,7 @@ class Crawler:
         fr = ((j or {}).get("friendslist") or {}).get("friends") or []
         db.upsert_many(self.conn, "friends", ["steamid", "friend_steamid", "friend_since"],
                        [(sid, _i(f["steamid"]), _i(f.get("friend_since"))) for f in fr if f.get("steamid")])
-        if fr:
+        if fr and self.snowball:
             db.enqueue_users(self.conn, [f["steamid"] for f in fr if f.get("steamid")], depth + 1)
         # wishlist
         j = self.get(f"{API}/IWishlistService/GetWishlist/v1/", {"steamid": sid})
@@ -280,24 +288,28 @@ class Crawler:
                          _i(b.get("border_color"))) for b in bd if b.get("badgeid") is not None])
 
         # achievements: played games (playtime>=floor) that HAVE stats (gating saves calls)
-        played = [int(g["appid"]) for g in games
-                  if _f(g.get("playtime_forever")) >= self.ach_floor
-                  and g.get("has_community_visible_stats")]
-        for appid in played:
-            j = self.get(f"{API}/ISteamUserStats/GetPlayerAchievements/v1/",
-                         {"steamid": sid, "appid": appid})
-            ach = ((j or {}).get("playerstats") or {}).get("achievements") if j else None
-            if not ach:
-                continue   # stats genuinely absent / private for this game -> no signal
-            unlocked = [(a["apiname"], _i(a.get("unlocktime")) or 0)
-                        for a in ach if a.get("achieved") == 1 and a.get("apiname")]
-            db.upsert_many(self.conn, "player_game_ach",
-                           ["steamid", "appid", "unlocked", "total", "checked_at"],
-                           [(sid, appid, len(unlocked), len(ach), db.now_iso())])
-            if unlocked:
-                m = db.intern_achievements(self.conn, appid, [n for n, _ in unlocked])
-                db.upsert_many(self.conn, "user_achievement", ["steamid", "ach_id", "unlocktime"],
-                               [(sid, m[n], t) for n, t in unlocked if n in m])
+        # NOTE: this is ~96% of per-user API cost (one call per played game). Disabled via
+        # --no-achievements to trade the weak aggregate-completion signal (+0.0073) for ~25x
+        # more users/day (P4-ext 07-07 finding: individual achievements don't beat completion).
+        if self.crawl_ach:
+            played = [int(g["appid"]) for g in games
+                      if _f(g.get("playtime_forever")) >= self.ach_floor
+                      and g.get("has_community_visible_stats")]
+            for appid in played:
+                j = self.get(f"{API}/ISteamUserStats/GetPlayerAchievements/v1/",
+                             {"steamid": sid, "appid": appid})
+                ach = ((j or {}).get("playerstats") or {}).get("achievements") if j else None
+                if not ach:
+                    continue   # stats genuinely absent / private for this game -> no signal
+                unlocked = [(a["apiname"], _i(a.get("unlocktime")) or 0)
+                            for a in ach if a.get("achieved") == 1 and a.get("apiname")]
+                db.upsert_many(self.conn, "player_game_ach",
+                               ["steamid", "appid", "unlocked", "total", "checked_at"],
+                               [(sid, appid, len(unlocked), len(ach), db.now_iso())])
+                if unlocked:
+                    m = db.intern_achievements(self.conn, appid, [n for n, _ in unlocked])
+                    db.upsert_many(self.conn, "user_achievement", ["steamid", "ach_id", "unlocktime"],
+                                   [(sid, m[n], t) for n, t in unlocked if n in m])
         db.upsert_user(self.conn, sid, complete=1)
         return True
 
@@ -368,9 +380,42 @@ class Crawler:
         time.sleep(cd)
         return False
 
+    STEAMID_BASE = 76561197960265728  # SteamID64 = base + accountID
+
+    def _random_candidates(self, n) -> list[int]:
+        """Draw n random accountIDs not already in `users`. Measured (07-07): ~81% exist,
+        ~79% public profile, ~11% of public have visible game details -> ~9% crawlable."""
+        out, tries = [], 0
+        while len(out) < n and tries < n * 5:
+            tries += 1
+            sid = self.STEAMID_BASE + self.rng.randint(1, self.random_max)
+            if self.conn.execute("SELECT 1 FROM users WHERE steamid=?", (sid,)).fetchone():
+                continue
+            out.append(sid)
+        return out
+
+    def _screen_public(self, sids) -> list[int]:
+        """Batch GetPlayerSummaries (100 steamids/call) -> keep only public profiles.
+        Cheap pre-filter so GetOwnedGames isn't wasted on private/nonexistent accounts."""
+        pub = []
+        for i in range(0, len(sids), 100):
+            j = self.get(f"{API}/ISteamUser/GetPlayerSummaries/v2/",
+                         {"steamids": ",".join(str(s) for s in sids[i:i + 100])})
+            players = ((j or {}).get("response") or {}).get("players") or []
+            pub += [int(p["steamid"]) for p in players
+                    if p.get("communityvisibilitystate") == 3 and p.get("steamid")]
+        return pub
+
     def run_users_chunk(self, limit) -> int:
+        if self.user_source == "random":
+            # oversample ~1.3x since ~21% of random accounts aren't public
+            sids = self._screen_public(self._random_candidates(int(limit * 1.35)))
+            if sids:
+                db.enqueue_users(self.conn, sids, depth=-1)  # depth=-1 tags random/OOD panel
+        else:
+            sids = db.next_pending_users(self.conn, limit)
         done = 0
-        for sid in db.next_pending_users(self.conn, limit):
+        for sid in sids:
             try:
                 ok = self.crawl_user(sid)
             except db.BudgetExhausted:
@@ -450,6 +495,15 @@ def main() -> int:
     ap.add_argument("--loop-sleep", type=int, default=3600, help="sleep when paused/caught-up (--forever)")
     ap.add_argument("--stop-at-users", type=int, default=0,
                     help="stop once this many public+complete users are crawled (0 = no limit)")
+    ap.add_argument("--no-achievements", action="store_true",
+                    help="skip per-game GetPlayerAchievements (~96%% of user cost) -> ~25x more users/day")
+    ap.add_argument("--user-source", choices=["queue", "random"], default="queue",
+                    help="queue = snowball BFS from seed; random = unbiased accountID sampling (OOD/P6)")
+    ap.add_argument("--random-max", type=int, default=1_600_000_000,
+                    help="max accountID for random SteamID sampling")
+    ap.add_argument("--random-seed", type=int, default=42)
+    ap.add_argument("--no-snowball", action="store_true",
+                    help="do not enqueue friends (avoid reintroducing cohort bias)")
     args = ap.parse_args()
 
     key = os.environ.get("STEAM_API_KEY")
@@ -458,12 +512,19 @@ def main() -> int:
     conn = db.connect(args.db)
     if args.seed_today > 0:
         db.seed_today(conn, args.seed_today)
-    seeded = bootstrap_from_csv(conn, args.scores, args.max_bootstrap)
+    random_mode = args.user_source == "random"
+    snowball = not (args.no_snowball or random_mode)   # random implies no snowball
+    # random mode ignores the biased CSV/queue seed entirely
+    seeded = 0 if random_mode else bootstrap_from_csv(conn, args.scores, args.max_bootstrap)
     phases = [p.strip() for p in args.phases.split(",") if p.strip()]
-    log.info("phases=%s bootstrap=+%d queued, pending=%d, today_spent=%d, target=%.2fs",
-             phases, seeded, db.pending_users(conn), db.spent_today(conn), args.target)
+    log.info("phases=%s source=%s ach=%s snowball=%s bootstrap=+%d, today_spent=%d, target=%.2fs",
+             phases, args.user_source, not args.no_achievements, snowball, seeded,
+             db.spent_today(conn), args.target)
 
-    cr = Crawler(conn, key, args.limit, args.target, args.ach_floor, min_target=args.min_target)
+    cr = Crawler(conn, key, args.limit, args.target, args.ach_floor, min_target=args.min_target,
+                 crawl_ach=not args.no_achievements, snowball=snowball,
+                 user_source=args.user_source, random_max=args.random_max,
+                 random_seed=args.random_seed)
 
     def report():
         return {"calls_this_run": cr.calls, "throttle_hits": cr.throttle_hits,
