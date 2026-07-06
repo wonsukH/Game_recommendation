@@ -215,3 +215,10 @@
 2. **선호**: pvalue는 무난하나 pctl 대비 우위가 **랭커 교차 강건 아님**(knnpd03서만 SIG, userknn서 ns). 주 지표상 최단순 pctl_game과 userknn 위에서 구별 불가.
 3. **knnpd03(=S0의 pop-discount)**: **측정된 품질 향상 아님**. NDCG ns·recall SIG-손실·SNIPS/judge는 순환적 by-construction 이득. wishlist(독립)선 ns. = 제품/가치 knob(발굴 강조), 확정 승자 아님.
 4. **shortlist 재정의**: S0을 "확정 승자"에서 강등 → **P6 주후보 = S1/S2(pvalue-or-pctl × userknn), knnpd03은 ablation(발굴 knob)**. 최종 판정은 target-독립 주지표에서만.
+
+## [2026-07-06 11:25] T34 — 웨이브2 재추출(2,655유저·풀 39,743) 결정적 재검: **wishlist 독립축 SIG 전환**
+동일 read-only 재검을 더 큰 풀에서 반복:
+- **(A) 순환 재현**: per-game rho pvalue/pctl 0.958(변함없음) — 순환은 표본과 무관한 구조적 사실.
+- **(C) 주지표 정직성 재현**: S0 vs S1 — NDCG +0.0042 **ns** · recall −0.0095 **SIG 손실** · SNIPS +0.0096 SIG. knnpd03은 playtime-재현 축에선 여전히 무이득~손실.
+- **(B) target-독립(wishlist) — ns → SIG 전환**: S0 0.0211 > S1 0.0139 > S2 0.0133, **S0−S1 = +0.0073 [+0.0011,+0.0142] SIG**(n=179, 이전 +0.0056 ns@178에서 표본·풀 확대로 유의화).
+**정직한 재교정**: knnpd03의 인기패널티는 **playtime 재현(NDCG ns/recall 손실)이 아니라 "다음에 뭘 wishlist할지"(=미보유·덜인기 발굴)를 유의하게 더 잘 맞힌다** — 이 축은 playtime provenance가 없어 **비순환**. 따라서 knnpd03은 phantom이 아니라 **정당한 발굴-지향 knob**: playtime-recall ↔ 발굴 hit의 실재하는 트레이드. 다만 여전히 (i) 주지표(NDCG)선 무이득 (ii) in-cohort 단계 — OOD 재확인 필요. **랭커 교체(userknn≫condcos)가 강건 헤드라인이라는 결론은 불변**; knnpd03 상태만 "ns knob"→"비순환 근거 확보한 발굴 knob(OOD 대기)"로 상향.
