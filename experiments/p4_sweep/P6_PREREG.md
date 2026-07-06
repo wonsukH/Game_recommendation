@@ -6,7 +6,7 @@
 P4 shortlisting은 편향 코호트(리뷰어-스노볼)에서의 잠정 순위다. P6는 **de-biased 패널에서 리더 구성을 재실험**해 최종 확정한다 — winner's curse의 confirmation 단계. fresh-panel(T29, n=586)이 준-OOD 신호를 이미 줬지만 스노볼-연결이라 완전 독립이 아니다.
 
 ## 사전등록 가설 (감사 T32~T33로 재작성 — v2)
-- **H1(주가설, 강건 결과 확인)**: user-KNN(및 RP3β) 랭커가 OOD 패널에서 프로덕션 condcos를 **주지표 A에서 유의 격파**한다(in-cohort +0.0242, BH-q=0.004). → 성립 시 P5에서 랭커 교체 확정.
+- **H1(주가설, 랭커 — T36 정정)**: **EASE(λ≈100)** 가 OOD에서 프로덕션 condcos와 userknn을 **주지표 A에서 유의 격파**한다(in-cohort EASE−userknn +0.061 SIG; condcos 양축 최하). → 성립 시 P5 서빙 랭커=EASE. *구 H1의 "userknn 최고"는 cutoff 버그였음(T35). OOD 랭커 셋에 EASE(λ 50/100/200)·userknn·knnpd03·condcos 포함.*
 - **H2(선호)**: pvalue와 pctl_game은 주지표 A에서 **구별 불가**하다(귀무 유지 예상). 어느 하나가 target-독립 지표 B에서 유의하면 그것을 선호로 채택, 아니면 **최단순 pctl_game**.
 - **H3(knnpd03 knob)**: knnpd03이 순정 userknn 대비 **target-독립 지표 B(wishlist)에서 유의**를 OOD에서 유지하면 발굴 knob 채택(현 in-cohort **+0.0073 SIG**, 웨이브2), 붕괴하면 순정 userknn. *지표 A/SNIPS/judge는 순환이라 이 판정에서 제외.*
 - **반증 조건**: H1 붕괴(랭커 교체 근거 상실) → condcos 유지. H3의 지표 B ns 지속 → knnpd03 폐기, 순정 userknn 확정.

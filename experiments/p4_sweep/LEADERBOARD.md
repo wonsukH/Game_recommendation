@@ -2,7 +2,7 @@
 
 > **유형**: experiment-report · **상태**: active · **갱신**: 2026-07-06 (적대적 감사 T32~T33 반영)
 
-> ⚠️ **감사 교정(T32~T33, 아래 표보다 우선)**: 이 문서의 "S0(pvalue×knnpd03) 등극/전축 우위" 서술은 **과대포장으로 판명·하향**됨. 실측: ① 주 지표는 순환(per-game rho 0.957) ② S0 vs S1 — NDCG **ns**, recall **−0.0112 SIG 손실**, SNIPS만 +유의(순환) ③ target-독립(wishlist)선 **ns** ④ judge 적합/발굴 34/35 동일 = 1축, pop-discount와 동어반복. **실측 방어되는 결과 = 랭커: user-KNN ≫ condcos +0.0242(BH-q=0.004).** knnpd03은 발굴 knob(승자 아님). 상세 = `REPORT_MONDAY.md` 상단 + `JOURNAL.md` T32~T33. 아래 표는 감사 이전 프레이밍이라 그대로 신뢰 금지.
+> ⚠️ **감사 교정(T32~T33, 아래 표보다 우선)**: 이 문서의 "S0(pvalue×knnpd03) 등극/전축 우위" 서술은 **과대포장으로 판명·하향**됨. 실측: ① 주 지표는 순환(per-game rho 0.957) ② S0 vs S1 — NDCG **ns**, recall **−0.0112 SIG 손실**, SNIPS만 +유의(순환) ③ target-독립(wishlist)선 **ns** ④ judge 적합/발굴 34/35 동일 = 1축, pop-discount와 동어반복. **실측 방어되는 결과 = 랭커 교체(condcos는 양축 최하).** ⚠️ **T35~T36 추가정정**: cutoff 버그(EASE 선형점수 리스트 조기절단) 제거 후 **EASE(λ≈100)가 정정 승자**(NDCG +0.061 SIG vs userknn) — 구 "userknn 최고"도 버그 아티팩트. **서빙 랭커=EASE**, knnpd03은 발굴 knob(독립 wishlist +0.0073 SIG). 상세 = `REPORT_MONDAY.md` 상단 + `JOURNAL.md` T32~T33. 아래 표는 감사 이전 프레이밍이라 그대로 신뢰 금지.
 
 > Stage A(선호 진화 R0~R4, 46평가) → Stage B(랭커 11구성) → Stage C(소교차+패자부활전) → private 패널(150명) → **탐색 재개 후속**(MF 가족·wishlist 축·R5 조합·judge 가드레일·knnpd·masked-engagement·의도 ablation·informed-neg BPR).
 > 전 평가의 per-user CSV·config = `rounds/`·`stageB/`·`stageC/`·`private_check/`·`mf_family/`·`judge/`·`intent0_ablation/` 등. 서사 = `JOURNAL.md` (T0~T22).
