@@ -222,3 +222,10 @@
 - **(C) 주지표 정직성 재현**: S0 vs S1 — NDCG +0.0042 **ns** · recall −0.0095 **SIG 손실** · SNIPS +0.0096 SIG. knnpd03은 playtime-재현 축에선 여전히 무이득~손실.
 - **(B) target-독립(wishlist) — ns → SIG 전환**: S0 0.0211 > S1 0.0139 > S2 0.0133, **S0−S1 = +0.0073 [+0.0011,+0.0142] SIG**(n=179, 이전 +0.0056 ns@178에서 표본·풀 확대로 유의화).
 **정직한 재교정**: knnpd03의 인기패널티는 **playtime 재현(NDCG ns/recall 손실)이 아니라 "다음에 뭘 wishlist할지"(=미보유·덜인기 발굴)를 유의하게 더 잘 맞힌다** — 이 축은 playtime provenance가 없어 **비순환**. 따라서 knnpd03은 phantom이 아니라 **정당한 발굴-지향 knob**: playtime-recall ↔ 발굴 hit의 실재하는 트레이드. 다만 여전히 (i) 주지표(NDCG)선 무이득 (ii) in-cohort 단계 — OOD 재확인 필요. **랭커 교체(userknn≫condcos)가 강건 헤드라인이라는 결론은 불변**; knnpd03 상태만 "ns knob"→"비순환 근거 확보한 발굴 knob(OOD 대기)"로 상향.
+
+## [2026-07-06 12:10] T35 — 🔴 감사 후속 대발견: cutoff 버그가 "무거운 모델 전패" 결론을 뒤집음
+감사 CONFIRMED 'ease-cutoff-bug'를 실측: gauntlet recommend의 `if score<=0: break`는 유사도합 랭커(userknn/condcos, s≥0)엔 무해하나 **EASE의 선형 점수는 음수로 감 → 리스트 조기 절단**으로 EASE를 불리하게 했음.
+- **공정 재평가(절단 제거·λ그리드 10~1000, dev)**: ease_l100 **NDCG 0.3381** vs userknn 0.2782 = **+0.0600 [+0.0474,+0.0727] SIG**, recall도 0.1431 vs 0.1248 우위. λ커브 단봉(10<30<100>300>1000)=정상 작동 서명. 구 gauntlet의 평탄 ~0.21은 절단이 지배한 인공물.
+- **함의(중대)**: Stage B "userknn≫전랭커·EASE/MF 열세" 결론은 **버그 아티팩트**. 방금 커밋한 "랭커 강건 헤드라인=userknn≫condcos, userknn 교체 권고"도 **부정확** — 공정 재평가상 **EASE가 userknn·condcos 모두 상회**. MF(ALS/BPR/NMF)도 fold-in 점수가 음수라 같은 절단 피해 가능성 → 재검 필요.
+- **조치**: 랭커 결론 "수정 중" 표기, 학습형 리랭커·MF 공정재검 실행 후 종합 재작성. 순환 주의는 여전 유효(EASE NDCG도 같은 타깃) — 최종은 target-독립·OOD.
+- **메타 교훈**: 적대적 감사가 헤드라인을 뒤집는 실측 버그를 잡음 = 감사의 가치 실증. **가장 강건해 보였던 결론(FDR 통과 userknn>condcos)조차 공유 코드 경로 버그엔 취약**했다.
