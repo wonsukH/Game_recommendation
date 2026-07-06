@@ -3,8 +3,8 @@
  "rtime_verdict": "UNRECOVERABLE - Valve no longer returns rtime_last_played to 3rd-party keys (3 param variants probed 07-03). Fallback: random 70/30 split; recency via playtime_2weeks+recently. Backfill skipped (saves 1.7k calls).",
  "plan_file": "C:/Users/82107/.claude/plans/recursive-dreaming-moore.md",
  "driver": "main-loop",
- "last_tick_ts": "2026-07-06T13:19:23+09:00",
- "current_step": "audit follow-ups exhausted: EASE=fair winner (bug found), learned reranker=negative. Docs corrected. Back to slow crawl monitoring.",
+ "last_tick_ts": "2026-07-07T07:40:59+09:00",
+ "current_step": "crawl switched to unbiased random + no-achievements (T40). DL+achievement analysis done (T39, all negative/borderline).",
  "shortlist_frozen": null,
  "current_round": null,
  "crawler": {
@@ -20,5 +20,5 @@
   "knob": "knnpd03 pop-discount = discovery knob, ns on independent target — NOT a winner",
   "next": "P6 with target-independent wishlist co-primary"
  },
- "crawler_mode": "daily_crawl.bat (users+games)"
+ "crawler_mode": "UNBIASED: --user-source random --no-achievements (depth=-1 OOD pool). biased pool ~3044 kept for P4."
 }
