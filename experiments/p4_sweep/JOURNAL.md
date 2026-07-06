@@ -240,3 +240,10 @@
 - **EASE − userknn: NDCG +0.0606 [+0.0486,+0.0729] SIG · wishlist +0.0059 [−0.0002,+0.0128] ns(경계)**.
 - **정정 결론**: ① **서빙 랭커 = EASE(닫힌형 선형 item모델, λ≈100)** — NDCG 압도(+0.061 SIG) + 독립축 최상위권(0.0187, knnpd03과 ~동률), 1.1k유저 fit 0.9s(저비용). 구 "userknn 최고/EASE 열세"는 cutoff 버그 인공물. ② **독립축(wishlist)에선 발굴지향(knnpd03 0.0191 ≈ EASE 0.0187) > userknn 0.0128 > condcos 0.0084** — pop-discount·선형모델이 "다음 발굴" 예측서 우위. ③ **condcos(프로덕션) 양축 최하 → 교체 결론은 오히려 강화**(단 교체 대상은 userknn이 아니라 **EASE**).
 - 순환 주의 유지(EASE NDCG도 동일 타깃) — 단 EASE는 독립축서도 최상위권이라 순환-only 아님. 최종은 OOD(P6). 학습형 리랭커 결과 대기 중(EASE 넘는지).
+
+## [2026-07-06 12:18] T37 — 학습형 리랭커: 음성(감사 미탐색 항목 종결)
+monotone HGB(피처 [userknn_score, condcos_score, pop_pct, lib_size], train유저 112,567행 학습, dev 1회):
+- **결과: dev NDCG 0.1854 < userknn 0.2582 · knnpd03 0.2638** (리랭크 기반보다도 낮음) / wishlist 독립 0.0188 ≈ knnpd03 0.0191(최상위권).
+- **해석**: 학습모델이 자유도상 pop_pct를 강하게 감쇠 학습 → 순환 NDCG 손해·독립축만 최상위(knnpd03과 동일 트레이드). 후보셋=userknn top-120 상한도 제약. **학습형 fusion이 EASE/knnpd03 대비 부가가치 없음** — 감사 지적 미탐색 항목(학습형 리랭커)을 음성으로 종결.
+- 한정: 4피처·monotone·회귀손실의 소박한 구현 — 정식 LambdaMART(랭킹손실·다피처)는 이론상 열림이나, **EASE가 이미 NDCG 압도**하고 리랭커가 독립축서도 knnpd03 초과 못하므로 기대값 낮음.
+- **감사 후속 종합**: EASE cutoff버그(헤드라인 뒤집음, T35~36) + 학습형 음성(T37) + 순환·knob 교정(T32~34). 미탐색 잔여 = 보정 fusion(크루드 RRF는 이미 기각·리랭커가 사실상 포함) → 실질 소진.
