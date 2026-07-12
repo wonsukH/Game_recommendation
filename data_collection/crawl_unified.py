@@ -559,13 +559,19 @@ def main() -> int:
             time.sleep(args.loop_sleep)
             continue
         if n == 0 and not cr.circuit_open:
+            if args.user_source == "random":
+                # random accountID space is effectively infinite -> n==0 is a transient empty
+                # or throttled cycle, NOT caught-up. Short retry instead of the 1h CAUGHT-UP sleep
+                # (this loop was stalling the unbiased crawl to ~400 calls/day on 07-10/11).
+                time.sleep(60)
+                continue
             log.info("CAUGHT UP (nothing pending in %s). counts=%s", phases, db.counts(conn))
             if not args.forever:
                 break
             time.sleep(args.loop_sleep)
             continue
         if cr.circuit_open and args.forever:
-            time.sleep(args.loop_sleep)
+            time.sleep(300 if args.user_source == "random" else args.loop_sleep)
 
     log.info("STOP. %s", json.dumps(report()))
     print(json.dumps(report()))
