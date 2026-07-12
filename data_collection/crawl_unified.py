@@ -159,7 +159,11 @@ class Crawler:
         self.user_source = user_source  # "queue" (snowball BFS) | "random" (unbiased accountID sampling)
         self.random_max = random_max
         import random as _random
-        self.rng = _random.Random(random_seed)
+        # SystemRandom (OS entropy) NOT a fixed seed: a fixed seed replays the SAME accountID
+        # sequence every restart, but those sids are already in `users` -> _random_candidates
+        # filters them all out -> 0 fresh candidates -> crawler stalls (bug seen 07-13 after
+        # repeated restarts). Reproducibility isn't needed for unbiased sampling.
+        self.rng = _random.SystemRandom() if random_seed == 42 else _random.Random(random_seed)
         self._last_start = None
         self.calls = 0
         self.throttle_hits = 0
