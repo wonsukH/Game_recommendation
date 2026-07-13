@@ -39,10 +39,10 @@ Fields are parsed independently, so extra fields may sit between them:
 |---|---|---|
 | `behavior-rules` | working rules | `../CLAUDE.md` |
 | `overview` | project overview | `README.md` |
-| `roadmap` | status / handoff (reset entry point) | `docs/ROADMAP.md` |
-| `design-spec` | design intent / spec | `docs/INTENT.md`, this doc |
-| `bug-log` | diagnosed issue record | `docs/issues/*` |
-| `runbook` | operational how-to | `docs/runbook_pool_expansion.md` |
+| `roadmap` | durable phase plan | `docs/roadmap.md` |
+| `design-spec` | design intent / spec | this doc, `experiments/p4_sweep/P6_PREREG.md` |
+| `bug-log` | diagnosed issue record | `docs/archive/issues/*` |
+| `runbook` | operational how-to | `docs/operations.md` |
 | `index` | navigation / catalog | `experiments/INDEX.md`, `experiments/README.md` |
 | `reasoning-log` | append-only deliberation narrative | `experiments/DELIBERATION_LOG.md` |
 | `experiment-report` | per-run result report (auto-generated) | `experiments/<run>/report.md` |
@@ -60,7 +60,7 @@ Full set: `behavior-rules, overview, roadmap, design-spec, bug-log, runbook, ind
 A `deprecated` or `frozen` doc must carry, **near the top** (within the checked head), a deprecation banner or a canonical pointer. The checker accepts any one of these markers: `[폐기·이력]`, `정본`, `[deprecated]`, or `canonical:`. Standard form:
 
 ```
-> ⚠️ **[deprecated]** <one-line reason>. canonical: [`../README.md`](../README.md) · [`ROADMAP.md`](ROADMAP.md).
+> ⚠️ **[deprecated]** <one-line reason>. canonical: [`../README.md`](../README.md).
 ```
 
 ## 4. Information-density tiers
@@ -76,7 +76,7 @@ Navigation is top-down: Tier 0 points to Tier 1, Tier 1 points to Tier 2. A read
 ## 5. House rules
 
 - **Answer-first**: lead with the conclusion / decision / key number. A report's first few lines must yield the verdict (e.g. a `## Decision` section or a `**decision**: …` lead line), so retrieval hits the answer immediately.
-- **Single source of truth**: a canonical number lives on **exactly one** page. Every other mention cross-links to it — never re-state (and risk desyncing) the value. Current canonical hubs are `status: active` (`README.md` / `ROADMAP.md`).
+- **Single source of truth**: a canonical number lives on **exactly one** page. Every other mention cross-links to it — never re-state (and risk desyncing) the value. Current canonical hubs: [`results.md`](results.md) (experiment numbers) and [`status.md`](status.md) (live counts).
 - **Cross-link by relative path**: file references use relative markdown links `[`path`](path)`. `[[wiki-link]]` syntax is reserved for memory cross-refs only (e.g. `[[confirm-before-code-change]]`).
 - **Keep Tier-1 pages to ~one screen**: if an overview outgrows a screen, split detail into a Tier-2 page and link it, rather than letting the overview sprawl.
 - **English prose, identifiers as-is**: body prose is English, but keep code, CLI, identifiers, and metric names verbatim (existing convention).

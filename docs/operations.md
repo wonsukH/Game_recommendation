@@ -45,8 +45,6 @@ throttle-deaths.
 
 **There is intentionally NO Windows Scheduled Task** — the user declined it. The watchdog only runs when
 something (a Claude session) is invoking it; it is **not** OS-scheduled. Do not create a Scheduled Task.
-(The script's own header comment still says "Registered as a Windows Scheduled Task" — that comment is
-stale; disregard it.)
 
 ## 3. API budget
 
@@ -71,12 +69,16 @@ the reset — no action needed.
 
 ## 5. Reading crawl status from the DB safely
 
-The live writer holds the WAL. For status queries, open a **read-only / `immutable=1`** connection so a
-status read never contends for the write lock:
+WAL mode lets a read-only connection run concurrently with the live writer without blocking it. For a
+**fresh** status read, open read-only **without** `immutable=1`:
 
 ```
-sqlite3.connect("file:data_collection/steam.db?immutable=1", uri=True)
+sqlite3.connect("file:data_collection/steam.db?mode=ro", uri=True)
 ```
+
+⚠️ **Do not use `immutable=1` for live status** — it tells SQLite the file never changes, so it ignores
+the WAL and returns a **stale snapshot** (it will under-report a crawl that is actively writing).
+`immutable=1` is only for a DB you know is quiescent.
 
 Prefer **simple `COUNT(*)`** probes (e.g. `SELECT COUNT(*) FROM users WHERE public=1 AND complete=1`).
 The queue/work-list helpers (`pending_users`, `next_pending_users`, `next_games_to_fetch`) use `LEFT JOIN`s
@@ -92,5 +94,5 @@ that are slow on the live DB — avoid heavy JOINs for a quick status check.
 ## See also
 
 - [status](status.md) — live counts, pool sizes, current step (canonical for changing numbers).
-- [ROADMAP.md](ROADMAP.md) — phase status and handoff.
+- [roadmap](roadmap.md) — durable phase plan · [decisions](decisions.md) — settled vs open.
 - `data_collection/crawl_unified.py` — crawler CLI and phase logic · `data_collection/db.py` — schema + budget gate.

@@ -25,7 +25,7 @@
 | `_workflow_scripts/` | Claude 서브에이전트 심판에 쓴 임시 워크플로우 JS | (참고용, 재실행 불필요) | `_*.js` |
 
 ## 한 줄 결론의 흐름
-익명/태그-유사도 프레이밍(01–04)은 LLM에 ~96% 패배 → 그 스택 **폐기**(이는 *익명/vibe 한정* 판정). **개인화 CF(05)는 "LLM+내 라이브러리"를 유의하게 이김(recall@20 0.293 vs 0.173) + EASE 동률** = *현재 구현된* 코어 moat(범위 한정). 자기비판적 평가는 그 우위를 정직히 한정하는 **보완** 역량(성능 '대신' 아님). 현 시스템 = CF + `agent_graph`(library/seed/multi_entity/explore/anonymous) + steam.db; 01–04 스택은 폐기·증거로만 보존. 데이터층 재구축 로드맵 = `docs/ROADMAP.md`.
+익명/태그-유사도 프레이밍(01–04)은 LLM에 ~96% 패배 → 그 스택 **폐기**(이는 *익명/vibe 한정* 판정). **개인화 CF(05)는 "LLM+내 라이브러리"를 유의하게 이김(recall@20 0.293 vs 0.173) + EASE 동률** = *현재 구현된* 코어 moat(범위 한정). 자기비판적 평가는 그 우위를 정직히 한정하는 **보완** 역량(성능 '대신' 아님). 현 시스템 = CF + `agent_graph`(library/seed/multi_entity/explore/anonymous) + steam.db; 01–04 스택은 폐기·증거로만 보존. 데이터층 재구축 로드맵 = `docs/roadmap.md`(정본 진입점 = `docs/README.md`).
 
 ## 재현 / 주의
 - 각 run 디렉터리(`phase1_full/`, `personalization_full/` 등)는 `report.md`+`manifest.json`(아티팩트 sha256 지문)+`per_query.csv`+`aggregate.json`로 자기완결적.
