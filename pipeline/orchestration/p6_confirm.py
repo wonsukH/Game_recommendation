@@ -71,8 +71,12 @@ def resolve_users_and_graph(args, rel, panels_p4):
         users = [int(u) for u in p6["confirm"] if u in counts.index]
     if args.graph == "frozen":
         graph = sorted(panels_p4["train"])
-    else:  # mixed (A4): train + ALL exploration users, panel fully held out
-        graph = sorted(set(panels_p4["train"]) | set(p6["exploration"]))
+    else:  # mixed (A4): train + exploration users, panel fully held out.
+        # A dryrun draws ITS panel from exploration, so those users are
+        # removed from the graph — same holdout semantics as the confirm run
+        # (whose panel is disjoint from exploration by construction).
+        graph = sorted((set(panels_p4["train"]) | set(p6["exploration"]))
+                       - set(users))
     assert not (set(graph) & set(users)), "graph/panel overlap — holdout broken"
     return users, graph, p6
 

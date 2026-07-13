@@ -1,0 +1,20 @@
+{
+  "run": "fresh854_frozen",
+  "panel": "fresh854",
+  "graph": "frozen",
+  "n_users": 854,
+  "n_graph": 1133,
+  "n_wl_eligible": 0,
+  "seed_split": 42,
+  "draw_seed": 777,
+  "artifacts": "D:\\YBIGTA\\Newbie_project\\Game_recommendation\\outputs\\p4",
+  "git_head": "ae233056db2312cda7302bc47214ce55cee439d1",
+  "panel_sha": null,
+  "started": "2026-07-14T03:30:19",
+  "elapsed_s": 33,
+  "anchors": {
+    "oracle_ndcg": 1.0,
+    "pop_ndcg": 0.1322,
+    "pop_wl": null
+  }
+}
