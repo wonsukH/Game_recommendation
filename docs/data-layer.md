@@ -1,6 +1,6 @@
 # Data layer
 
-> type: overview · status: active · updated: 2026-07-13
+> type: overview · status: active · updated: 2026-07-14
 
 The recommender's data lives in **one SQLite file, `data_collection/steam.db`** (~2 GB), built by a
 budget-capped Steam crawler. It captures **behavior** — ownership, playtime, wishlist, friends — because
@@ -36,9 +36,13 @@ For live counts and the current step see [status](status.md); to run or restart 
   order (not steamid, which would bias toward old/private accounts). `budget`(day, calls) — the daily gate.
   `crawl_state`(key, pos, done) — resume cursors.
 
-**Achievements — UNUSED (disabled):** `game_achievement`, `player_game_ach`, `user_achievement` (interned
-`ach_id` design). Achievement crawling is turned off (`--no-achievements`); aggregate completion was a weak
-signal not worth ~25x the per-user cost (P4-ext finding). Tables remain but are not populated by new crawls.
+**Achievements — collection OFF, legacy rows remain:** `game_achievement`, `player_game_ach`,
+`user_achievement` (interned `ach_id` design). Achievement crawling is turned off (`--no-achievements`);
+aggregate completion was a weak signal not worth ~25x the per-user cost (P4-ext finding). The tables are
+**not empty**: they hold legacy rows from the pre-2026-07-07 biased crawl (`user_achievement` ≈9.5M,
+`player_game_ach` ≈529k), which still feed `build_relevance`'s completion branch for in-cohort users.
+The unbiased `depth = -1` cohort has **zero** achievement rows, so OOD relevance degrades to
+playtime-percentile only (pre-registered as P6 amendment A2).
 
 ## Crawler (`crawl_unified.py`)
 

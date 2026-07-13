@@ -1,13 +1,15 @@
 # Roadmap
 
-> type: roadmap · status: active · updated: 2026-07-13
+> type: roadmap · status: active · updated: 2026-07-14
 
 The data layer pivoted from review-CSV to a behavioral SQLite store (`steam.db`), which forces a
 re-wire of the recommender's inputs, the "liked" definition, the quality signals, and the whole
 evaluation. The **CF moat is unchanged** (playtime-weighted item-item co-play); these phases rewire
-everything around it. Order: **crawl (ongoing) → P4 (gate) → P5 → P6 → P7 → P8; P9 continuous.**
-Each phase gets its own detailed plan when it starts. Headline numbers live in [results](results.md);
-methodology in [evaluation](evaluation.md).
+everything around it. Order: **crawl (ongoing) → P4 (gate) → P6 (OOD confirmation) → P5 → P7 → P8;
+P9 continuous.** P6 runs **before** P5: the one-shot OOD confirmation fixes the serving-ranker
+choice, and the builder rewire is committed around that verdict. Each phase gets its own detailed
+plan when it starts. Headline numbers live in [results](results.md); methodology in
+[evaluation](evaluation.md).
 
 ## Phases
 - **P4 — Behavioral "liked" / preference definition (gate, done first).** Redefine "liked" from
@@ -15,17 +17,20 @@ methodology in [evaluation](evaluation.md).
   *Done when:* a pre-registered check shows a behavioral-liked ranker reproduces or beats the old
   baseline. **Shortlisting is complete** — outcome → [results](results.md).
 
+- **P6 — Confirmation on the unbiased OOD pool.** Re-bench the P4 shortlist on the **unbiased
+  random OOD pool** with wishlist recall as co-primary; quantify cohort bias vs the old snowball
+  pool and a saturation curve that fixes the crawl stop point.
+  *Done when:* the pre-registered confirmation runs on the OOD pool
+  ([`P6_PREREG.md`](../experiments/p4_sweep/P6_PREREG.md)). Confirmation → [results](results.md);
+  method → [evaluation](evaluation.md). **In progress** — pre-registration amended (v3) and
+  approved 2026-07-14; panel N = 1,000 + 500-user quarantined reserve; exploration track E1–E4
+  alongside. Live state → [status](status.md).
+
 - **P5 — Builder rewire (CSV → steam.db) + artifact regeneration.** Rebuild co-play/CF, tag
   vocab/matrix, popularity, the quality gate, titles, and catalog metadata directly from `steam.db`;
   the catalog pool grows with the crawl.
-  *Done when:* serving artifacts are regenerated from `steam.db` with no runtime CSV. Depends on P4.
-
-- **P6 — Confirmation on rich data + OOD bias.** Re-bench the P4 shortlist on the **unbiased random
-  OOD pool** with wishlist recall as co-primary; quantify cohort bias vs the old snowball pool and a
-  saturation curve that fixes the crawl stop point.
-  *Done when:* the pre-registered confirmation runs on the OOD pool
-  ([`P6_PREREG.md`](../experiments/p4_sweep/P6_PREREG.md)). Confirmation → [results](results.md);
-  method → [evaluation](evaluation.md). Depends on P5. **Ready to start.**
+  *Done when:* serving artifacts are regenerated from `steam.db` with no runtime CSV. Depends on
+  P4 **and the P6 verdict** (serving ranker must be confirmed before the rewire is built around it).
 
 - **P7 — Preference-weighted learned model (optional; likely a null).** Learn
   `w_p = f(playtime, completion, recency)` versus the fixed log weight. **Note:** the achievement
