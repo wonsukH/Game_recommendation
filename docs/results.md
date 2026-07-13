@@ -25,8 +25,10 @@ Evidence (Korean, append-only): [`experiments/p4_sweep/JOURNAL.md`](../experimen
   blinded 3-arm absolute-rubric judge (pre-registered, 20 users × 30 items), EASE precision@10 =
   **44.5% High** [35.5, 54.0] / **71% High+Medium** vs random 6.5%/27% and POP 7.5%/38% —
   rubric validity held (EASE ≫ random, non-overlapping CIs; no popularity-rating correlation).
-  **Depth view** (the flipped metric, full coverage curve): the median future-wishlist item sits
-  at EASE rank **988** (top 4% of catalog; POP 2,689 — 2.7×); per-user K for 25/50/75% wishlist
+  **Depth view** (the flipped metric, full coverage curve): top-20 catches 4.0% of future-wishlist
+  targets = **~49× random-chance enrichment** (chance ≈ 20/24,520 = 0.08%; POP = 20×); the median
+  future-wishlist item sits at EASE rank **988** (top 4% of catalog; POP 2,689 — 2.7×); per-user K
+  for 25/50/75% wishlist
   coverage ≈ **344 / 933 / 5,025** (POP 859 / 2,681 / 5,898). EASE dominates POP ~2–2.5× at every
   serving-relevant depth (K ≤ 5,000); in the deep tail (K ≥ 10,000) POP mechanically overtakes
   (popularity enumeration + EASE's smaller rankable index) — an artifact zone no one serves from.
