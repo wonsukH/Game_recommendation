@@ -1,0 +1,174 @@
+{
+  "eval_n": 400,
+  "graph_n": 2669,
+  "wl_eligible": 206,
+  "baseline": "ease_l100",
+  "slim_deferred": "same regularization family as EDLAE at 10-100x compute; run only if EDLAE separates from EASE",
+  "table": [
+    {
+      "variant": "ease_l50",
+      "ndcg": 0.3016,
+      "d_ndcg": 0.0035,
+      "d_ndcg_ci": "[-0.0004,+0.0070]",
+      "sig_ndcg": false,
+      "wl": 0.0401,
+      "d_wl": -0.0002,
+      "sig_wl": false,
+      "n": 400
+    },
+    {
+      "variant": "ease_l70",
+      "ndcg": 0.2998,
+      "d_ndcg": 0.0018,
+      "d_ndcg_ci": "[-0.0005,+0.0041]",
+      "sig_ndcg": false,
+      "wl": 0.0422,
+      "d_wl": 0.0019,
+      "sig_wl": false,
+      "n": 400
+    },
+    {
+      "variant": "ease_l100",
+      "ndcg": 0.2981,
+      "d_ndcg": 0.0,
+      "d_ndcg_ci": "[+0.0000,+0.0000]",
+      "sig_ndcg": false,
+      "wl": 0.0403,
+      "d_wl": 0.0,
+      "sig_wl": false,
+      "n": 400
+    },
+    {
+      "variant": "ease_l30",
+      "ndcg": 0.2978,
+      "d_ndcg": -0.0003,
+      "d_ndcg_ci": "[-0.0061,+0.0048]",
+      "sig_ndcg": false,
+      "wl": 0.0428,
+      "d_wl": 0.0025,
+      "sig_wl": false,
+      "n": 400
+    },
+    {
+      "variant": "zblend_a0.7",
+      "ndcg": 0.2977,
+      "d_ndcg": -0.0003,
+      "d_ndcg_ci": "[-0.0049,+0.0044]",
+      "sig_ndcg": false,
+      "wl": 0.0436,
+      "d_wl": 0.0033,
+      "sig_wl": false,
+      "n": 400
+    },
+    {
+      "variant": "ease_l140",
+      "ndcg": 0.2946,
+      "d_ndcg": -0.0035,
+      "d_ndcg_ci": "[-0.0057,-0.0011]",
+      "sig_ndcg": true,
+      "wl": 0.0387,
+      "d_wl": -0.0016,
+      "sig_wl": false,
+      "n": 400
+    },
+    {
+      "variant": "zblend_a0.5",
+      "ndcg": 0.2927,
+      "d_ndcg": -0.0053,
+      "d_ndcg_ci": "[-0.0110,+0.0007]",
+      "sig_ndcg": false,
+      "wl": 0.0406,
+      "d_wl": 0.0003,
+      "sig_wl": false,
+      "n": 400
+    },
+    {
+      "variant": "ease_l200",
+      "ndcg": 0.2913,
+      "d_ndcg": -0.0067,
+      "d_ndcg_ci": "[-0.0105,-0.0030]",
+      "sig_ndcg": true,
+      "wl": 0.0416,
+      "d_wl": 0.0013,
+      "sig_wl": false,
+      "n": 400
+    },
+    {
+      "variant": "rrf_k60",
+      "ndcg": 0.2908,
+      "d_ndcg": -0.0072,
+      "d_ndcg_ci": "[-0.0133,-0.0007]",
+      "sig_ndcg": true,
+      "wl": 0.042,
+      "d_wl": 0.0016,
+      "sig_wl": false,
+      "n": 400
+    },
+    {
+      "variant": "ease_l100_nonneg",
+      "ndcg": 0.2892,
+      "d_ndcg": -0.0088,
+      "d_ndcg_ci": "[-0.0134,-0.0046]",
+      "sig_ndcg": true,
+      "wl": 0.039,
+      "d_wl": -0.0013,
+      "sig_wl": false,
+      "n": 400
+    },
+    {
+      "variant": "ease_l300",
+      "ndcg": 0.2868,
+      "d_ndcg": -0.0112,
+      "d_ndcg_ci": "[-0.0163,-0.0063]",
+      "sig_ndcg": true,
+      "wl": 0.0421,
+      "d_wl": 0.0018,
+      "sig_wl": false,
+      "n": 400
+    },
+    {
+      "variant": "zblend_a0.3",
+      "ndcg": 0.2828,
+      "d_ndcg": -0.0153,
+      "d_ndcg_ci": "[-0.0227,-0.0077]",
+      "sig_ndcg": true,
+      "wl": 0.0409,
+      "d_wl": 0.0005,
+      "sig_wl": false,
+      "n": 400
+    },
+    {
+      "variant": "edlae_a1.0",
+      "ndcg": 0.2411,
+      "d_ndcg": -0.057,
+      "d_ndcg_ci": "[-0.0710,-0.0442]",
+      "sig_ndcg": true,
+      "wl": 0.0331,
+      "d_wl": -0.0072,
+      "sig_wl": false,
+      "n": 400
+    },
+    {
+      "variant": "edlae_a0.5",
+      "ndcg": 0.2338,
+      "d_ndcg": -0.0642,
+      "d_ndcg_ci": "[-0.0782,-0.0508]",
+      "sig_ndcg": true,
+      "wl": 0.0317,
+      "d_wl": -0.0086,
+      "sig_wl": false,
+      "n": 400
+    },
+    {
+      "variant": "edlae_a0.1",
+      "ndcg": 0.2057,
+      "d_ndcg": -0.0923,
+      "d_ndcg_ci": "[-0.1061,-0.0786]",
+      "sig_ndcg": true,
+      "wl": 0.0308,
+      "d_wl": -0.0095,
+      "sig_wl": false,
+      "n": 400
+    }
+  ]
+}

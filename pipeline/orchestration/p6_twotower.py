@@ -97,12 +97,19 @@ class Tower(nn.Module):
 
 
 class TwoTower:
-    """Trainable feature two-tower; recommend() plugs into the P6 harness."""
+    """Trainable two-tower; recommend() plugs into the P6 harness.
+
+    v2 (industry-standard hybrid): item input = [tag features ; learned item-id
+    embedding]. The id embedding lets the model rank WITHIN tag-clusters (the
+    v1 feature-only variant could not, and scored below null); cold items keep
+    a zero id vector, so the feature path still scores them (cold-start
+    capability retained). Set id_dim=0 to reproduce the v1 feature-only tower."""
 
     def __init__(self, scores: pd.DataFrame, graph_users: list[int],
                  pool: set[int], feats: dict[int, np.ndarray], deep: bool,
-                 dim: int = 64, epochs: int = 6, batch: int = 1024,
-                 lr: float = 3e-3, temp: float = 0.07, seed: int = SEED):
+                 dim: int = 64, id_dim: int = 32, epochs: int = 10,
+                 batch: int = 1024, lr: float = 3e-3, temp: float = 0.07,
+                 seed: int = SEED):
         torch.manual_seed(seed)
         np.random.seed(seed % (2 ** 31))
         t0 = time.time()
@@ -112,27 +119,42 @@ class TwoTower:
         self.col = {a: j for j, a in enumerate(self.items)}
         self.F = torch.tensor(np.stack([feats[a] for a in self.items]))
         self.feats = feats
-        in_dim = self.F.shape[1]
+        self.id_dim = id_dim
+        n_items = len(self.items)
+        # id embeddings only for items with graph support (warm); others zero
+        warm = set(d["appid"].astype(int).map(self.col).dropna().astype(int))
+        self.warm_mask = torch.zeros(n_items, 1)
+        self.warm_mask[list(warm)] = 1.0
+        self.id_emb = nn.Embedding(n_items, id_dim) if id_dim else None
+        if self.id_emb is not None:
+            nn.init.normal_(self.id_emb.weight, std=0.02)
+        in_dim = self.F.shape[1] + id_dim
         self.user_tower = Tower(in_dim, dim, deep)
         self.item_tower = Tower(in_dim, dim, deep)
         self.temp = temp
 
         # training triples (u, item_col, w) + per-user pooled feature sums
         u_ids = d["steamid"].astype(int).values
-        i_cols = d["appid"].astype(int).map(self.col).values
+        i_cols = d["appid"].astype(int).map(self.col).values.astype(int)
         w = d["s"].astype(np.float32).values
         urow_map = {u: k for k, u in enumerate(sorted(set(u_ids)))}
         u_rows = np.array([urow_map[u] for u in u_ids])
         n_u = len(urow_map)
-        usum = np.zeros((n_u, in_dim), dtype=np.float32)
+        usum = np.zeros((n_u, self.F.shape[1]), dtype=np.float32)
         utot = np.zeros(n_u, dtype=np.float32)
         Fnp = self.F.numpy()
         np.add.at(utot, u_rows, w)
         for k in range(len(u_rows)):
             usum[u_rows[k]] += w[k] * Fnp[i_cols[k]]
         usum_t, utot_t = torch.tensor(usum), torch.tensor(utot)
+        # sparse user x item weight matrix for differentiable id pooling
+        W = torch.sparse_coo_tensor(
+            np.stack([u_rows, i_cols]), torch.tensor(w),
+            size=(n_u, len(self.items))).coalesce()
 
         params = list(self.user_tower.parameters()) + list(self.item_tower.parameters())
+        if self.id_emb is not None:
+            params += list(self.id_emb.parameters())
         opt = torch.optim.Adam(params, lr=lr)
         n = len(u_rows)
         rng = np.random.default_rng(seed)
@@ -145,39 +167,59 @@ class TwoTower:
                     continue
                 ur, ic = u_rows[idx], i_cols[idx]
                 wt = torch.tensor(w[idx])
-                # leave-one-out pooling: subtract the positive from its own user input
-                pooled = (usum_t[ur] - wt[:, None] * self.F[ic])
                 denom = (utot_t[ur] - wt).clamp(min=1e-6)[:, None]
-                uin = pooled / denom
+                # leave-one-out pooling: subtract the positive from its own input
+                u_tag = (usum_t[ur] - wt[:, None] * self.F[ic]) / denom
+                if self.id_emb is not None:
+                    E = self.id_emb.weight * self.warm_mask
+                    pooled_id = torch.sparse.mm(W, E)
+                    u_id = (pooled_id[ur] - wt[:, None] * E[ic]) / denom
+                    uin = torch.cat([u_tag, u_id], dim=1)
+                    iin = torch.cat([self.F[ic], E[ic]], dim=1)
+                else:
+                    uin, iin = u_tag, self.F[ic]
                 uvec = self.user_tower(uin)
-                ivec = self.item_tower(self.F[ic])
+                ivec = self.item_tower(iin)
                 logits = (uvec @ ivec.T) / self.temp
                 loss = nn.functional.cross_entropy(
                     logits, torch.arange(len(idx)), reduction="mean")
                 opt.zero_grad()
                 loss.backward()
                 opt.step()
-                tot_loss += float(loss)
+                tot_loss += float(loss.detach())
                 nb += 1
-            log.info("twotower(%s) epoch %d/%d loss=%.4f",
-                     "deep" if deep else "shallow", ep + 1, epochs, tot_loss / max(nb, 1))
+            log.info("twotower(%s,id%d) epoch %d/%d loss=%.4f",
+                     "deep" if deep else "shallow", self.id_dim, ep + 1, epochs,
+                     tot_loss / max(nb, 1))
         with torch.no_grad():
-            self.I = self.item_tower(self.F)  # item index (n_items x dim)
+            if self.id_emb is not None:
+                self.E = (self.id_emb.weight * self.warm_mask).detach()
+                self.I = self.item_tower(torch.cat([self.F, self.E], dim=1))
+            else:
+                self.E = None
+                self.I = self.item_tower(self.F)
         log.info("twotower fit: %d users, %d pos, %d items (%.0fs)",
                  n_u, n, len(self.items), time.time() - t0)
 
     def recommend(self, profile: dict[int, float], k: int, exclude: set[int]) -> list[int]:
         num = np.zeros(self.F.shape[1], dtype=np.float32)
+        nid = np.zeros(self.id_dim, dtype=np.float32) if self.id_dim else None
         tot = 0.0
         for a, w in profile.items():
+            j = self.col.get(int(a))
             f = self.feats.get(int(a))
-            if f is not None and w > 0:
-                num += w * f
-                tot += w
+            if f is None or w <= 0:
+                continue
+            num += w * f
+            if nid is not None and j is not None:
+                nid += w * self.E[j].numpy()
+            tot += w
         if tot <= 0:
             return []
         with torch.no_grad():
-            uvec = self.user_tower(torch.tensor(num / tot)[None, :])
+            uin = (torch.tensor(np.concatenate([num, nid]) / tot)[None, :]
+                   if nid is not None else torch.tensor(num / tot)[None, :])
+            uvec = self.user_tower(uin.float())
             scores = (self.I @ uvec[0]).numpy()
         for a in profile:
             j = self.col.get(int(a))

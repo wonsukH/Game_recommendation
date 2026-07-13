@@ -1,0 +1,36 @@
+{
+  "eval_n": 400,
+  "predictions": "see p6_twotower.py header",
+  "ndcg_by_graph": {
+    "ease_l100": {
+      "1133": 0.2333,
+      "1901": 0.2876,
+      "2669": 0.2981
+    },
+    "tt_deep": {
+      "1133": 0.0144,
+      "1901": 0.019,
+      "2669": 0.0209
+    },
+    "tt_shallow": {
+      "1133": 0.0157,
+      "1901": 0.0237,
+      "2669": 0.0333
+    },
+    "userknn25": {
+      "1133": 0.1996,
+      "1901": 0.2519,
+      "2669": 0.2609
+    }
+  },
+  "slope_per_log_user": {
+    "ease_l100": 0.078,
+    "tt_deep": 0.0077,
+    "tt_shallow": 0.0201,
+    "userknn25": 0.074
+  },
+  "crossover_vs_ease": {
+    "tt_shallow": "no crossover (slope <= EASE)",
+    "tt_deep": "no crossover (slope <= EASE)"
+  }
+}
