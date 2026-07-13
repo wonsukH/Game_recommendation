@@ -17,14 +17,12 @@ plan when it starts. Headline numbers live in [results](results.md); methodology
   *Done when:* a pre-registered check shows a behavioral-liked ranker reproduces or beats the old
   baseline. **Shortlisting is complete** — outcome → [results](results.md).
 
-- **P6 — Confirmation on the unbiased OOD pool.** Re-bench the P4 shortlist on the **unbiased
-  random OOD pool** with wishlist recall as co-primary; quantify cohort bias vs the old snowball
-  pool and a saturation curve that fixes the crawl stop point.
-  *Done when:* the pre-registered confirmation runs on the OOD pool
-  ([`P6_PREREG.md`](../experiments/p4_sweep/P6_PREREG.md)). Confirmation → [results](results.md);
-  method → [evaluation](evaluation.md). **In progress** — pre-registration amended (v3) and
-  approved 2026-07-14; panel N = 1,000 + 500-user quarantined reserve; exploration track E1–E4
-  alongside. Live state → [status](status.md).
+- **P6 — Confirmation on the unbiased OOD pool. DONE (2026-07-14).** The pre-registered one-shot
+  confirmation ran on the frozen 1,000-user random-cohort panel: **H1 confirmed — serving = EASE**
+  (wins both the primary and the target-independent wishlist axis); preference = `pctl_game`;
+  `knnpd03(β.3)` dropped per the registered falsification. Verdicts → [results](results.md);
+  method → [evaluation](evaluation.md). Remaining under this phase: exploration track E1–E4
+  (incl. the saturation curve that fixes the crawl stop point) → [status](status.md).
 
 - **P5 — Builder rewire (CSV → steam.db) + artifact regeneration.** Rebuild co-play/CF, tag
   vocab/matrix, popularity, the quality gate, titles, and catalog metadata directly from `steam.db`;

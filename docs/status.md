@@ -29,12 +29,12 @@ vs 97% in the old snowball cohort. Note: an earlier "≈6,700 panel-eligible" fi
 counted raw-owned ≥12; the canonical eligibility is the ≈3,416 above.
 
 ## Current phase
-- **P4 shortlisting: done** (in-cohort + fresh n = 854) — serving pick is EASE; see [results](results.md).
-- **P6: IN PROGRESS (started 2026-07-14).** Pre-registration amended (v3: EASE slots, panel
-  N = 1,000 + 500 reserve, fixed FDR family m = 8, frozen operational definitions) and approved —
-  canonical protocol: [`P6_PREREG.md`](../experiments/p4_sweep/P6_PREREG.md). Gate: verification
-  gauntlet V1–V6 + user sign-off on a dry-run leaderboard **before** the one-shot confirmation run.
-- Exploration track (firewalled from the confirmation panel): E1 cohort-shift quantification,
-  E2 unbiased popularity/propensity re-estimation, E3 light-user descriptives, E4 saturation curve
-  (fixes the crawl stop point). E5 (EASE fine-tune + fusion) only if H1 confirms.
+- **P6 OOD confirmation: DONE (2026-07-14).** One-shot run on the frozen 1,000-user unbiased panel:
+  **H1 confirmed (serving = EASE λ≈100, wins both axes), preference = pctl_game, knnpd03(β.3)
+  dropped** — full verdict table: [results](results.md). Gauntlet V1–V6 green; user-signed dry-run.
+- **Next: P5** (builder rewire around EASE) after the exploration track lands.
+- Exploration track in progress (firewalled from confirm/reserve panels): E1 cohort-shift,
+  E2 unbiased popularity/propensity, E3 light-user descriptives, E4 saturation curve (crawl stop
+  point). E5 (EASE fine-grid + fusion) unlocked by H1 — exploration pool + mini-prereg + reserve
+  if a winner emerges. Plus the absolute-rubric judge (9-2).
 - Decisions register: [decisions](decisions.md).
