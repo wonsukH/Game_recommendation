@@ -25,6 +25,10 @@ Evidence (Korean, append-only): [`experiments/p4_sweep/JOURNAL.md`](../experimen
   blinded 3-arm absolute-rubric judge (pre-registered, 20 users × 30 items), EASE precision@10 =
   **44.5% High** [35.5, 54.0] / **71% High+Medium** vs random 6.5%/27% and POP 7.5%/38% —
   rubric validity held (EASE ≫ random, non-overlapping CIs; no popularity-rating correlation).
+  **Depth view** (the flipped metric): the median future-wishlist item sits at EASE rank **988**
+  (top 4% of catalog; POP 2,689 — 2.7×); covering *half* a user's wishlist needs K ≈ **933**
+  (POP 2,681); covering *all* of it needs ~the whole catalog for any ranker (worst-target
+  dominated) — EASE's edge holds at every depth (2.2–2.9× POP at top-20/100/500).
 - **Validated core (the moat)**: playtime-weighted co-play CF beats "give an LLM my library" on
   *personalization*; on an *anonymous / vibe* framing the LLM wins — that stack stays **retired**.
 - **Everything learned/neural lost or tied** (see table). The confirmed winner is the *simplest*

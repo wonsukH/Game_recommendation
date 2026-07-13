@@ -1,0 +1,94 @@
+{
+  "A5_top10": {
+    "n_users": 206,
+    "targets_per_user_T": {
+      "mean": 8.03,
+      "median": 10.0,
+      "max": 10
+    },
+    "ease": {
+      "n_targets": 1655,
+      "n_unrankable": 63,
+      "per_target_rank": {
+        "median": 988,
+        "p75": 8725,
+        "p90": 23540,
+        "pct_in_top20": 4.0,
+        "pct_in_top50": 9.8,
+        "pct_in_top100": 15.8,
+        "pct_in_top500": 38.3
+      },
+      "per_user_K": {
+        "K_for_50pct_median": 933,
+        "K_for_100pct_median": 23688,
+        "K_for_100pct_p25": 16404,
+        "K_for_100pct_p75": 24497
+      }
+    },
+    "pop": {
+      "n_targets": 1655,
+      "n_unrankable": 47,
+      "per_target_rank": {
+        "median": 2689,
+        "p75": 7718,
+        "p90": 17850,
+        "pct_in_top20": 1.6,
+        "pct_in_top50": 3.8,
+        "pct_in_top100": 7.2,
+        "pct_in_top500": 24.2
+      },
+      "per_user_K": {
+        "K_for_50pct_median": 2681,
+        "K_for_100pct_median": 15996,
+        "K_for_100pct_p25": 7737,
+        "K_for_100pct_p75": 28072
+      }
+    }
+  },
+  "all_targets": {
+    "n_users": 206,
+    "targets_per_user_T": {
+      "mean": 42.3,
+      "median": 11.5,
+      "max": 1307
+    },
+    "ease": {
+      "n_targets": 8713,
+      "n_unrankable": 516,
+      "per_target_rank": {
+        "median": 2362,
+        "p75": 13412,
+        "p90": 23687,
+        "pct_in_top20": 2.0,
+        "pct_in_top50": 5.3,
+        "pct_in_top100": 9.2,
+        "pct_in_top500": 25.8
+      },
+      "per_user_K": {
+        "K_for_50pct_median": 962,
+        "K_for_100pct_median": 24263,
+        "K_for_100pct_p25": 19506,
+        "K_for_100pct_p75": 40863
+      }
+    },
+    "pop": {
+      "n_targets": 8713,
+      "n_unrankable": 305,
+      "per_target_rank": {
+        "median": 3642,
+        "p75": 10427,
+        "p90": 20260,
+        "pct_in_top20": 0.7,
+        "pct_in_top50": 2.5,
+        "pct_in_top100": 4.6,
+        "pct_in_top500": 15.8
+      },
+      "per_user_K": {
+        "K_for_50pct_median": 2574,
+        "K_for_100pct_median": 18438,
+        "K_for_100pct_p25": 9710,
+        "K_for_100pct_p75": 40863
+      }
+    }
+  }
+}
