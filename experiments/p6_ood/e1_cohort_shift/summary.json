@@ -1,0 +1,48 @@
+{
+  "n_in_cohort": 854,
+  "n_ood": 1000,
+  "kendall_tau": 0.822,
+  "kendall_p": 0.0004,
+  "profile_size_strata": {
+    "S5b": {
+      "[0,15)": {
+        "ic_ptonly": 0.2268,
+        "ood": 0.2107,
+        "n_ood": 207,
+        "shrink_pct": 7.1
+      },
+      "[15,40)": {
+        "ic_ptonly": 0.2026,
+        "ood": 0.2376,
+        "n_ood": 431,
+        "shrink_pct": -17.2
+      },
+      "[40,1000000000)": {
+        "ic_ptonly": 0.3473,
+        "ood": 0.2785,
+        "n_ood": 362,
+        "shrink_pct": 19.8
+      }
+    },
+    "S1": {
+      "[0,15)": {
+        "ic_ptonly": 0.2295,
+        "ood": 0.1843,
+        "n_ood": 207,
+        "shrink_pct": 19.7
+      },
+      "[15,40)": {
+        "ic_ptonly": 0.1813,
+        "ood": 0.2004,
+        "n_ood": 431,
+        "shrink_pct": -10.5
+      },
+      "[40,1000000000)": {
+        "ic_ptonly": 0.2796,
+        "ood": 0.2227,
+        "n_ood": 362,
+        "shrink_pct": 20.3
+      }
+    }
+  }
+}
