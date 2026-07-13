@@ -12,17 +12,48 @@
       "per_target_rank": {
         "median": 988,
         "p75": 8725,
-        "p90": 23540,
-        "pct_in_top20": 4.0,
-        "pct_in_top50": 9.8,
-        "pct_in_top100": 15.8,
-        "pct_in_top500": 38.3
+        "p90": 23540
+      },
+      "coverage_curve_pct": {
+        "10": 1.9,
+        "20": 4.0,
+        "50": 9.8,
+        "100": 15.8,
+        "200": 23.9,
+        "500": 38.3,
+        "1000": 50.3,
+        "2000": 59.8,
+        "5000": 69.7,
+        "10000": 76.0,
+        "20000": 83.3
       },
       "per_user_K": {
-        "K_for_50pct_median": 933,
-        "K_for_100pct_median": 23688,
-        "K_for_100pct_p25": 16404,
-        "K_for_100pct_p75": 24497
+        "K_for_25pct": {
+          "median": 344,
+          "p25": 134,
+          "p75": 1004
+        },
+        "K_for_50pct": {
+          "median": 933,
+          "p25": 392,
+          "p75": 3165
+        },
+        "K_for_75pct": {
+          "median": 5025,
+          "p25": 1277,
+          "p75": 17694
+        },
+        "K_for_90pct": {
+          "median": 17388,
+          "p25": 4865,
+          "p75": 23746
+        },
+        "K_for_100pct": {
+          "median": 23688,
+          "p25": 16404,
+          "p75": 24497,
+          "note": "worst-target dominated; shown for completeness"
+        }
       }
     },
     "pop": {
@@ -31,17 +62,48 @@
       "per_target_rank": {
         "median": 2689,
         "p75": 7718,
-        "p90": 17850,
-        "pct_in_top20": 1.6,
-        "pct_in_top50": 3.8,
-        "pct_in_top100": 7.2,
-        "pct_in_top500": 24.2
+        "p90": 17850
+      },
+      "coverage_curve_pct": {
+        "10": 0.8,
+        "20": 1.6,
+        "50": 3.8,
+        "100": 7.2,
+        "200": 12.5,
+        "500": 24.2,
+        "1000": 34.7,
+        "2000": 45.5,
+        "5000": 65.4,
+        "10000": 79.5,
+        "20000": 91.8
       },
       "per_user_K": {
-        "K_for_50pct_median": 2681,
-        "K_for_100pct_median": 15996,
-        "K_for_100pct_p25": 7737,
-        "K_for_100pct_p75": 28072
+        "K_for_25pct": {
+          "median": 859,
+          "p25": 379,
+          "p75": 2550
+        },
+        "K_for_50pct": {
+          "median": 2681,
+          "p25": 1090,
+          "p75": 5422
+        },
+        "K_for_75pct": {
+          "median": 5898,
+          "p25": 2857,
+          "p75": 10826
+        },
+        "K_for_90pct": {
+          "median": 10472,
+          "p25": 5061,
+          "p75": 18614
+        },
+        "K_for_100pct": {
+          "median": 15996,
+          "p25": 7737,
+          "p75": 28072,
+          "note": "worst-target dominated; shown for completeness"
+        }
       }
     }
   },
@@ -58,17 +120,48 @@
       "per_target_rank": {
         "median": 2362,
         "p75": 13412,
-        "p90": 23687,
-        "pct_in_top20": 2.0,
-        "pct_in_top50": 5.3,
-        "pct_in_top100": 9.2,
-        "pct_in_top500": 25.8
+        "p90": 23687
+      },
+      "coverage_curve_pct": {
+        "10": 1.0,
+        "20": 2.0,
+        "50": 5.3,
+        "100": 9.2,
+        "200": 14.7,
+        "500": 25.8,
+        "1000": 36.5,
+        "2000": 47.5,
+        "5000": 61.8,
+        "10000": 71.7,
+        "20000": 81.3
       },
       "per_user_K": {
-        "K_for_50pct_median": 962,
-        "K_for_100pct_median": 24263,
-        "K_for_100pct_p25": 19506,
-        "K_for_100pct_p75": 40863
+        "K_for_25pct": {
+          "median": 297,
+          "p25": 122,
+          "p75": 573
+        },
+        "K_for_50pct": {
+          "median": 962,
+          "p25": 381,
+          "p75": 2561
+        },
+        "K_for_75pct": {
+          "median": 5830,
+          "p25": 1449,
+          "p75": 15598
+        },
+        "K_for_90pct": {
+          "median": 17572,
+          "p25": 5849,
+          "p75": 23437
+        },
+        "K_for_100pct": {
+          "median": 24263,
+          "p25": 19506,
+          "p75": 40863,
+          "note": "worst-target dominated; shown for completeness"
+        }
       }
     },
     "pop": {
@@ -77,17 +170,48 @@
       "per_target_rank": {
         "median": 3642,
         "p75": 10427,
-        "p90": 20260,
-        "pct_in_top20": 0.7,
-        "pct_in_top50": 2.5,
-        "pct_in_top100": 4.6,
-        "pct_in_top500": 15.8
+        "p90": 20260
+      },
+      "coverage_curve_pct": {
+        "10": 0.3,
+        "20": 0.7,
+        "50": 2.5,
+        "100": 4.6,
+        "200": 7.9,
+        "500": 15.8,
+        "1000": 24.7,
+        "2000": 36.9,
+        "5000": 58.1,
+        "10000": 74.0,
+        "20000": 89.7
       },
       "per_user_K": {
-        "K_for_50pct_median": 2574,
-        "K_for_100pct_median": 18438,
-        "K_for_100pct_p25": 9710,
-        "K_for_100pct_p75": 40863
+        "K_for_25pct": {
+          "median": 837,
+          "p25": 346,
+          "p75": 1737
+        },
+        "K_for_50pct": {
+          "median": 2574,
+          "p25": 1006,
+          "p75": 4669
+        },
+        "K_for_75pct": {
+          "median": 6252,
+          "p25": 2800,
+          "p75": 9674
+        },
+        "K_for_90pct": {
+          "median": 11328,
+          "p25": 5308,
+          "p75": 18092
+        },
+        "K_for_100pct": {
+          "median": 18438,
+          "p25": 9710,
+          "p75": 40863,
+          "note": "worst-target dominated; shown for completeness"
+        }
       }
     }
   }

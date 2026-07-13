@@ -36,26 +36,38 @@ OUT = P6_DIR / "wl_rank_depth"
 EVAL_N, EVAL_SEED = 400, 888
 
 
+K_GRID = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000]
+COVERAGE_LEVELS = (25, 50, 75, 90)
+
+
 def depth_stats(ranks_by_user: dict[int, list[float]], pool_n: int) -> dict:
     all_r = np.array([r for v in ranks_by_user.values() for r in v])
-    per_user_k50 = [float(np.percentile(v, 50)) for v in ranks_by_user.values() if v]
     per_user_k100 = [float(max(v)) for v in ranks_by_user.values() if v]
+    # per-user K needed to reach each coverage level (distribution, not max)
+    per_user_kq = {q: [float(np.percentile(v, q)) for v in ranks_by_user.values() if v]
+                   for q in COVERAGE_LEVELS}
     return {
         "n_targets": int(len(all_r)),
         "n_unrankable": int((all_r >= pool_n).sum()),
         "per_target_rank": {
             "median": int(np.median(all_r)), "p75": int(np.percentile(all_r, 75)),
             "p90": int(np.percentile(all_r, 90)),
-            "pct_in_top20": round(float((all_r <= 20).mean()) * 100, 1),
-            "pct_in_top50": round(float((all_r <= 50).mean()) * 100, 1),
-            "pct_in_top100": round(float((all_r <= 100).mean()) * 100, 1),
-            "pct_in_top500": round(float((all_r <= 500).mean()) * 100, 1),
         },
+        # pooled CDF: share of ALL targets found within depth K
+        "coverage_curve_pct": {str(k): round(float((all_r <= k).mean()) * 100, 1)
+                               for k in K_GRID},
+        # per-user K@coverage distributions (median [p25, p75] across users)
         "per_user_K": {
-            "K_for_50pct_median": int(np.median(per_user_k50)),
-            "K_for_100pct_median": int(np.median(per_user_k100)),
-            "K_for_100pct_p25": int(np.percentile(per_user_k100, 25)),
-            "K_for_100pct_p75": int(np.percentile(per_user_k100, 75)),
+            **{f"K_for_{q}pct": {
+                "median": int(np.median(per_user_kq[q])),
+                "p25": int(np.percentile(per_user_kq[q], 25)),
+                "p75": int(np.percentile(per_user_kq[q], 75))}
+               for q in COVERAGE_LEVELS},
+            "K_for_100pct": {
+                "median": int(np.median(per_user_k100)),
+                "p25": int(np.percentile(per_user_k100, 25)),
+                "p75": int(np.percentile(per_user_k100, 75)),
+                "note": "worst-target dominated; shown for completeness"},
         },
     }
 
