@@ -1,6 +1,6 @@
 # P6 OOD 재실험 — 사전등록 프로토콜 (v1, 2026-07-06 자율운행 중 작성)
 
-> **유형**: pre-registration · **상태**: draft(사용자 승인 대기) · **작성 시점 고정**: 이 문서는 OOD 데이터를 보기 **전에** 등록한다. 등록 후 수정은 append-only(수정 이력 명시)로만.
+> **유형**: design-spec · **상태**: active · **갱신**: 2026-07-13 — 사전등록 프로토콜(OOD 관측 **전** 고정, 등록 후 append-only). 사용자 승인 대기.
 
 ## 목적
 P4 shortlisting은 편향 코호트(리뷰어-스노볼)에서의 잠정 순위다. P6는 **de-biased 패널에서 리더 구성을 재실험**해 최종 확정한다 — winner's curse의 confirmation 단계. fresh-panel(T29, n=586)이 준-OOD 신호를 이미 줬지만 스노볼-연결이라 완전 독립이 아니다.

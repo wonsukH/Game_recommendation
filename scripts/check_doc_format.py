@@ -20,11 +20,12 @@ VOCAB = {"behavior-rules", "overview", "roadmap", "design-spec", "bug-log", "run
          "index", "reasoning-log", "experiment-report", "metric-report", "eval-output",
          "portfolio", "html-reference"}
 STATUS = {"active", "deprecated", "frozen"}
-# meta-block fields may appear with extra fields between them (e.g. · **run**: ..,
-# · **브랜치**: ..), so parse each field independently rather than requiring adjacency.
-RE_TYPE = re.compile(r"\*\*유형\*\*:\s*([a-z-]+)")
-RE_STATUS = re.compile(r"\*\*상태\*\*:\s*(\w+)")
-RE_DATE = re.compile(r"\*\*갱신\*\*:\s*(\d{4}-\d{2}-\d{2})")
+# meta-block fields may appear with extra fields between them, so parse each field
+# independently. Bilingual: Korean evidence logs use **유형/상태/갱신**; the English
+# docs/ wiki uses type/status/updated.
+RE_TYPE = re.compile(r"(?:\*\*유형\*\*|type):\s*([a-z-]+)")
+RE_STATUS = re.compile(r"(?:\*\*상태\*\*|status):\s*(\w+)")
+RE_DATE = re.compile(r"(?:\*\*갱신\*\*|updated):\s*(\d{4}-\d{2}-\d{2})")
 
 def tracked_docs():
     pats = ["README.md", "docs/**/*.md", "experiments/**/*.md"]
@@ -43,7 +44,8 @@ def check(f):
     errs = []
     if not any(l.startswith("# ") for l in head):
         errs.append("no H1 in first 8 lines")
-    metaline = next((l for l in head if l.lstrip().startswith("> **유형**")), None)
+    metaline = next((l for l in head if l.lstrip().startswith("> **유형**")
+                     or l.lstrip().startswith("> type:")), None)
     if not metaline:
         errs.append("no meta-block (> **유형**: .. · **상태**: .. · **갱신**: YYYY-MM-DD)")
         return errs
@@ -58,8 +60,8 @@ def check(f):
         errs.append(f"unknown 상태 '{status}'")
     if status in ("deprecated", "frozen"):
         top = "\n".join(head)
-        if "[폐기·이력]" not in top and "정본" not in top:
-            errs.append(f"{status} but no 폐기 banner / 정본 pointer near top")
+        if not any(k in top for k in ("[폐기·이력]", "정본", "[deprecated]", "canonical:")):
+            errs.append(f"{status} but no deprecated/폐기 banner or canonical/정본 pointer near top")
     return errs
 
 def main():
