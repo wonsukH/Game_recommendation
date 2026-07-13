@@ -277,3 +277,7 @@ config/credentials.py
 .streamlit
 experiments/p4_sweep/judge/_diff_tmp.json
 *_diff_tmp.json
+
+# Claude Code runtime state (keep agents/skills, ignore session junk)
+.claude/*.lock
+.claude/scheduled_tasks.lock
