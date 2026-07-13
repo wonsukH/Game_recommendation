@@ -1,0 +1,210 @@
+===== case10 =====
+--- USER TASTE ---
+  Paunch | Action, Indie, Massively Multiplayer, RPG | eng=0.98 | One-on-one physical online duels.
+  Pacify | Action, Adventure, Casual, Indie | eng=0.97 | An online co-op horror game where you pacify, weaken and capture supernatural creatures for PAH Inc. Each level has a different story, unique monsters
+  Realm Royale Reforged | Action, Free To Play, Early Access | eng=0.96 | Join 20+ million players and experience a new kind of battle royale in Realm Royale Reforged! Choose your class, forge deadly weapons, and master powe
+  Crab Game | Action, Casual, Free To Play, Indie | eng=0.96 | Crab Game is a First-Person Multiplayer game where you play through several different minigames based on children's games, until only one player stand
+  DEVOUR | Indie | eng=0.94 | DEVOUR is a co-op horror survival game for 1-4 players. Stop possessed cultists before they drag you to hell. Run. Scream. Hide. Just don't get caught
+  Splitgate | Action, Free To Play, Indie | eng=0.94 | Splitgate is a free-to-play, fast-paced multiplayer shooter that features player-controlled portals. This sci-fi shooter takes the FPS genre to a new 
+  Phasmophobia | Action, Indie, Early Access | eng=0.93 | Phasmophobia is a 4 player online co-op psychological horror. Paranormal activity is on the rise and it’s up to you and your team to use all the ghost
+  RIDE 4 | Racing, Simulation, Sports | eng=0.93 | Are you ready to live the best gaming experience that a motorcycle fan can get? RIDE 4 will spark your competitive soul with hundreds of bikes, dozens
+--- CANDIDATES ---
+  slot=0 Portal 2 | Action, Adventure | The &quot;Perpetual Testing Initiative&quot; has been expanded to allow you to design co-op puzzles for you and your friends!
+  slot=1 THE FINALS | Action, Free To Play | THE FINALS is the world’s first Dynamism Shooter, a free-to-play, fast-paced, physics-driven, first-person shooter set on the stage of the biggest Gam
+  slot=2 Alkurai | Action, Adventure, Casual, Indie | Alkurai is a 4 player online co-op fantasy horror game. An infamous Alchemist has murdered the king and seized Alkurai's throne. It is up to you and y
+  slot=3 The Epic Bang Theory | Casual, Indie | You have only one attempt.
+  slot=4 Euro Truck Simulator 2 | Indie, Simulation | Travel across Europe as king of the road, a trucker who delivers important cargo across impressive distances! With dozens of cities to explore, your e
+  slot=5 Jigsaw Puzzle Dreams | Casual, Indie, Free To Play | Beautiful Multiplayer Jigsaw Puzzle game where you can design the room you play in!
+  slot=6 Brawlhalla | Action, Indie, Free To Play | An epic platform fighter for up to 8 players online or local. Try casual free-for-alls, ranked matches, or invite friends to a private room. And it's 
+  slot=7 Dead by Daylight | Action | 10 years of horror. 10 years of jump scares and close calls. 10 years of brutal sacrifices and thrilling escapes. Trapped forever in a realm of eldrit
+  slot=8 Chime Sharp | Casual | Chime was a much-loved music puzzle game on Xbox Live Arcade, PC and PS3. What happens if you file away the rusty edges? New music + new modes + new v
+  slot=9 Grand Theft Auto V Enhanced | Action, Adventure, Racing | Experience entertainment blockbusters Grand Theft Auto V and Grand Theft Auto Online — now upgraded for a new generation with stunning visuals, faster
+  slot=10 PUBG: BATTLEGROUNDS | Action, Adventure, Massively Multiplayer, Free To Play | PUBG: BATTLEGROUNDS, the high-stakes winner-take-all shooter that started the Battle Royale craze, is free-to-play! Drop into diverse maps, loot uniqu
+  slot=11 R.E.P.O. | Action, Early Access | An online co-op horror game with up to 6 players. Locate valuable, fully physics-based objects and handle them with care as you retrieve and extract t
+  slot=12 PUBG: BATTLEGROUNDS | Action, Adventure, Massively Multiplayer, Free To Play | PUBG: BATTLEGROUNDS, the high-stakes winner-take-all shooter that started the Battle Royale craze, is free-to-play! Drop into diverse maps, loot uniqu
+  slot=13 Grand Theft Auto V Legacy | Action, Adventure | Grand Theft Auto V for PC offers players the option to explore the award-winning world of Los Santos and Blaine County in resolutions of up to 4k and 
+  slot=14 Our Darker Purpose | Action, Indie, RPG | Journey to the dark heart of the Edgewood Home for Lost Children in this fiendishly difficult action RPG!When her teacher stepped out of the classroom
+  slot=15 Terraria | Action, Adventure, Indie, RPG | Dig, fight, explore, build! Nothing is impossible in this action-packed adventure game. Four Pack also available!
+  slot=16 Half-Life 2 | Action | Reawakened from stasis in the occupied metropolis of City 17, Gordon Freeman is joined by Alyx Vance as he leads a desperate human resistance. Experie
+  slot=17 Half-Life 2: Deathmatch | Action | Fast multiplayer action set in the Half-Life 2 universe! HL2's physics adds a new dimension to deathmatch play. Play straight deathmatch or try Combin
+  slot=18 Muck | Action, Adventure, Free To Play, Indie | Muck is a survival-roguelike. Collect resources, find items &amp; build a base to survive for as long as you can.
+  slot=19 The Witcher 3: Wild Hunt | RPG | You are Geralt of Rivia, mercenary monster slayer. Before you stands a war-torn, monster-infested continent you can explore at will. Your current cont
+  slot=20 Rust | Action, Adventure, Indie, Massively Multiplayer | The only aim in Rust is to survive. Everything wants you to die - the island’s wildlife, other inhabitants, the environment, and other survivors. Do w
+  slot=21 Beckett | Adventure, Indie | A dark and unsettling narrative adventure that will shake you to your core. Take control of a reluctant investigator, trapped in a depraved and despon
+  slot=22 Half-Life Deathmatch: Source | Action | Half-Life Deathmatch: Source is a recreation of the first multiplayer game set in the Half-Life universe. Features all the classic weapons and most-pl
+  slot=23 Left 4 Dead 2 | Action | Set in the zombie apocalypse, Left 4 Dead 2 is a co-operative action horror FPS takes you and your friends through the cities, swamps and cemeteries o
+  slot=24 Rise Eterna | Adventure, Casual, Indie, RPG | Follow the story of Lua and unveil the mysteries surrounding her origins in the tactical RPG, reminiscence of the 16-bit era Japanese strategy games. 
+  slot=25 Fizz Quiz | Casual, Massively Multiplayer, Strategy | FizzQuiz is a trivia game with over 100 topics and 10,000 questions. Play alone or with up to 10 friends in seven unique rounds, featuring questions i
+  slot=26 YBit | Adventure, Indie | YBit is a pixelated platformer adventure. You will be playing as a small hero made of information, trying to escape from a program that has crashed. A
+  slot=27 Among Us | Casual | An online and local party game of teamwork and betrayal for 4-15 players...in space!
+  slot=28 Call of Duty® | Action | The Call of Duty® experience supports Modern Warfare® 4, Black Ops 7, Black Ops 6 and Call of Duty®: Warzone™.
+  slot=29 Galactic Lords | Action, Casual, Indie, Strategy | Experimental indie strategy game. Lead the group of Galactic Lords through 7 levels to discover the origin of a world-wide menace!
+
+===== case11 =====
+--- USER TASTE ---
+  To the Moon | Adventure, Indie, RPG | eng=0.92 | A story-driven experience about two doctors traversing backwards through a dying man's memories to artificially fulfill his last wish.
+  Black Myth: Wukong | Action, Adventure, RPG | eng=0.9 | Black Myth: Wukong is an action RPG rooted in Chinese mythology. You shall set out as the Destined One to venture into the challenges and marvels ahea
+  INSIDE | Action, Adventure, Indie | eng=0.9 | Hunted and alone, a boy finds himself drawn into the center of a dark project. INSIDE is a dark, narrative-driven platformer combining intense action 
+  Super Bunny Man | Action, Indie | eng=0.88 | A physics-based co-op platformer about a guy in a rabbit costume! Team up with a friend or three (local or online) to beat levels, find hidden carrots
+  Split Fiction | Action, Adventure | eng=0.84 | Embrace mind-blowing moments as you’re pulled deep into the many worlds of Split Fiction, a boundary-pushing co-op adventure.
+  Wallpaper Engine | Casual, Indie, Animation & Modeling, Design & Illustration | eng=0.84 | Use stunning live wallpapers on your desktop. Animate your own images to create new wallpapers or import videos/websites and share them on the Steam W
+  Monster Hunter: World | Action | eng=0.69 | Welcome to a new world! In Monster Hunter: World, the latest installment in the series, you can enjoy the ultimate hunting experience, using everythin
+  Dota 2 | Action, Strategy, Free To Play | eng=0.68 | Every day, millions of players worldwide enter battle as one of over a hundred Dota heroes. And no matter if it's their 10th hour of play or 1,000th, 
+--- CANDIDATES ---
+  slot=0 Half-Life 2: Deathmatch | Action | Fast multiplayer action set in the Half-Life 2 universe! HL2's physics adds a new dimension to deathmatch play. Play straight deathmatch or try Combin
+  slot=1 PUBG: BATTLEGROUNDS | Action, Adventure, Massively Multiplayer, Free To Play | PUBG: BATTLEGROUNDS, the high-stakes winner-take-all shooter that started the Battle Royale craze, is free-to-play! Drop into diverse maps, loot uniqu
+  slot=2 PAYDAY 2 | Action, RPG | PAYDAY 2 is an action-packed, four-player co-op shooter that once again lets gamers don the masks of the original PAYDAY crew - Dallas, Hoxton, Wolf a
+  slot=3 Half-Life 2 | Action | Reawakened from stasis in the occupied metropolis of City 17, Gordon Freeman is joined by Alyx Vance as he leads a desperate human resistance. Experie
+  slot=4 Loopmancer | Action, Adventure, Indie, RPG | Loopmancer is a 3D platformer roguelite action game with realistic graphics that takes place in a cyberpunk universe. Players play as a detective who 
+  slot=5 Terraria | Action, Adventure, Indie, RPG | Dig, fight, explore, build! Nothing is impossible in this action-packed adventure game. Four Pack also available!
+  slot=6 The Witcher 3: Wild Hunt | RPG | You are Geralt of Rivia, mercenary monster slayer. Before you stands a war-torn, monster-infested continent you can explore at will. Your current cont
+  slot=7 Left 4 Dead 2 | Action | Set in the zombie apocalypse, Left 4 Dead 2 is a co-operative action horror FPS takes you and your friends through the cities, swamps and cemeteries o
+  slot=8 Counter-Strike 2 | Action, Free To Play | For over two decades, Counter-Strike has offered an elite competitive experience, one shaped by millions of players from across the globe. And now the
+  slot=9 hallucination - 幻觉 | Casual, Indie | Sequel of Old Watch
+  slot=10 PUBG: BATTLEGROUNDS | Action, Adventure, Massively Multiplayer, Free To Play | PUBG: BATTLEGROUNDS, the high-stakes winner-take-all shooter that started the Battle Royale craze, is free-to-play! Drop into diverse maps, loot uniqu
+  slot=11 The Summoning | Action, Adventure, RPG | The Summoning is a fantasy role-playing adventure, set inside a huge labyrinth with 40 different levels and hordes of monsters. Use steel, magic and w
+  slot=12 Half-Life Deathmatch: Source | Action | Half-Life Deathmatch: Source is a recreation of the first multiplayer game set in the Half-Life universe. Features all the classic weapons and most-pl
+  slot=13 ELDEN RING | Action, RPG | THE CRITICALLY ACCLAIMED FANTASY ACTION RPG. Rise, Tarnished, and be guided by grace to brandish the power of the Elden Ring and become an Elden Lord 
+  slot=14 The Stalked 2 | Adventure, Indie | &quot;The Stalked 2&quot; is a standalone horror sequel to &quot;The Stalked&quot;, where you play as Rachel, an avid hiker. What begins as a relaxing
+  slot=15 It Takes Two | Action, Adventure | Embark on the craziest journey of your life in It Takes Two. Invite a friend to join for free with Friend’s Pass and work together across a huge varie
+  slot=16 Portal 2 | Action, Adventure | The &quot;Perpetual Testing Initiative&quot; has been expanded to allow you to design co-op puzzles for you and your friends!
+  slot=17 Counter-Strike 2 | Action, Free To Play | For over two decades, Counter-Strike has offered an elite competitive experience, one shaped by millions of players from across the globe. And now the
+  slot=18 Milky Way Prince – The Vampire Star | Adventure, Indie | A visual novel about an abusive relationship, idealization, and intimacy. Live a summer of dysfunctional love through branching storylines, twists, su
+  slot=19 MONSTER HUNTER RISE | Action | Rise to the challenge and join the hunt! In Monster Hunter Rise, the latest installment in the award-winning and top-selling Monster Hunter series, yo
+  slot=20 Busty Milf and Summer Country Sex Life | Indie, Simulation | Live at your aunt's house in the countryside during the summer! From having a small chat to taking a bath together, raise Affection Level to unlock mo
+  slot=21 Human Fall Flat | Adventure, Casual, Indie, Simulation | Human Fall Flat is a hilarious, light-hearted platformer set in floating dreamscapes that can be played solo or with up to 8 players online. Free new 
+  slot=22 How to Build a Magnificent Kingdom | Indie, RPG, Strategy | The once prosperous kingdom of Avon now lies in tatters with nothing left in its coffers and a pitiful four citizens to its name. Yet even in its dark
+  slot=23 LIMBO | Action, Adventure, Indie | Uncertain of his sister's fate, a boy enters LIMBO
+  slot=24 Funny Yo | Action, Adventure, Casual, Indie | In this brilliant 2D side-scrolling platformer, you have to jump on the heads of enemies to render them harmless
+  slot=25 Boyhood's End | Adventure, Early Access | Boyhood's End is an adventure horror game following Giovanni, the boy with the lowest human score in the universe, and Campenella, the delinquent geni
+  slot=26 Disney Bolt | Action, Adventure | In Disney's Bolt, players take on the heroic personas of the TV star dog, Bolt, and his owner, Penny, from the high-action television series featured 
+  slot=27 Dota Underlords | Casual, Strategy, Free To Play | Hire a crew and destroy your rivals in this new strategy battler set in the world of Dota. Introducing Season One: Explore White Spire and earn reward
+  slot=28 Titanfall® 2 | Action | Respawn Entertainment gives you the most advanced titan technology in its new, single player campaign &amp; multiplayer experience. Combine &amp; conq
+  slot=29 Palworld | Action, Adventure, Indie, RPG | Fight, farm, build and work alongside mysterious creatures called &quot;Pals&quot; in this completely new multiplayer, open world survival and craftin
+
+===== case12 =====
+--- USER TASTE ---
+  Overcooked! All You Can Eat | Casual, Indie, Simulation, Strategy | eng=0.86 | Experience all the Onion Kingdom has to offer, Overcooked! 1 &amp; 2 infused with 4k goodness running at a smooth 60 FPS. Fully remastered and cooked 
+  Apex Legends™ | Action, Adventure, Free To Play | eng=0.78 | Apex Legends is the award-winning, free-to-play Hero Shooter from Respawn Entertainment. Master an ever-growing roster of legendary characters with po
+  It Takes Two | Action, Adventure | eng=0.76 | Embark on the craziest journey of your life in It Takes Two. Invite a friend to join for free with Friend’s Pass and work together across a huge varie
+  港詭實錄ParanormalHK | Adventure, Indie | eng=0.7 | Paranormal HK is a first person horror game about Urban legends of Hong Kong, China. The story is about a crew of online supernatural channel“Beyond t
+  Black Myth: Wukong | Action, Adventure, RPG | eng=0.69 | Black Myth: Wukong is an action RPG rooted in Chinese mythology. You shall set out as the Destined One to venture into the challenges and marvels ahea
+  Counter-Strike 2 | Action, Free To Play | eng=0.62 | For over two decades, Counter-Strike has offered an elite competitive experience, one shaped by millions of players from across the globe. And now the
+  Delta Force | Action, Adventure, Massively Multiplayer, Free To Play | eng=0.52 | Play for free in operator-based extraction and full-scale combined arms warfare. Become elite Operators, customize an ever-expanding arsenal of weapon
+  Titanfall® 2 | Action | eng=0.39 | Respawn Entertainment gives you the most advanced titan technology in its new, single player campaign &amp; multiplayer experience. Combine &amp; conq
+--- CANDIDATES ---
+  slot=0 Wallpaper Engine | Casual, Indie, Animation & Modeling, Design & Illustration | Use stunning live wallpapers on your desktop. Animate your own images to create new wallpapers or import videos/websites and share them on the Steam W
+  slot=1 Call of Duty® | Action | The Call of Duty® experience supports Modern Warfare® 4, Black Ops 7, Black Ops 6 and Call of Duty®: Warzone™.
+  slot=2 Priest Simulator: Heavy Duty | Action, Indie, Simulation | Sandbox with a vampire priest in the leading role. Destroy shatanists and turn the devil's village into an oasis of christianism.
+  slot=3 Ereban: Shadow Legacy | Action, Adventure, Indie | Ereban: Shadow Legacy is a fast-paced stealth platformer game where you become Ayana, the last descendant of a forgotten race. Harness mystical shadow
+  slot=4 Red Dead Redemption 2 | Action, Adventure | Arthur Morgan and the Van der Linde Gang are outlaws on the run. With federal agents and bounty hunters massing on their heels, the gang must rob, ste
+  slot=5 Keyboard Killers | Action, Casual, Indie, Simulation | Keyboard Killers is a difficult reflex game in which you destroy meteors in order to save your starship and your friend dragon(^-^) . You must be very
+  slot=6 The Book of Unwritten Tales 2 | Adventure | Every world needs its heroes. However unlikely they may seem. Join Wilbur, Ivo, Nate and Critter in another classic point-and-click adventure in the w
+  slot=7 Left 4 Dead 2 | Action | Set in the zombie apocalypse, Left 4 Dead 2 is a co-operative action horror FPS takes you and your friends through the cities, swamps and cemeteries o
+  slot=8 Aimlabs | Action, Adventure, Casual, Indie | Aimlabs is the aim trainer of choice for over 45 Million players, from beginners to esports pros. Our unique aim analysis optimizes your gameplay, tar
+  slot=9 My zero trip | Indie, Simulation | My zero trip is a nice animated clicker. Here you can walk and ... walk :) Atmosphere is a meditative process of walking, humor and reasoning of the a
+  slot=10 Half-Life 2: Deathmatch | Action | Fast multiplayer action set in the Half-Life 2 universe! HL2's physics adds a new dimension to deathmatch play. Play straight deathmatch or try Combin
+  slot=11 Return to Grace | Adventure | A daring space archaeologist has just unearthed the ancient resting place of a long lost A.I. god known as Grace. Adventure with various fractured A.I
+  slot=12 Goose Goose Duck | Casual, Indie, Massively Multiplayer, Strategy | Goose Goose Duck is a game of social deduction for up to 16 players. Players are separated into different groups that are each assigned a different ob
+  slot=13 Portal 2 | Action, Adventure | The &quot;Perpetual Testing Initiative&quot; has been expanded to allow you to design co-op puzzles for you and your friends!
+  slot=14 Half-Life 2 | Action | Reawakened from stasis in the occupied metropolis of City 17, Gordon Freeman is joined by Alyx Vance as he leads a desperate human resistance. Experie
+  slot=15 NARAKA: BLADEPOINT | Action, Adventure, Massively Multiplayer, Free To Play | Dive into the legends of the Far East in NARAKA: BLADEPOINT; team up with friends in fast-paced melee fights for a Battle Royale experience unlike any
+  slot=16 PAYDAY 2 | Action, RPG | PAYDAY 2 is an action-packed, four-player co-op shooter that once again lets gamers don the masks of the original PAYDAY crew - Dallas, Hoxton, Wolf a
+  slot=17 San Matias -- Mafia City | Action, Adventure, Indie | Time is running out! You play as a man named &quot;The Canario&quot;. Fight hordes of enemies and try to survive in this city without laws. It's time 
+  slot=18 Shinobi Warfare | RPG, Free To Play | Play an 2d turn based RPG multiplayer game, stylize your own shinobi and play different game modes alone or with your friends! Level up, unlock variou
+  slot=19 The Witcher 3: Wild Hunt | RPG | You are Geralt of Rivia, mercenary monster slayer. Before you stands a war-torn, monster-infested continent you can explore at will. Your current cont
+  slot=20 Don't Starve Together | Action, Adventure, Indie, RPG | Fight, Farm, Build and Explore Together in the standalone multiplayer expansion to the uncompromising wilderness survival game, Don't Starve.
+  slot=21 Half-Life Deathmatch: Source | Action | Half-Life Deathmatch: Source is a recreation of the first multiplayer game set in the Half-Life universe. Features all the classic weapons and most-pl
+  slot=22 Terraria | Action, Adventure, Indie, RPG | Dig, fight, explore, build! Nothing is impossible in this action-packed adventure game. Four Pack also available!
+  slot=23 Overcooked! 2 | Action, Casual, Indie | Overcooked returns with a brand-new helping of chaotic cooking action! Journey back to the Onion Kingdom and assemble your team of chefs in classic co
+  slot=24 Left 4 Dead 2 | Action | Set in the zombie apocalypse, Left 4 Dead 2 is a co-operative action horror FPS takes you and your friends through the cities, swamps and cemeteries o
+  slot=25 Wallpaper Engine | Casual, Indie, Animation & Modeling, Design & Illustration | Use stunning live wallpapers on your desktop. Animate your own images to create new wallpapers or import videos/websites and share them on the Steam W
+  slot=26 Grand Theft Auto V Enhanced | Action, Adventure, Racing | Experience entertainment blockbusters Grand Theft Auto V and Grand Theft Auto Online — now upgraded for a new generation with stunning visuals, faster
+  slot=27 Prehistorik 2 | Action, Adventure | Prehistorik 2 is a classic platform game where you walk and jump through the levels then whack enemies on the head with a club in your quest for food.
+  slot=28 Dota 2 | Action, Strategy, Free To Play | Every day, millions of players worldwide enter battle as one of over a hundred Dota heroes. And no matter if it's their 10th hour of play or 1,000th, 
+  slot=29 ENDLESS Legend™ 2 | RPG, Simulation, Strategy, Early Access | Lead your people to victory on an ever-evolving world in this strategy game featuring asymmetric factions led by powerful heroes. Build your empire, w
+
+===== case13 =====
+--- USER TASTE ---
+  Dark and Darker | Action, RPG, Free To Play, Early Access | eng=0.99 | An unforgiving hardcore fantasy FPS dungeon PvPvE adventure. Band together with your friends and use your courage, wits, and cunning to uncover mythic
+  Counter-Strike 2 | Action, Free To Play | eng=0.98 | For over two decades, Counter-Strike has offered an elite competitive experience, one shaped by millions of players from across the globe. And now the
+  Dungeonborne | Action, Adventure, RPG, Strategy | eng=0.93 | Dungeonborne is a first-person PvPvE dungeon crawler blending extraction gameplay with iconic fantasy class design. In a world of sword and sorcery, d
+  Goose Goose Duck | Casual, Indie, Massively Multiplayer, Strategy | eng=0.89 | Goose Goose Duck is a game of social deduction for up to 16 players. Players are separated into different groups that are each assigned a different ob
+  Wallpaper Engine | Casual, Indie, Animation & Modeling, Design & Illustration | eng=0.87 | Use stunning live wallpapers on your desktop. Animate your own images to create new wallpapers or import videos/websites and share them on the Steam W
+  VillageRhapsody | Casual, Indie, RPG, Simulation | eng=0.86 | Farming, logging, fishing, farm role-playing games to help widows and wives improve their lives
+  Yi Xian: The Cultivation Card Game | Casual, Indie, Strategy, Free To Play | eng=0.83 | Yi Xian: The Cultivation Card Game is an online DBG which contains a PVE mode called Uncharted Realms and a PVP mode. Every game is a deck building fr
+  Amazing Cultivation Simulator |  | eng=0.8 | Rise up in a search for immortality in this strategy sim and management game based on Chinese mythology. Rebuild your sect and train new disciples thr
+--- CANDIDATES ---
+  slot=0 Human Fall Flat | Adventure, Casual, Indie, Simulation | Human Fall Flat is a hilarious, light-hearted platformer set in floating dreamscapes that can be played solo or with up to 8 players online. Free new 
+  slot=1 Borderlands 2 | Action, RPG | The Ultimate Vault Hunter’s Upgrade lets you get the most out of the Borderlands 2 experience.
+  slot=2 Left 4 Dead 2 | Action | Set in the zombie apocalypse, Left 4 Dead 2 is a co-operative action horror FPS takes you and your friends through the cities, swamps and cemeteries o
+  slot=3 Grand Theft Auto V Legacy | Action, Adventure | Grand Theft Auto V for PC offers players the option to explore the award-winning world of Los Santos and Blaine County in resolutions of up to 4k and 
+  slot=4 Pummel Party | Action, Casual, Indie | Pummel Party is a 4-8 player online and local-multiplayer party game. Pummel friends or AI using a wide array of absurd items in the board mode and co
+  slot=5 Grand Theft Auto V Legacy | Action, Adventure | Grand Theft Auto V for PC offers players the option to explore the award-winning world of Los Santos and Blaine County in resolutions of up to 4k and 
+  slot=6 Felix The Reaper | Adventure, Indie | Felix The Reaper is a challenging and strict 3D puzzle game about bringing humans into deadly situations. You are Felix, the ever-dancing bringer of d
+  slot=7 Black Myth: Wukong | Action, Adventure, RPG | Black Myth: Wukong is an action RPG rooted in Chinese mythology. You shall set out as the Destined One to venture into the challenges and marvels ahea
+  slot=8 Under One Wing | Adventure, Indie, RPG | Fairy Fight - A large-scale dogfight, utilizing the finest warplanes the world has ever known. Sasaki Junichi is the grandson of a legendary FF Pilot.
+  slot=9 Mr. Maze | Adventure, Indie | When his daughter is captured by the formidable Maze Meister, a fast-thinking father finds himself on an unexpected journey through many maddening maz
+  slot=10 Portal 2 | Action, Adventure | The &quot;Perpetual Testing Initiative&quot; has been expanded to allow you to design co-op puzzles for you and your friends!
+  slot=11 The Witch's Love Diary | Casual | Spring is here and love awaits, an oasis just over the horizon, a beautiful story waiting to be told. Join Takumi and Alice in a tale of fleeting cher
+  slot=12 Drox Operative 2 | Action, Indie, RPG | Drox Operative 2 is a starship action RPG with warring alien races, fierce space battles, a dynamic, evolving galaxy, and co-op multiplayer for Window
+  slot=13 Dicey Dungeons | Indie, Strategy | Become a giant walking dice, explore dungeons and defy Lady Luck in this dice powered roguelike! Now featuring &quot;Reunion&quot;, a free DLC with si
+  slot=14 Left 4 Dead 2 | Action | Set in the zombie apocalypse, Left 4 Dead 2 is a co-operative action horror FPS takes you and your friends through the cities, swamps and cemeteries o
+  slot=15 Terraria | Action, Adventure, Indie, RPG | Dig, fight, explore, build! Nothing is impossible in this action-packed adventure game. Four Pack also available!
+  slot=16 theHunter: Call of the Wild™ | Adventure, Simulation, Sports | Discover an atmospheric hunting game like no other in this realistic, stunning open world – regularly updated in collaboration with the community. Imm
+  slot=17 Half-Life 2 | Action | Reawakened from stasis in the occupied metropolis of City 17, Gordon Freeman is joined by Alyx Vance as he leads a desperate human resistance. Experie
+  slot=18 Half-Life Deathmatch: Source | Action | Half-Life Deathmatch: Source is a recreation of the first multiplayer game set in the Half-Life universe. Features all the classic weapons and most-pl
+  slot=19 Terraria | Action, Adventure, Indie, RPG | Dig, fight, explore, build! Nothing is impossible in this action-packed adventure game. Four Pack also available!
+  slot=20 Aquarist - My First Job | Casual, Indie, Simulation, Free To Play | Get your first job in the Aquarist! Learn how to set up aquarium, decorate it and take care of your fish!
+  slot=21 Half-Life 2: Deathmatch | Action | Fast multiplayer action set in the Half-Life 2 universe! HL2's physics adds a new dimension to deathmatch play. Play straight deathmatch or try Combin
+  slot=22 Mini Settlers: Prologue | Simulation, Strategy, Free To Play | Mini Settlers: Prologue is a free version of Mini Settlers. In this minimalist city builder, settle islands, construct cities, and design efficient lo
+  slot=23 Desolate Wastes: Vendor Chronicles | Action, Casual, Indie, Simulation | Vendor Chronicles puts you in the shoes of a Vendor in post-apocalyptia! Manage your trade, set your defences, deal with locals and fight hordes of mu
+  slot=24 Strike Solitaire 2 | Casual | The sea, the sun, and solitaire! Hit a strike on the seashore!
+  slot=25 PAYDAY 2 | Action, RPG | PAYDAY 2 is an action-packed, four-player co-op shooter that once again lets gamers don the masks of the original PAYDAY crew - Dallas, Hoxton, Wolf a
+  slot=26 Sid Meier’s Civilization® VI | Strategy | Expand your empire, advance your culture and go head-to-head against history’s greatest leaders. Will your civilization stand the test of time?
+  slot=27 Dota 2 | Action, Strategy, Free To Play | Every day, millions of players worldwide enter battle as one of over a hundred Dota heroes. And no matter if it's their 10th hour of play or 1,000th, 
+  slot=28 Grand Theft Auto V Enhanced | Action, Adventure, Racing | Experience entertainment blockbusters Grand Theft Auto V and Grand Theft Auto Online — now upgraded for a new generation with stunning visuals, faster
+  slot=29 It Takes Two | Action, Adventure | Embark on the craziest journey of your life in It Takes Two. Invite a friend to join for free with Friend’s Pass and work together across a huge varie
+
+===== case14 =====
+--- USER TASTE ---
+  Counter-Strike 2 | Action, Free To Play | eng=0.95 | For over two decades, Counter-Strike has offered an elite competitive experience, one shaped by millions of players from across the globe. And now the
+  60 Seconds! Reatomized | Adventure, Casual, Indie, Simulation | eng=0.92 | The post-apocalyptic dark comedy is back - remastered and even more radioactive than before! Scavenge supplies, rescue your family, and stay alive in 
+  Apex Legends™ | Action, Adventure, Free To Play | eng=0.92 | Apex Legends is the award-winning, free-to-play Hero Shooter from Respawn Entertainment. Master an ever-growing roster of legendary characters with po
+  PUBG: BATTLEGROUNDS | Action, Adventure, Massively Multiplayer, Free To Play | eng=0.89 | PUBG: BATTLEGROUNDS, the high-stakes winner-take-all shooter that started the Battle Royale craze, is free-to-play! Drop into diverse maps, loot uniqu
+  Goose Goose Duck | Casual, Indie, Massively Multiplayer, Strategy | eng=0.73 | Goose Goose Duck is a game of social deduction for up to 16 players. Players are separated into different groups that are each assigned a different ob
+  Dread Hunger | Action, Adventure, Indie | eng=0.57 | A game of survival and betrayal. Eight Explorers path their ship through the unforgiving Arctic. Among the crew, two traitors call on dark powers to u
+  Shawarma Legend | Simulation | eng=0.52 | 🌯 Shawarma Legend !! A real simulation of a shawarma restaurant !!
+  PAYDAY 3 | Action, Adventure, RPG | eng=0.47 | PAYDAY 3 is the ultimate co-op FPS crime fantasy. Choose between stealth or loud playstyles, customize your character, and get ready to pull off the p
+--- CANDIDATES ---
+  slot=0 Frozen Synapse 2 | Indie, Strategy | Frozen Synapse 2 is the sequel to the award-winning turn-based tactical game. Command your squads in a vast procedurally generated city: enter any bui
+  slot=1 Star Realms | Strategy | Star Realms is a hugely popular space combat deckbuilding game. Download and play today (note: base set is required to play online) to find out why St
+  slot=2 Link | Indie, RPG, Strategy | Link is a strategy game with roguelike elements. Take control over group of soldiers trying to survive on the hostile, arctic planet. Can you survive 
+  slot=3 Dota 2 | Action, Strategy, Free To Play | Every day, millions of players worldwide enter battle as one of over a hundred Dota heroes. And no matter if it's their 10th hour of play or 1,000th, 
+  slot=4 Half-Life 2 | Action | Reawakened from stasis in the occupied metropolis of City 17, Gordon Freeman is joined by Alyx Vance as he leads a desperate human resistance. Experie
+  slot=5 Terraria | Action, Adventure, Indie, RPG | Dig, fight, explore, build! Nothing is impossible in this action-packed adventure game. Four Pack also available!
+  slot=6 Left 4 Dead 2 | Action | Set in the zombie apocalypse, Left 4 Dead 2 is a co-operative action horror FPS takes you and your friends through the cities, swamps and cemeteries o
+  slot=7 Call of Duty® | Action | The Call of Duty® experience supports Modern Warfare® 4, Black Ops 7, Black Ops 6 and Call of Duty®: Warzone™.
+  slot=8 room13 | Action, Casual, Indie | A thrilling combination of violence, extreme gore, amazing graphics, simple controls, fun and humor. When you find yourself trapped in a mysterious ho
+  slot=9 PAYDAY 2 | Action, RPG | PAYDAY 2 is an action-packed, four-player co-op shooter that once again lets gamers don the masks of the original PAYDAY crew - Dallas, Hoxton, Wolf a
+  slot=10 Half-Life Deathmatch: Source | Action | Half-Life Deathmatch: Source is a recreation of the first multiplayer game set in the Half-Life universe. Features all the classic weapons and most-pl
+  slot=11 The Forest | Action, Adventure, Indie, Simulation | As the lone survivor of a passenger jet crash, you find yourself in a mysterious forest battling to stay alive against a society of cannibalistic muta
+  slot=12 Don't Starve Together | Action, Adventure, Indie, RPG | Fight, Farm, Build and Explore Together in the standalone multiplayer expansion to the uncompromising wilderness survival game, Don't Starve.
+  slot=13 Portal 2 | Action, Adventure | The &quot;Perpetual Testing Initiative&quot; has been expanded to allow you to design co-op puzzles for you and your friends!
+  slot=14 Grand Theft Auto V Enhanced | Action, Adventure, Racing | Experience entertainment blockbusters Grand Theft Auto V and Grand Theft Auto Online — now upgraded for a new generation with stunning visuals, faster
+  slot=15 Pummel Party | Action, Casual, Indie | Pummel Party is a 4-8 player online and local-multiplayer party game. Pummel friends or AI using a wide array of absurd items in the board mode and co
+  slot=16 Grand Theft Auto V Legacy | Action, Adventure | Grand Theft Auto V for PC offers players the option to explore the award-winning world of Los Santos and Blaine County in resolutions of up to 4k and 
+  slot=17 Super Puzzled Cat | Action, Adventure, Indie | Help Puzzled Cat use jetpacks, portals, bombs, gum, and more to conquer treacherous platforming stages. Play your own way using save states to explore
+  slot=18 Wallpaper Engine | Casual, Indie, Animation & Modeling, Design & Illustration | Use stunning live wallpapers on your desktop. Animate your own images to create new wallpapers or import videos/websites and share them on the Steam W
+  slot=19 Initial Drift Online | Action, Indie, Massively Multiplayer, Racing | Drift over some of Japan's most legendary mountain passes, compete against your friends or players from around the world in epic battles, make deliver
+  slot=20 Loot'N Shoot | Sexual Content, Violent, Gore, Action | In a world driven by automation, you jump into one of many warehouse robots that experience a malfunction and start fighting each other with everythin
+  slot=21 CodeRed: Agent Sarah's Story - Day one | Adventure, Indie | Take on the role of Special Agent Sarah Young and immerse yourself in a gripping point-and-click adventure, where every lead may bring you closer to s
+  slot=22 Cave Digger 2 Dig Harder | Action, Adventure, Casual, Indie | Go on a mysterious journey in the wildlands in this 1-4-player VR action-adventure game inspired by Western, Dieselpunk and Lovecraftian themes. Explo
+  slot=23 Alisa | Action, Adventure, Indie | Alisa is a Horror-themed Action Adventure game and a genuine throwback to the golden age of 90s 3D games.
+  slot=24 NARAKA: BLADEPOINT | Action, Adventure, Massively Multiplayer, Free To Play | Dive into the legends of the Far East in NARAKA: BLADEPOINT; team up with friends in fast-paced melee fights for a Battle Royale experience unlike any
+  slot=25 Half-Life 2: Deathmatch | Action | Fast multiplayer action set in the Half-Life 2 universe! HL2's physics adds a new dimension to deathmatch play. Play straight deathmatch or try Combin
+  slot=26 Wallpaper Engine | Casual, Indie, Animation & Modeling, Design & Illustration | Use stunning live wallpapers on your desktop. Animate your own images to create new wallpapers or import videos/websites and share them on the Steam W
+  slot=27 Left 4 Dead 2 | Action | Set in the zombie apocalypse, Left 4 Dead 2 is a co-operative action horror FPS takes you and your friends through the cities, swamps and cemeteries o
+  slot=28 The Witcher 3: Wild Hunt | RPG | You are Geralt of Rivia, mercenary monster slayer. Before you stands a war-torn, monster-infested continent you can explore at will. Your current cont
+  slot=29 Tom Clancy's Rainbow Six Siege | Action, Free To Play | Tom Clancy's Rainbow Six Siege is an elite, tactical team-based shooter where superior planning and execution triumph.
+

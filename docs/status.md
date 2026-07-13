@@ -32,9 +32,11 @@ counted raw-owned ≥12; the canonical eligibility is the ≈3,416 above.
 - **P6 OOD confirmation: DONE (2026-07-14).** One-shot run on the frozen 1,000-user unbiased panel:
   **H1 confirmed (serving = EASE λ≈100, wins both axes), preference = pctl_game, knnpd03(β.3)
   dropped** — full verdict table: [results](results.md). Gauntlet V1–V6 green; user-signed dry-run.
-- **Next: P5** (builder rewire around EASE) after the exploration track lands.
-- Exploration track in progress (firewalled from confirm/reserve panels): E1 cohort-shift,
-  E2 unbiased popularity/propensity, E3 light-user descriptives, E4 saturation curve (crawl stop
-  point). E5 (EASE fine-grid + fusion) unlocked by H1 — exploration pool + mini-prereg + reserve
-  if a winner emerges. Plus the absolute-rubric judge (9-2).
+- **Exploration track: DONE (2026-07-14)** — E1 cohort-shift (τ 0.822, shrink 18–30%),
+  E2 unbiased popularity (`pop_unbiased.json` for P5), E3 light users (EASE holds), E4×E6 scaling
+  (keep crawling; two-tower: no crossover), E5 challengers (EASE defends all; why-EASE tests
+  T-a/T-b confirmed), absolute-rubric judge (EASE 44.5% High vs random 6.5%). One-liners →
+  [results](results.md); detail → JOURNAL T47–T49.
+- **Next: P5** — builder rewire around the confirmed `EASE(λ100)` + `pctl_game` + unbiased
+  popularity prior; sanity-check `pctl×EASE` on the exploration pool during the build.
 - Decisions register: [decisions](decisions.md).

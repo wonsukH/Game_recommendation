@@ -20,8 +20,11 @@ Evidence (Korean, append-only): [`experiments/p4_sweep/JOURNAL.md`](../experimen
   significantly harms accuracy (−0.0156 NDCG, q ≈ 0). The registered grid point **β = 0.2** keeps a
   borderline wishlist edge (+0.0042, q = 0.0494) but is **dominated by EASE on both axes** — kept
   only as a legacy userknn-family lever, irrelevant to serving.
-- **Absolute meaning** (per 20 recommendations from a 40,863-game catalog): EASE hits **0.33** of a
-  user's actual future wishlist adds vs POP **0.098** (3.3×). Offline MNAR makes this a *lower bound*.
+- **Absolute meaning**: per 20 recommendations from a 40,863-game catalog, EASE hits **0.33** of a
+  user's actual future wishlist adds vs POP **0.098** (3.3×; offline MNAR = *lower bound*). On the
+  blinded 3-arm absolute-rubric judge (pre-registered, 20 users × 30 items), EASE precision@10 =
+  **44.5% High** [35.5, 54.0] / **71% High+Medium** vs random 6.5%/27% and POP 7.5%/38% —
+  rubric validity held (EASE ≫ random, non-overlapping CIs; no popularity-rating correlation).
 - **Validated core (the moat)**: playtime-weighted co-play CF beats "give an LLM my library" on
   *personalization*; on an *anonymous / vibe* framing the LLM wins — that stack stays **retired**.
 - **Everything learned/neural lost or tied** (see table). The confirmed winner is the *simplest*
@@ -52,6 +55,24 @@ the user-count lever works OOD (quantified by E4). Anchors healthy in both condi
 *Residual honesty note*: the exact serving combo `pctl_game × EASE` was not a registered slot
 (EASE slots ran with `pvalue`); given H2's near-tie this is a P5 build detail to sanity-check on
 the exploration pool, not a new confirmation claim.
+
+## Exploration track (post-verdict, exploration pool only — 2026-07-14)
+One-liners; detail in [`JOURNAL.md`](../experiments/p4_sweep/JOURNAL.md) T47–T49:
+- **E1 cohort shift**: real slots shrink **18–30%** OOD but ordering holds (Kendall τ 0.822) —
+  in-cohort shortlists are rank-reliable, value-inflated. *Why-EASE test T-b confirmed*: the
+  EASE−userknn gap grows monotonically with library size (regression handles collinearity).
+- **E5 challengers**: λ grid flat 30–100 (λ100 kept); *why-EASE test T-a confirmed* — clipping
+  EASE's negative weights costs −0.0088 SIG; EDLAE all SIG worse; fusions ≤ EASE; SLIM deferred
+  (its family separated downward).
+- **E2 unbiased popularity**: snowball vs true ownership Spearman **0.715** — reviewer cohort
+  systematically underweights F2P/casual; `outputs/p6/pop_unbiased.json` shipped for P5. The old
+  pop-discount knob's SNIPS edge vanishes under unbiased propensities.
+- **E3 light users** (5–11 items, n=1,252, descriptive): personalization works for typical users —
+  EASE 0.216 vs POP 0.091 NDCG; no popularity fallback needed.
+- **E4×E6 scaling**: EASE curve still rising (0.233→0.298; keep crawling). Industry two-tower
+  (id+feature) reaches only 0.03–0.07 NDCG with a slope **3.6× flatter** than EASE — **no crossover
+  in any crawlable range** (pre-registered predictions P1/P2 confirmed); its only real niche is
+  cold-item scoring (recall 0.01–0.02 where EASE is structurally 0; P3 directional).
 
 ## The cutoff bug (why the ranker verdict flipped)
 The ranker's `recommend` had `if score <= 0: break`, which truncated EASE's (legitimately
