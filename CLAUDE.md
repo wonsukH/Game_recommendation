@@ -44,9 +44,11 @@ schema, results, roadmap, glossary, decisions) is in the tiered `docs/` wiki.
 ### Delegation (anti-anchoring)
 - **Deterministic work** (locating code/facts; mechanical tasks where anyone gets the same result)
   → delegate to the `locator` subagent; keep the conclusion, not the file dump.
-- **Original reasoning / design** → spawn a **context-free** subagent (`fresh-implementer`) that
-  explores the approach without this conversation's anchoring, then verify and integrate its output.
-  Use fresh-context subagents aggressively to reimagine rather than patch.
+- **Original reasoning / design — only when originality is explicitly required** (a genuinely new
+  method, or reimagining an implementation from a clean spec) → spawn a **context-free** subagent
+  (`fresh-implementer`) and verify/integrate its output. **Constraint-bound work is NOT delegated**:
+  execution planning, sequencing, and assembling plans from fixed specs/pre-registrations are done
+  directly (user directive 2026-07-14).
 
 ### Code
 - Maintainable, non-spaghetti; a clear structure a human can own.
