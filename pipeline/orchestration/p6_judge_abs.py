@@ -35,7 +35,42 @@ OUT = P6_DIR / "judge_abs"
 N_USERS, TOPK, SEED = 20, 10, 20260715
 
 
-def build() -> int:
+def load_tags() -> dict[int, list[tuple[str, float]]]:
+    """appid -> [(tag, votes)] descending, from SteamSpy."""
+    con = sqlite3.connect(f"file:{REPO_ROOT / 'data_collection' / 'steam.db'}?mode=ro",
+                          uri=True)
+    out = {}
+    for appid, tj in con.execute(
+            "SELECT appid, tags_json FROM steamspy WHERE tags_json IS NOT NULL"):
+        try:
+            tags = json.loads(tj)
+        except Exception:
+            continue
+        if isinstance(tags, dict) and tags:
+            out[int(appid)] = sorted(((t, float(v)) for t, v in tags.items()),
+                                     key=lambda x: -x[1])
+    con.close()
+    return out
+
+
+def taste_summary(items: list[tuple[int, float]], tag_map: dict,
+                  top_n: int = 12) -> list[str]:
+    """Engagement-weighted tag distribution over the user's WHOLE library —
+    v2 instrument: covers taste regions outside the top-8 cards."""
+    acc: dict[str, float] = {}
+    for a, r in items:
+        tags = tag_map.get(int(a))
+        if not tags:
+            continue
+        tot = sum(v for _, v in tags[:10]) or 1.0
+        for t, v in tags[:10]:
+            acc[t] = acc.get(t, 0.0) + r * (v / tot)
+    s = sum(acc.values()) or 1.0
+    return [f"{t} {100 * v / s:.0f}%" for t, v in
+            sorted(acc.items(), key=lambda x: -x[1])[:top_n]]
+
+
+def build(v2: bool = False) -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     inter, gs, us, pool = load_artifacts()
     panels = load_panels()
@@ -45,6 +80,7 @@ def build() -> int:
     rng = np.random.default_rng(SEED)
     users = sorted(int(u) for u in rng.choice(explo, size=N_USERS, replace=False))
     assert_firewall(users, panels)
+    tag_map = load_tags() if v2 else {}
 
     panels_p4 = json.loads((P4_DIR / "panels.json").read_text())
     graph = sorted(set(panels_p4["train"])
@@ -72,8 +108,11 @@ def build() -> int:
         raw = json.loads(m[1] or "[]") if m[1] else []
         genres = ", ".join(g.get("description", str(g)) if isinstance(g, dict)
                            else str(g) for g in raw[:4])
-        return {"appid": int(a), "name": m[0], "genres": genres,
-                "desc": (m[2] or "")[:160]}
+        c = {"appid": int(a), "name": m[0], "genres": genres,
+             "desc": (m[2] or "")[:160]}
+        if v2:  # richer candidate signal: top SteamSpy tags
+            c["tags"] = ", ".join(t for t, _ in tag_map.get(int(a), [])[:5])
+        return c
 
     pool_arr = np.array(sorted(pool & set(meta)))
     own_cnt = inter[inter["appid"].isin(pool)].groupby("appid").size()
@@ -93,27 +132,42 @@ def build() -> int:
                         rng.choice(cand, size=TOPK, replace=False)]
         mixed = [(a, arm) for arm, lst in arms.items() for a in lst]
         rng.shuffle(mixed)
-        taste = sorted(pa.items(), key=lambda x: -x[1])[:8]
-        cases.append({
+        ranked = sorted(pa.items(), key=lambda x: -x[1])
+        taste = ranked[:8]
+        case = {
             "case": f"case{i}",
             "user_taste": [card(a) | {"engagement": round(r, 2)} for a, r in taste],
             "candidates": [card(a) | {"slot": t} for t, (a, _) in enumerate(mixed)],
-        })
+        }
+        if v2:
+            # whole-library taste coverage + breadth signal (ranks 19+ so the
+            # ceiling arm's rank-9..18 items never leak into the profile)
+            case["taste_summary_weighted_tags"] = taste_summary(ranked, tag_map)
+            breadth = ranked[18:]
+            if breadth:
+                pick = rng.choice(len(breadth), size=min(6, len(breadth)),
+                                  replace=False)
+                case["also_plays"] = [meta.get(int(breadth[j][0]), ("?",))[0]
+                                      for j in sorted(pick)]
+        cases.append(case)
         unblind[f"case{i}"] = {"steamid": u,
                                "slots": {str(t): {"appid": int(a), "arm": arm}
                                          for t, (a, arm) in enumerate(mixed)},
                                "popularity": {str(int(a)): int(own_cnt.get(a, 0))
                                               for a, _ in mixed}}
-    (OUT / "payload.json").write_text(
+    sfx = "_v2" if v2 else ""
+    (OUT / f"payload{sfx}.json").write_text(
         json.dumps(cases, ensure_ascii=False, indent=1), encoding="utf-8")
-    (OUT / "unblind.json").write_text(json.dumps(unblind, indent=1), encoding="utf-8")
-    print(f"built {len(cases)} blinded cases (30 items each) -> {OUT}")
+    (OUT / f"unblind{sfx}.json").write_text(json.dumps(unblind, indent=1),
+                                            encoding="utf-8")
+    print(f"built {len(cases)} blinded cases (30 items each, v2={v2}) -> {OUT}")
     return 0
 
 
-def aggregate() -> int:
-    verdicts = json.loads((OUT / "verdicts.json").read_text(encoding="utf-8"))
-    unblind = json.loads((OUT / "unblind.json").read_text(encoding="utf-8"))
+def aggregate(v2: bool = False) -> int:
+    sfx = "_v2" if v2 else ""
+    verdicts = json.loads((OUT / f"verdicts{sfx}.json").read_text(encoding="utf-8"))
+    unblind = json.loads((OUT / f"unblind{sfx}.json").read_text(encoding="utf-8"))
     per_arm: dict[str, dict[str, list[float]]] = {a: {"strict": [], "lenient": []}
                                                   for a in ("ease", "pop", "rand")}
     pop_by_rating: dict[str, list[int]] = {"High": [], "Medium": [], "Low": []}
@@ -143,7 +197,7 @@ def aggregate() -> int:
                       "n_users": cs["n"]}
     summary["familiarity_bias_check"] = {
         r: int(np.median(v)) if v else None for r, v in pop_by_rating.items()}
-    (OUT / "summary.json").write_text(json.dumps(summary, indent=2))
+    (OUT / f"summary{sfx}.json").write_text(json.dumps(summary, indent=2))
     print(json.dumps(summary, indent=2))
     return 0
 
@@ -151,5 +205,8 @@ def aggregate() -> int:
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--aggregate", action="store_true")
+    ap.add_argument("--v2", action="store_true",
+                    help="instrument v2: whole-library taste summary + breadth "
+                         "sample + tagged candidate cards")
     args = ap.parse_args()
-    sys.exit(aggregate() if args.aggregate else build())
+    sys.exit(aggregate(args.v2) if args.aggregate else build(args.v2))

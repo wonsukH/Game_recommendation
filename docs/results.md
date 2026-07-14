@@ -28,6 +28,10 @@ Evidence (Korean, append-only): [`experiments/p4_sweep/JOURNAL.md`](../experimen
   **Ceiling calibration**: the same judge awards users' *own loved games* only **42.5% High**
   [35.5, 49.2] / 71.3% lenient — EASE sits **at the instrument ceiling** (indistinguishable);
   the number measures the card-based instrument's limit, not the recommender's.
+  **Instrument v2** (whole-library tag summary + breadth sample + tagged cards) raised the ceiling
+  to 51.3% — and EASE rose in lockstep to **50.0%**, still at ceiling → the conclusion is
+  instrument-invariant. (v2 caveat: it re-admits a popularity-rating correlation; POP rises to 28%,
+  EASE stays +22pp above even so.)
   **Depth view** (the flipped metric, full coverage curve): top-20 catches 4.0% of future-wishlist
   targets = **~49× random-chance enrichment** (chance ≈ 20/24,520 = 0.08%; POP = 20×); the median
   future-wishlist item sits at EASE rank **988** (top 4% of catalog; POP 2,689 — 2.7×); per-user K

@@ -1,0 +1,28 @@
+{
+  "ease": {
+    "precision_strict": 0.5,
+    "strict_ci": "[0.415,0.580]",
+    "precision_lenient": 0.82,
+    "lenient_ci": "[0.745,0.885]",
+    "n_users": 20
+  },
+  "pop": {
+    "precision_strict": 0.28,
+    "strict_ci": "[0.185,0.375]",
+    "precision_lenient": 0.575,
+    "lenient_ci": "[0.455,0.675]",
+    "n_users": 20
+  },
+  "rand": {
+    "precision_strict": 0.075,
+    "strict_ci": "[0.040,0.115]",
+    "precision_lenient": 0.27,
+    "lenient_ci": "[0.200,0.345]",
+    "n_users": 20
+  },
+  "familiarity_bias_check": {
+    "High": 1540,
+    "Medium": 1900,
+    "Low": 64
+  }
+}
