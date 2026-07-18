@@ -1,6 +1,6 @@
 # Decisions register
 
-> type: overview · status: active · updated: 2026-07-14
+> type: overview · status: active · updated: 2026-07-17
 
 Decisions that shape the project — what's settled (so we don't re-litigate) and what's still open
 (needs the user). Rationale for the settled ones lives in the Korean reasoning log
@@ -21,11 +21,11 @@ Decisions that shape the project — what's settled (so we don't re-litigate) an
 | P6 go + panel (2026-07-14) | **Start now** on the frozen OOD pool; confirmation panel **N = 1,000** + 500-user quarantined reserve; one-shot run only after V1–V6 + user sign-off on a dry-run leaderboard; games-metadata catch-up (~1k calls) before the freeze | [`P6_PREREG.md`](../experiments/p4_sweep/P6_PREREG.md) amendment v3, [status](status.md) |
 | P6 exploration scope (2026-07-14) | E1 cohort-shift, E2 unbiased popularity/propensity, E3 light-user descriptives, E4 saturation curve — exploration pool only; **E5** (EASE fine-tune + fusion) conditional on H1; wishlist-as-input and social co-play **rejected** (metric-B contamination risk; 13 in-cohort friend edges = measured dead) | [status](status.md) |
 | Agent delegation scope (2026-07-14) | Design/reasoning subagents only for **explicitly original** work; constraint-bound assembly (execution planning from fixed specs/preregs) is done directly | `../CLAUDE.md` |
+| Absolute-result presentation (2026-07-15) | **Dual notation**: headline framings must be arithmetic derivations of recorded raw values (raw preserved alongside; caveats attached); **no post-hoc metric changes** to prettify results | [results](results.md), [portfolio-headlines](portfolio-headlines.md) |
 
 ## Open (needs the user)
-- **Dry-run sign-off** — the P6 one-shot confirmation waits on the user reviewing the exploration-pool
-  dry-run leaderboard (gate recorded in [`P6_PREREG.md`](../experiments/p4_sweep/P6_PREREG.md) v3).
-- **Crawl stop point** — decided by E4's saturation curve once it runs.
+- **Crawl stop point** — E4's curve is still rising (0.233→0.298 over the graph ladder, decelerating)
+  ⇒ **keep crawling**; re-measure at the P9 periodic re-eval and stop when the slope flattens.
 
 ## Standing constraints
 - No Gemini metered spend during autonomous runs.

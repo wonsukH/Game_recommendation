@@ -22,6 +22,7 @@ Korean append-only logs under `experiments/` are evidence, not translated.
 | [decisions](decisions.md) | What's settled vs still open |
 | [glossary](glossary.md) | Current-stack terms |
 | [operations](operations.md) | Run / restart the crawl, budget, safety rules |
+| [portfolio-headlines](portfolio-headlines.md) | Approved recruiter-facing framings (dual notation) |
 
 ## Conventions
 - [STYLEGUIDE](STYLEGUIDE.md) — doc format, the density tiers, and the `check_doc_format.py` gate.
