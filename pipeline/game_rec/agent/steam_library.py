@@ -54,20 +54,26 @@ def get_owned_games(steamid: str, data_dir: str | Path = REPO_ROOT / "serving" /
 
 
 def proxy_library(min_liked: int = 8, seed: int = 0,
-                  scores_path: str | Path = REPO_ROOT / "outputs" / "user_game_scores.csv",
+                  db_path: str | Path = REPO_ROOT / "data_collection" / "steam.db",
                   data_dir: str | Path = REPO_ROOT / "serving" / "data") -> dict[int, float]:
-    """Offline demo: a real crawled user's liked games + playtime (no API needed)."""
-    import csv, collections, numpy as np
+    """Offline demo: a real crawled user's played games + playtime, straight
+    from steam.db (P5 — the review-CSV proxy is retired). Deterministic per seed."""
+    import sqlite3
+    import numpy as np
     pool = _pool(Path(data_dir))
-    user_pt = collections.defaultdict(dict)
-    with open(scores_path, encoding="utf-8-sig") as f:
-        for row in csv.DictReader(f):
-            try:
-                a = int(row["appid"])
-                if a in pool and float(row["s_round10_rec"]) >= 7.0:
-                    user_pt[row["steamid"]][a] = float(row["playtime_forever"])
-            except (TypeError, ValueError):
-                pass
-    elig = [u for u, g in user_pt.items() if len(g) >= min_liked]
-    u = elig[int(np.random.default_rng(seed).integers(0, len(elig)))]
-    return dict(user_pt[u])
+    con = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+    users = [int(r[0]) for r in con.execute(
+        "SELECT steamid FROM users WHERE public=1 AND complete=1 ORDER BY steamid")]
+    rng = np.random.default_rng(seed)
+    for _ in range(200):
+        u = int(users[int(rng.integers(0, len(users)))])
+        rows = con.execute(
+            "SELECT appid, playtime_forever FROM owned "
+            "WHERE steamid=? AND playtime_forever>0", (u,)).fetchall()
+        lib = {int(a): float(pt) for a, pt in rows if int(a) in pool}
+        if len(lib) >= min_liked:
+            con.close()
+            log.info("proxy library: steamid=%d, %d in-pool played games", u, len(lib))
+            return lib
+    con.close()
+    raise RuntimeError("no demo user with enough played games found")

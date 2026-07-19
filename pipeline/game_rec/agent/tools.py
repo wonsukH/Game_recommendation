@@ -46,7 +46,6 @@ class CatalogMeta:
     """Per-game structured metadata for constraint verification (loaded once)."""
 
     def __init__(self, data_dir: str | Path = REPO_ROOT / "serving" / "data",
-                 appdetails: str | Path = REPO_ROOT / "outputs" / "steam_appdetails.csv",
                  min_quality_reviews: int = 5):
         data_dir = Path(data_dir)
         maps = load_index_maps(data_dir / "index_maps.json")
@@ -71,35 +70,21 @@ class CatalogMeta:
                 denom = max(len(rated) - 1, 1)
                 self._quality_pct = {a: float(order[i]) / denom for i, (a, _) in enumerate(rated)}
 
+        # P5: constraint metadata is steam.db-native (build_catalog_db.py ->
+        # catalog.json); the old outputs/steam_appdetails.csv path is retired.
         self.meta: dict[int, dict] = {}
-        with open(appdetails, encoding="utf-8-sig") as f:
-            for row in csv.DictReader(f):
-                try:
-                    a = int(row.get("appid") or 0)
-                except (TypeError, ValueError):
-                    continue
-                cats = (row.get("categories") or "")
-                langs = (row.get("supported_languages") or "")
-                try:
-                    price = float(row.get("price_final") or 0) / 100.0  # cents->USD
-                except (TypeError, ValueError):
-                    price = None
-                is_free = str(row.get("is_free")).lower() in ("true", "1")
-                mc = row.get("metacritic_score")
-                try:
-                    mc = float(mc) if mc not in (None, "", "0") else None
-                except (TypeError, ValueError):
-                    mc = None
-                self.meta[a] = {
-                    "coop": "Co-op" in cats,
-                    "multiplayer": "Multi-player" in cats,
-                    "single_player": "Single-player" in cats,
-                    "korean": "Korean" in langs,
-                    "price": 0.0 if is_free else price,
-                    "is_free": is_free,
-                    "release": _parse_date(row.get("release_date") or ""),
-                    "metacritic": mc,
-                }
+        cat = json.loads((data_dir / "catalog.json").read_text(encoding="utf-8"))
+        for a_str, m in cat.items():
+            self.meta[int(a_str)] = {
+                "coop": bool(m.get("coop")),
+                "multiplayer": bool(m.get("multiplayer")),
+                "single_player": bool(m.get("single_player")),
+                "korean": bool(m.get("korean")),
+                "price": m.get("price"),
+                "is_free": bool(m.get("is_free")),
+                "release": _parse_date(m.get("release") or ""),
+                "metacritic": m.get("metacritic"),
+            }
 
     def pct(self, appid: int) -> float:
         r = self.appid2row.get(int(appid))

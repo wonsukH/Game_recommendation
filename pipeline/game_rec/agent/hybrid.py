@@ -34,18 +34,24 @@ class HybridRecommender:
         self.content = content or ContentLayer()
         self.meta = meta  # CatalogMeta, optional (for quality-gating cold fill)
 
-    # ---------- CF warm ranking ----------
-    def _cf_ranked(self, library_pt: dict[int, float], exclude: set[int]):
+    # ---------- warm ranking (ranker-agnostic) ----------
+    def _cf_ranked(self, library_pt: dict[int, float], exclude: set[int],
+                   cap: int = 2000):
+        """Rank the FULL score vector — no score<=0 break. EASE scores are
+        legitimately negative in the tail (T33/T35 cutoff bug; T-a ablation
+        proved the negative weights carry signal). Cap is cost-only."""
         acc = self.cf.score(library_pt)
         order = np.argsort(-acc)
         warm = []
         for j in order:
             s = acc[int(j)]
-            if s <= 0:
+            if not np.isfinite(s):
                 break
             a = self.cf.inv_col.get(int(j))
             if a is not None and a not in exclude:
                 warm.append((a, float(s)))
+            if len(warm) >= cap:
+                break
         return warm, acc
 
     # ---------- D1: cold-start fallback ----------
@@ -114,7 +120,10 @@ class HybridRecommender:
         appids = [a for a, _ in cand]
         rows = np.array([self.content.appid2row[a] for a in appids])
         cf_s = np.array([s for _, s in cand], dtype=np.float64)
-        cf_s = cf_s / (cf_s.max() + 1e-12)  # normalize CF base to [0,1]
+        # min-max over candidates -> [0,1] (divide-by-max breaks when the base
+        # ranker emits negative scores, e.g. EASE's linear tail)
+        lo_s, hi_s = cf_s.min(), cf_s.max()
+        cf_s = (cf_s - lo_s) / (hi_s - lo_s + 1e-12)
 
         mult = np.ones(len(cand), dtype=np.float64)
         if novelty_beta > 0:

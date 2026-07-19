@@ -28,25 +28,15 @@ from pipeline.game_rec.log import get_logger  # noqa: E402
 log = get_logger("scripts.sync_data")
 
 
-# Files the live Streamlit app needs at runtime. Versioned siblings
-# (*_v1.*) and one-off stats are intentionally excluded.
+# P5 NOTE: the steam.db-native builders (build_ease_artifact.py /
+# build_catalog_db.py) write DIRECTLY to serving/data/, so this sync step is
+# largely obsolete. The FAISS/embedding-era entries (tag_vecs, game_vecs,
+# W_align, faiss_index, tag_2d/clusters/neighbors, tag_text_vecs) were removed:
+# nothing in the serving path loads them and the files no longer exist in
+# serving/data. Kept only as a generic outputs/ -> serving/data copier for the
+# rare artifact still produced under outputs/.
 WHITELIST: tuple[str, ...] = (
-    # Core embeddings + indices
-    "tag_vocab.json",
-    "index_maps.json",
-    "steam_games_tags.csv",
-    "tag_vecs.npy",
-    "game_vecs.npy",
-    "tag_text_vecs.npy",
-    "W_align.npy",
-    "X_game_tag_csr.npz",
-    "faiss_index.faiss",
-    # Rerank inputs (Novelty/Serendipity)
-    "game_popularity.npy",
-    # Tag map visualization
-    "tag_2d.npy",
-    "tag_clusters.npy",
-    "tag_neighbors.json",
+    "tag_vocab.json",  # curated tag vocabulary (build_catalog_db input, ref copy)
 )
 
 

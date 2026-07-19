@@ -1,0 +1,14 @@
+{
+  "pref": "pctl_game",
+  "lam": 100.0,
+  "cap": 12000,
+  "min_items": 5,
+  "topk": 2048,
+  "seed": 20260720,
+  "n_graph_users": 12000,
+  "n_items": 34050,
+  "B_nnz": 69734400,
+  "source_artifacts": "D:\\YBIGTA\\Newbie_project\\Game_recommendation\\outputs\\p5",
+  "built_at": "2026-07-20T04:20:46",
+  "git_head": "3c55464334df0a8928233699ddc23cdcd38286c2"
+}

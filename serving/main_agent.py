@@ -25,7 +25,7 @@ sys.path.insert(0, str(ROOT))
 load_dotenv(ROOT / ".env")
 
 from langchain_google_genai import ChatGoogleGenerativeAI  # noqa: E402
-from pipeline.game_rec.agent.cf_recommender import CFRecommender  # noqa: E402
+from pipeline.game_rec.agent.ease_recommender import EASERecommender  # noqa: E402
 from pipeline.game_rec.agent.tools import CatalogMeta  # noqa: E402
 from pipeline.game_rec.agent.steam_library import get_owned_games, proxy_library  # noqa: E402
 from serving.agent_graph import build_agentic_graph  # noqa: E402
@@ -52,7 +52,7 @@ def _load():
     key = os.environ.get("GEMINI_API_KEY")
     if not key:
         st.stop()
-    cf = CFRecommender()
+    cf = EASERecommender()  # P6-confirmed serving ranker (EASE l100 x pctl_game)
     meta = CatalogMeta(DATA)
     llm = ChatGoogleGenerativeAI(model=os.environ.get("GEMINI_CHAT_MODEL", "gemini-2.5-pro"),
                                  google_api_key=key, temperature=0.3)

@@ -91,13 +91,23 @@ def build_agentic_graph(cf, meta, llm, data_dir, max_refine: int = 2):
     hybrid = HybridRecommender(cf, content, meta)
     tag_list = ", ".join(content.tag2idx.keys())
 
-    def _interleave(libs: Dict[str, Dict[int, float]], excl: set) -> List[int]:
+    def _interleave(libs: Dict[str, Dict[int, float]], excl: set,
+                    cap: int = 600) -> List[int]:
         per = []
         for lib in libs.values():
             acc = cf.score(lib)
             order = np.argsort(-acc)
-            ranked = [cf.inv_col[int(j)] for j in order if acc[int(j)] > 0
-                      and cf.inv_col.get(int(j)) not in excl]
+            # rank the FULL score vector — EASE's negative tail is legitimate
+            # signal (T33/T35 cutoff bug; T-a ablation). Cap for cost only.
+            ranked = []
+            for j in order:
+                if not np.isfinite(acc[int(j)]):
+                    break
+                a = cf.inv_col.get(int(j))
+                if a is not None and a not in excl:
+                    ranked.append(a)
+                if len(ranked) >= cap:
+                    break
             per.append(ranked)
         out, seen, i = [], set(), 0
         while any(i < len(p) for p in per):
@@ -186,11 +196,22 @@ def build_agentic_graph(cf, meta, llm, data_dir, max_refine: int = 2):
         # all series entries as seeds (richer co-play signal); the whole named
         # franchise is excluded from results ("~같은 거" wants similar OTHERS).
         seeds = {a: 1.0 for a in matched}
-        acc = cf.score(seeds)
+        # equal EXPLICIT weights (not playtimes): score() would run seed values
+        # through the pctl ECDF as if they were minutes played
+        acc = (cf.score_with_weights(seeds) if hasattr(cf, "score_with_weights")
+               else cf.score(seeds))
         order = np.argsort(-acc)
         excl = set(matched) | set(s.get("played", []))
-        cand = [cf.inv_col[int(j)] for j in order if acc[int(j)] > 0 and cf.inv_col.get(int(j)) not in excl]
-        return {"candidates": cand[:300]}
+        cand = []
+        for j in order:  # full-vector ranking, no score<=0 cutoff (see _interleave)
+            if not np.isfinite(acc[int(j)]):
+                break
+            a = cf.inv_col.get(int(j))
+            if a is not None and a not in excl:
+                cand.append(a)
+            if len(cand) >= 300:
+                break
+        return {"candidates": cand}
 
     def multi_node(s: AgentState):
         excl = set(s.get("played", [])) | set(s.get("library", {})) | set(s.get("friend_library", {}))

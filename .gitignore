@@ -9,6 +9,10 @@ __pycache__/
 outputs/
 !outputs/.gitkeep
 
+# P5 EASE serving tensor — hundreds of MB, rebuilt locally via
+# `python -m pipeline.game_rec.data.build_ease_artifact` (meta.json is tracked)
+serving/data/ease/B_topk.npz
+
 # Research/evaluation evidence is TRACKED (reports, logs, judgments) — it is NOT
 # recomputable pipeline output, so it lives at top-level experiments/ (not outputs/).
 # Only large recomputable caches inside it are ignored:
