@@ -1,6 +1,6 @@
 # Operations runbook
 
-> type: runbook · status: active · updated: 2026-07-13
+> type: runbook · status: active · updated: 2026-07-20
 
 Day-to-day runbook for the live Steam crawl. Answer-first; each section is a task you can do now.
 Live counts and the current step are **not** here — see [status](status.md).
@@ -90,6 +90,25 @@ that are slow on the live DB — avoid heavy JOINs for a quick status check.
   data is local-only; secrets stay out of git). All are already gitignored.
 - **No destructive git** (no force-push / hard reset of others' work).
 - Do not stop a running crawl/build unless the user explicitly asks.
+
+## 7. Rebuild the serving artifacts (P5 pipeline)
+
+Run in order after meaningful crawl growth (all read steam.db; the app just restarts on new files):
+
+```
+python -m pipeline.game_rec.data.behavioral_extract --out outputs/p5   # snapshot (~8 min)
+python -m pipeline.game_rec.data.build_ease_artifact                   # EASE fit + sparse B (~5 min)
+python -m pipeline.orchestration.p5_validate                           # gates: truncation/pref/weights
+python -m pipeline.game_rec.data.build_catalog_db --pop outputs/p5/pop_unbiased.json
+python -m pipeline.orchestration.p5_smoke                              # LLM-bypassed app-path smoke
+```
+
+- `build_ease_artifact` defaults: `--cap 12000 --topk 2048 --lam 100` — **top-K was gate-chosen**
+  (512/-0.0183 FAIL → 1024/-0.0089 FAIL → 2048/-0.0027 PASS vs tolerance -0.005); don't lower K
+  without re-running `p5_validate`. The 345MB `B_topk.npz` is gitignored — rebuild locally.
+- Refresh the unbiased popularity prior first if the OOD cohort has grown (see JOURNAL T53 —
+  ownership rates over `user_queue.depth=-1` users → `outputs/p5/pop_unbiased.json`).
+- Full app run (`streamlit run serving/main_agent.py`) needs `GEMINI_API_KEY` — user-attended only.
 
 ## See also
 

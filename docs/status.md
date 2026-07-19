@@ -1,39 +1,41 @@
 # Status — live
 
-> type: overview · status: active · updated: 2026-07-18
+> type: overview · status: active · updated: 2026-07-20
 
 Live project state. Counts are a **snapshot** (regenerate from `data_collection/steam.db` with a
 read-only connection — see [operations](operations.md)). Durable phase plan: [roadmap](roadmap.md).
 Confirmed results: [results](results.md).
 
-## Crawl (as of 2026-07-18 14:17 KST / 05:17 UTC)
+## Crawl (as of 2026-07-20)
 - Mode: unbiased random SteamID64 sampling, achievements OFF, no snowball ([data-layer](data-layer.md)).
-- **Restarted 2026-07-18 05:16 UTC** after a ~3-day outage (process died ~2026-07-15 00:29 UTC; no
-  OS scheduler by user decision, and no session was running the watchdog). Writes confirmed resumed.
-- P6 used a **one-time frozen extraction** (`outputs/p6/`), so the outage and the restart have zero
-  effect on any P6 result (prereg amendment A8).
+- Healthy since the 2026-07-18 restart (a ~3-day outage 07-15→07-18 — no OS scheduler by user
+  decision, watchdog only runs inside sessions). P5/P6 use frozen extractions, so outages never
+  affect results.
 
-## Data on hand (snapshot, 2026-07-18 read)
+## Data on hand (snapshot, 2026-07-20 read — the `outputs/p5` build substrate)
 | Cohort | Count |
 |---|---|
-| Usable users (`public=1 AND complete=1`) | 17,852 |
-| — **unbiased OOD** (`user_queue.depth = -1`) | **14,795** |
-| — legacy biased (snowball/CSV, `depth ≥ 0`) | ~3,052 |
-| `depth = -1` queue pending | ≈5.1k (self-refilling from random draws) |
+| Usable users (`public=1 AND complete=1`) | 23,347 |
+| — **unbiased OOD** (`user_queue.depth = -1`) | **20,282** |
+| — legacy biased (snowball/CSV, `depth ≥ 0`) | ~3,065 |
+| Played interactions / pool games | 1.24M / 41,266 |
 
-P6-frozen strata (from the 07-14 snapshot; unchanged by later crawling): confirm 1,000 (consumed) /
-reserve 500 (untouched) / exploration 1,936 / light 1,252 — eligibility ≈3,416 of the then-9,742
-OOD users. Cohort-shift signal: unbiased library median 8 games, 41% have a wishlist (biased: 97%).
+P6-frozen strata (07-14 snapshot; immutable): confirm 1,000 (consumed) / reserve 500 (untouched) /
+exploration 1,936 / light 1,252. Cohort-shift signal: unbiased library median 8 games, 41% have a
+wishlist (biased: 97%).
 
 ## Current phase
-- **P6 OOD confirmation: DONE (2026-07-14).** One-shot run on the frozen 1,000-user unbiased panel:
-  **H1 confirmed (serving = EASE λ≈100, wins both axes), preference = pctl_game, knnpd03(β.3)
-  dropped** — full verdict table: [results](results.md). Gauntlet V1–V6 green; user-signed dry-run.
-- **Exploration track: DONE (2026-07-14)** — E1 cohort-shift (τ 0.822, shrink 18–30%),
-  E2 unbiased popularity (`pop_unbiased.json` for P5), E3 light users (EASE holds), E4×E6 scaling
-  (keep crawling; two-tower: no crossover), E5 challengers (EASE defends all; why-EASE tests
-  T-a/T-b confirmed), absolute-rubric judge (EASE 44.5% High vs random 6.5%). One-liners →
-  [results](results.md); detail → JOURNAL T47–T49.
-- **Next: P5** — builder rewire around the confirmed `EASE(λ100)` + `pctl_game` + unbiased
-  popularity prior; sanity-check `pctl×EASE` on the exploration pool during the build.
+- **P5 builder rewire: DONE (2026-07-20, commit 4171a7e).** The app serves the P6-confirmed
+  **EASE(λ100) × pctl_game** from a gate-validated sparse-B artifact (K=2048; truncation loss
+  −0.0027 within the −0.005 tolerance, top-20 Jaccard 0.966); catalog artifacts all steam.db-native
+  (tags 34.8k games, SteamSpy quality 34.7k, fresh unbiased popularity from 20.3k OOD users);
+  **zero runtime CSV**; serving-side score≤0 cutoffs removed (T35-bug class, 3 sites). Smoke
+  (LLM-bypassed real app path) PASS; pytest 39 green. Bonus: serving-combo sanity resolved —
+  **pctl×EASE beats pvalue×EASE +0.0104 SIG** (exploration pool). Detail: JOURNAL T53.
+- **P6 OOD confirmation: DONE (2026-07-14)** — serving = EASE both axes, pref = pctl_game,
+  knnpd03 dropped ([results](results.md)). Exploration track E1–E6 + absolute judge: DONE
+  (JOURNAL T47–T52).
+- **Next: P8** — full end-to-end with the LLM router (user-attended; Gemini spend) + serving
+  polish. Backlog: cold-start/new-release surface (two-tower niche), real-human portfolio demo,
+  Gemini κ judge cross-check.
 - Decisions register: [decisions](decisions.md).

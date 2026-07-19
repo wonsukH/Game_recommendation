@@ -22,6 +22,7 @@ Decisions that shape the project — what's settled (so we don't re-litigate) an
 | P6 exploration scope (2026-07-14) | E1 cohort-shift, E2 unbiased popularity/propensity, E3 light-user descriptives, E4 saturation curve — exploration pool only; **E5** (EASE fine-tune + fusion) conditional on H1; wishlist-as-input and social co-play **rejected** (metric-B contamination risk; 13 in-cohort friend edges = measured dead) | [status](status.md) |
 | Agent delegation scope (2026-07-14) | Design/reasoning subagents only for **explicitly original** work; constraint-bound assembly (execution planning from fixed specs/preregs) is done directly | `../CLAUDE.md` |
 | Absolute-result presentation (2026-07-15) | **Dual notation**: headline framings must be arithmetic derivations of recorded raw values (raw preserved alongside; caveats attached); **no post-hoc metric changes** to prettify results | [results](results.md), [portfolio-headlines](portfolio-headlines.md) |
+| P5 scope + serving artifact (2026-07-20) | Full serving swap (user-chosen); steering kept with DB-rebuilt tags; cold-start surface → backlog. EASE persisted as **sparse top-K B, K=2048** — gate-chosen via the measured ladder (512/1024 FAIL, 2048 PASS at −0.0027; ladder extension user-approved); serving preference = `pctl_game` via per-game playtime-ECDF interpolation | [operations](operations.md) §7, JOURNAL T53 |
 
 ## Open (needs the user)
 - **Crawl stop point** — E4's curve is still rising (0.233→0.298 over the graph ladder, decelerating)

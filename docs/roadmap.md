@@ -24,11 +24,11 @@ plan when it starts. Headline numbers live in [results](results.md); methodology
   method → [evaluation](evaluation.md). Remaining under this phase: exploration track E1–E4
   (incl. the saturation curve that fixes the crawl stop point) → [status](status.md).
 
-- **P5 — Builder rewire (CSV → steam.db) + artifact regeneration.** Rebuild co-play/CF, tag
-  vocab/matrix, popularity, the quality gate, titles, and catalog metadata directly from `steam.db`;
-  the catalog pool grows with the crawl.
-  *Done when:* serving artifacts are regenerated from `steam.db` with no runtime CSV. Depends on
-  P4 **and the P6 verdict** (serving ranker must be confirmed before the rewire is built around it).
+- **P5 — Builder rewire (CSV → steam.db) + artifact regeneration. DONE (2026-07-20).** The
+  serving app now runs the confirmed **EASE(λ100) × pctl_game** from a gate-validated sparse-B
+  artifact; tags/quality/popularity/constraints/titles all rebuilt steam.db-native; **zero runtime
+  CSV** (the done-when condition). Build procedure → [operations](operations.md) §7; record →
+  JOURNAL T53; stack → [architecture](architecture.md).
 
 - **P7 — Preference-weighted learned model (optional; likely a null).** Learn
   `w_p = f(playtime, completion, recency)` versus the fixed log weight. **Note:** the achievement

@@ -67,9 +67,11 @@ the user-count lever works OOD (quantified by E4). Anchors healthy in both condi
 (ORACLE 1.0 ≫ slots ≫ POP/null). **Winner's-curse shrinkage measured**: EASE−userknn +0.062
 (in-cohort fresh) → +0.042 (OOD); direction and significance survive.
 
-*Residual honesty note*: the exact serving combo `pctl_game × EASE` was not a registered slot
-(EASE slots ran with `pvalue`); given H2's near-tie this is a P5 build detail to sanity-check on
-the exploration pool, not a new confirmation claim.
+*Residual honesty note — RESOLVED (2026-07-20)*: the exact serving combo `pctl_game × EASE` was
+not a registered slot (EASE slots ran with `pvalue`). The P5 build's exploration-pool sanity check
+(n = 400, paired) found **pctl×EASE beats pvalue×EASE +0.0104 [+0.0071, +0.0139] SIG** — the
+shipped combo is supported, not merely assumed (JOURNAL T53; descriptive, not a P6-style
+confirmation claim).
 
 ## Exploration track (post-verdict, exploration pool only — 2026-07-14)
 One-liners; detail in [`JOURNAL.md`](../experiments/p4_sweep/JOURNAL.md) T47–T49:
