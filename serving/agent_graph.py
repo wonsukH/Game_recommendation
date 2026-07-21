@@ -187,6 +187,39 @@ def build_agentic_graph(cf, meta, llm, data_dir, max_refine: int = 2):
                      if low == pref or low.startswith(pref + " ") or low.startswith(pref + ":")}
         return list(hits)
 
+    # "~같은 거" quality gate: co-play similarity DEGENERATES to a popularity/
+    # demographic chart when the seed's owner base is broad (e.g. Eternal
+    # Return -> Korean top-chart: Yu-Gi-Oh, Tekken...). Gate the co-play
+    # candidates by TAG similarity to the seed — the Era-1-validated
+    # similar-mode signal (tag-cosine Vb) — so co-play supplies "people
+    # actually play these together" and tags supply "and it's actually a
+    # similar game". Niche seeds (soulslikes etc.) pass mostly unchanged.
+    SEED_MIN_TAG_SIM = 0.25
+
+    def _tag_gate(seed_ids: list, cand: list, min_sim: float = SEED_MIN_TAG_SIM,
+                  min_keep: int = 10):
+        rows = [content.appid2row[a] for a in seed_ids if a in content.appid2row]
+        if not rows:
+            return cand
+        prof = np.asarray(content.Xn[rows].mean(axis=0)).ravel()
+        nrm = np.linalg.norm(prof)
+        if nrm == 0:
+            return cand
+        prof = prof / nrm
+        sims = {}
+        for a in cand:
+            r = content.appid2row.get(a)
+            if r is None or content.tag_sizes[r] == 0:
+                sims[a] = None  # no tag data — unknown, NOT dissimilar: pass
+            else:
+                sims[a] = float(content.Xn.getrow(r).dot(prof)[0])
+        kept = [a for a in cand if sims[a] is None or sims[a] >= min_sim]
+        if len(kept) < min_keep:  # graceful fallback: best-half by tag-sim
+            best = set(sorted(cand, key=lambda a: -(sims[a] or 0.0))
+                       [:max(min_keep, len(cand) // 2)])
+            kept = [a for a in cand if a in best]
+        return kept
+
     def seed_node(s: AgentState):
         matched: list[int] = []
         for t in s.get("seed_titles", []):
@@ -212,7 +245,7 @@ def build_agentic_graph(cf, meta, llm, data_dir, max_refine: int = 2):
                 cand.append(a)
             if len(cand) >= 300:
                 break
-        return {"candidates": cand}
+        return {"candidates": _tag_gate(matched, cand)}
 
     def multi_node(s: AgentState):
         excl = set(s.get("played", [])) | set(s.get("library", {})) | set(s.get("friend_library", {}))
