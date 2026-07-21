@@ -1,5 +1,8 @@
 # P8 e2e — run3b
 
+> **유형**: eval-output · **상태**: active · **갱신**: 2026-07-21
+
+
 ## constraint_coop_kr — PASS
 - query: 협동 가능하고 한국어 되는 게임
 - route: library (expected ['anonymous', 'library']) | cands 300 → filtered 83 | 21.8s

@@ -1,5 +1,8 @@
 # P8 e2e — run2
 
+> **유형**: eval-output · **상태**: active · **갱신**: 2026-07-21
+
+
 ## library — PASS
 - query: 나한테 맞는 게임 추천해줘
 - route: library (expected ['library']) | cands 300 → filtered 300 | 128.0s

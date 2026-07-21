@@ -162,7 +162,9 @@ def main() -> int:
     (out_dir / "cases.json").write_text(
         json.dumps(dumps, ensure_ascii=False, indent=1, default=str),
         encoding="utf-8")
-    md = ["# P8 e2e — " + args.tag, ""]
+    md = ["# P8 e2e — " + args.tag, "",
+          f"> **유형**: eval-output · **상태**: active · **갱신**: "
+          f"{time.strftime('%Y-%m-%d')}", ""]
     for r in rows:
         md.append(f"## {r['case']} — {'PASS' if r['PASS'] else '**FAIL**'}")
         md.append(f"- query: {r['query']}")
