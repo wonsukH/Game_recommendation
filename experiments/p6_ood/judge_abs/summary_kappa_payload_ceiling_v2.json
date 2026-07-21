@@ -1,0 +1,20 @@
+{
+  "model": "gemini-3.1-flash-lite",
+  "payload": "payload_ceiling_v2.json",
+  "n_cases_judged": 20,
+  "n_pairs": 180,
+  "quota_hit_partial": false,
+  "kappa_overall": 0.578,
+  "agreement_pct": 74.4,
+  "kappa_by_arm": {},
+  "gemini_rating_dist": {
+    "Medium": 60,
+    "High": 95,
+    "Low": 25
+  },
+  "sonnet_rating_dist": {
+    "Low": 35,
+    "High": 92,
+    "Medium": 53
+  }
+}

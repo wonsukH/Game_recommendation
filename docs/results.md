@@ -26,6 +26,10 @@ Evidence (Korean, append-only): [`experiments/p4_sweep/JOURNAL.md`](../experimen
     [41.5, 58.0] vs instrument ceiling 51.3% [44.1, 58.0] ⇒ **ceiling-normalized precision ≈ 97%**;
     operating-characteristic correction (sensitivity 0.513 / false-positive 0.075) puts the true
     interest share of EASE's top-10 at **~90%+** (rough 2-class estimate, n = 20).
+    **Independently cross-validated (2026-07-21)**: a Gemini judge agrees with Sonnet at
+    κ = 0.49 (arms) / 0.58 (ceiling), and its own blind ratings reproduce the ordering —
+    EASE **59.5%** High vs own-loved-games 52.2% vs POP 31.5% vs random 6.0% — closing the
+    single-judge-bias objection (JOURNAL T55).
   - **"8 of 10 recommendations at least touch the user's taste"** — High+Medium 82.0% (ceiling 80.2%).
   - **"6.7× random, +22pp over popularity"** — the pure personalization contribution on the
     popularity-tolerant v2 instrument (EASE 50.0% / POP 28.0% / random 7.5%).
