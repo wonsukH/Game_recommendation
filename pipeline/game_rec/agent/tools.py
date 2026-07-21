@@ -72,6 +72,9 @@ class CatalogMeta:
 
         # P5: constraint metadata is steam.db-native (build_catalog_db.py ->
         # catalog.json); the old outputs/steam_appdetails.csv path is retired.
+        # Prices are in the STORE currency (KRW for ~99.3% of rows; `currency`
+        # rides along so max_price — interpreted as KRW — can conservatively
+        # drop the small foreign-currency tail instead of leaking it through).
         self.meta: dict[int, dict] = {}
         cat = json.loads((data_dir / "catalog.json").read_text(encoding="utf-8"))
         for a_str, m in cat.items():
@@ -81,6 +84,7 @@ class CatalogMeta:
                 "single_player": bool(m.get("single_player")),
                 "korean": bool(m.get("korean")),
                 "price": m.get("price"),
+                "currency": m.get("currency") or "KRW",
                 "is_free": bool(m.get("is_free")),
                 "release": _parse_date(m.get("release") or ""),
                 "metacritic": m.get("metacritic"),
@@ -116,8 +120,12 @@ class CatalogMeta:
             if ok and constraints.get("free") and not m["is_free"]:
                 ok = False
             if ok and constraints.get("max_price") is not None:
+                # max_price is KRW (Korean-facing app). Non-KRW-priced rows
+                # (~0.7%, geo hiccups in the crawl) are dropped conservatively
+                # — same policy as missing metadata.
                 p = m["price"]
-                if p is None or p > float(constraints["max_price"]):
+                if p is None or m.get("currency", "KRW") != "KRW" \
+                        or p > float(constraints["max_price"]):
                     ok = False
             if ok and constraints.get("released_after") is not None:
                 rel = m["release"]

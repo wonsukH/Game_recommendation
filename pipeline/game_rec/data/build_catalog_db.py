@@ -133,7 +133,11 @@ def parse_catalog_row(row) -> dict:
     langs = row.supported_languages or ""
     is_free = bool(row.is_free)
     price = None
+    currency = getattr(row, "price_currency", None)
     if row.price_final is not None and not pd.isna(row.price_final):
+        # price_final is in hundredths of the STORE currency (KRW for ~99.3%
+        # of rows; a small foreign-currency tail exists — currency is stored
+        # so the filter can handle it conservatively)
         price = float(row.price_final) / 100.0
     mc = None
     if row.metacritic_score is not None and not pd.isna(row.metacritic_score) \
@@ -145,6 +149,7 @@ def parse_catalog_row(row) -> dict:
         "single_player": "Single-player" in cats,
         "korean": "Korean" in str(langs),
         "price": 0.0 if is_free else price,
+        "currency": currency if not is_free else "KRW",
         "is_free": is_free,
         "release": row.release_date or None,
         "metacritic": mc,
@@ -167,8 +172,8 @@ def main() -> int:
     con = sqlite3.connect(f"file:{args.db}?mode=ro", uri=True)
     games = pd.read_sql_query(
         "SELECT appid, name, categories_json, supported_languages, price_final, "
-        "is_free, release_date, metacritic_score FROM games WHERE name IS NOT NULL",
-        con)
+        "price_currency, is_free, release_date, metacritic_score "
+        "FROM games WHERE name IS NOT NULL", con)
     ss = pd.read_sql_query(
         "SELECT appid, positive, negative, tags_json FROM steamspy", con)
     con.close()

@@ -419,3 +419,12 @@ P6 확정 구성(EASE λ100 × pctl_game + 무편향 인기도)을 서빙 실물
 **카탈로그(`build_catalog_db.py`)**: 전부 DB-네이티브 — 태그 행렬 9,956→**34,796게임**(큐레이티드 447태그), 품질 = steamspy pos/neg 동일 shrink(**34,735게임**, 구 ~8.6k), 인기도 = **현 시점 무편향 재추정(OOD 20,282명)**, catalog.json(제약 메타 41,266행), 타이틀 CSV 재생성. 신규 pytest 7종 포함 전체 39 green.
 **서빙 스왑**: `EASERecommender` 어댑터(score/col/inv_col/game_avg_pt — 그래프 계약 유지, 컷오프 무배제 명문화). **서빙 코드의 cutoff 버그 패턴 3곳 제거**(hybrid._cf_ranked / agent_graph._interleave / seed_node — condcos 시절 무해했으나 EASE 음수 꼬리를 자르는 T35 재발 지점), steered 정규화 max-나눗셈→min-max(음수 안전), CatalogMeta CSV→catalog.json, 데모 라이브러리 CSV→steam.db, 시드 경로 = 명시 가중치 API(ECDF 오해석 방지), sync_data FAISS-시대 화이트리스트 8종 제거.
 **스모크(LLM 우회, 실제 앱 코드 경로) PASS**: 데모 라이브러리(CS:S/포탈/L4D2 133게임) → 위쳐3·어몽어스·스타듀 등 20추천 / 시드 CS2 → PUBG·Apex·Aimlabs / 탐험 모드 top-10 9/10 교체(Slay the Spire 2 등) / 제약(협동+한국어) 18/30·품질 게이트 26/30 작동. **런타임 CSV 의존 0 달성**(로드맵 P5 완료 조건). 잔여 = P5-4 문서 + 풀 e2e(LLM 라우터, 사용자 배석 P8).
+
+## [2026-07-21 09:50] T54 — **P8-A 완료: 실제 Gemini 라우터로 전 6경로 e2e 7/7 PASS** (배석 세션)
+신규 `p8_e2e.py`: 실제 그래프(`build_agentic_graph`+`graph.invoke`)를 앱 예시 프롬프트 코퍼스로 구동, 경로별 단언(라우팅·후보·제약 준수·응답).
+**LLM 모델 오디세이(실측 기록 — 서빙 운영 제약)**: `.env`의 gemini-2.5-pro = 무료 티어 할당량 **0**(전 콜 429; 앱 자체가 LLM 불능 상태였음 — 폴백 체인이 견딘 건 부수 확인) → 2.5-flash = 신규 사용자 은퇴 404 → flash-latest/3.5-flash = 503 폭주 → **`gemini-3-flash-preview` 채택**(프로브 200 OK; `.env` last-wins append로 전환, 앱 기본값도 flash로). **실질 제약 = 무료 일일 20콜/모델** — 배석 e2e/데모 설계는 이 예산 안에서.
+**사전 식별 수정 4건의 실증 결과**:
+- ① **통화 체인 수정+검증**: 실측상 가격은 KRW ~99.3%(엘든링 64,800원 정확) + 외화 273행 혼입(위쳐 "3.99"가 모든 상한 통과하는 누수). 수정 = catalog에 `currency` 필드, max_price=KRW 해석·비KRW 보수적 드롭, 라우터 프롬프트 원화 명시 → **e2e에서 "2만원 이하 협동" 300→99 정상 필터링 검증**.
+- ④ 라우터 프롬프트 `single_player` 누락 보완.
+- ②(anonymous 정확-일치 매핑) ③(빈 결과 가드): **e2e에서 미발현** — anonymous가 LLM 제목 10중 8매핑(카탈로그 41k 확대 덕), 빈 경로 미발생 → 관찰-우선 원칙대로 수정 보류, 위험만 기록.
+**경로별(run3+run3b 합산 7/7)**: library ✓ / seed(다크소울→정라우팅) ✓ / explore ✓ / multi(300→85 필터) ✓ / 제약 협동+한국어(300→83) ✓ / 제약 가격(300→99) ✓ / anonymous 무라이브러리(8후보) ✓. pytest 39 green. **로드맵 P8 완료 조건("전 서빙 경로 e2e 통과 + 테스트 green") 충족** — 잔여 = Part B(본인 계정 데모)·Part C(Gemini κ, 일일 쿼터 제약으로 flash-lite 또는 쿼터 리셋 후).

@@ -36,8 +36,9 @@ log = get_logger("serving.agent_graph")
 _ROUTER_PROMPT = (
     "You route a Korean game-recommendation request. Output ONLY JSON:\n"
     '{"request_type": one of ["library","seed","multi_entity","explore","anonymous","general"],\n'
-    ' "constraints": {"coop":bool,"multiplayer":bool,"korean":bool,"free":bool,'
+    ' "constraints": {"coop":bool,"multiplayer":bool,"single_player":bool,"korean":bool,"free":bool,'
     '"max_price":number|null,"released_after":int|null},\n'
+    " (max_price is in KRW won — '2만원'->20000, '$10'->about 14000)\n"
     ' "seed_titles": [OFFICIAL ENGLISH titles of any games mentioned, e.g. 다크소울->"Dark Souls", 엘든링->"Elden Ring"]}\n\n'
     "request_type rules: 'seed' if a specific game is named as a reference; "
     "'multi_entity' if it mentions a friend/another person; 'explore' if the user "

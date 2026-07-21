@@ -54,7 +54,8 @@ def _load():
         st.stop()
     cf = EASERecommender()  # P6-confirmed serving ranker (EASE l100 x pctl_game)
     meta = CatalogMeta(DATA)
-    llm = ChatGoogleGenerativeAI(model=os.environ.get("GEMINI_CHAT_MODEL", "gemini-2.5-pro"),
+    # default flash: the free-tier key has ZERO 2.5-pro quota (P8 finding)
+    llm = ChatGoogleGenerativeAI(model=os.environ.get("GEMINI_CHAT_MODEL", "gemini-2.5-flash"),
                                  google_api_key=key, temperature=0.3)
     graph = build_agentic_graph(cf, meta, llm, DATA)
     import pandas as pd
