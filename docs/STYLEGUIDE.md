@@ -1,8 +1,9 @@
 # Doc style guide
 
-> type: design-spec · status: active · updated: 2026-07-13
+> type: design-spec · status: active · updated: 2026-07-22
 
-> **Goal**: standardize this repo's docs into a form a **future Claude (agent) can search fast and cite accurately** — the primary purpose is retrieval/verification optimization, not human aesthetics. **Hard constraint: never change body content, numbers, or wording (no summarizing). Standardize only formatting, structure, and splitting.**
+> **Goal**: standardize this repo's docs so that (1) a **future Claude (agent) can search fast and cite accurately**, and (2) a **human visitor can actually read them** (user directive 2026-07-22 — the repo is public).
+> **Hard constraint: never change meaning, numbers, identifiers, or facts. No summarizing, no deletion.** Restructuring for readability — splitting a packed sentence into several, turning clause-chains into bullets — is allowed and encouraged (see §5).
 
 The whole doc set is designed as a **wiki an LLM navigates**: start at the home index ([`README.md`](README.md)); each page is one topic's article (metablock + answer-first lead + body + cross-links), densely linked hub↔child and canonical↔alias. The point: in a future session, when Claude answers a question, it should (a) reach the right file fast, (b) read only the part it needs, and (c) cite only current, correct information. Everything below serves that.
 
@@ -84,10 +85,15 @@ Navigation is top-down: Tier 0 points to Tier 1, Tier 1 points to Tier 2. A read
 - **Headers**: `##` = section, `###` = subsection. Do not use `**bold**` or ALLCAPS as a header substitute; header depth reflects real content nesting.
 - **Dates**: ISO `YYYY-MM-DD` (run-directory `YYYYMMDD_HHMMSS` timestamps stay as-is).
 - **blockquote `>`**: reserved for the metablock, the deprecation banner, and at most one TL;DR callout per doc — not for generic emphasis.
+- **Readability (2026-07-22)**: write for a human reader, not just retrieval.
+  - One bullet carries one clause. If a bullet needs semicolons, nested parentheses, or an em-dash chain to fit, split it into sub-bullets or separate sentences.
+  - Keep section lead sentences short; push qualifiers and detail into the lines below.
+  - A table cell holds a phrase, not a paragraph. If a cell grows multiple clauses, move the detail to a nested list under the table or split the row.
+  - Prefer line breaks over compression. Density is not a virtue when meaning survives decomposition.
 
 ## 6. Content preservation (highest priority)
 
-At no step of formatting work do you **change or shorten body text, numbers, or sentences**. If a page is too long, split it along existing section boundaries (the union of the split must match the original byte-for-byte); if it is stale, mark `status: deprecated` + banner but preserve the content. If deletion or summarizing seems necessary, confirm with the user first ([[confirm-before-code-change]]).
+At no step of formatting work do you **change meaning, numbers, identifiers, or facts, or shorten content by summarizing**. Restructuring is permitted: a packed sentence may be split into several sentences or bullets as long as every fact survives (§5 readability rules). If a page is too long, split it along existing section boundaries; if it is stale, mark `status: deprecated` + banner but preserve the content. If actual deletion or summarizing seems necessary, confirm with the user first ([[confirm-before-code-change]]).
 
 ## 7. Check (enforced)
 

@@ -1,6 +1,6 @@
 # Glossary
 
-> type: overview · status: active · updated: 2026-07-13
+> type: overview · status: active · updated: 2026-07-22
 
 Current-stack terms. Numbers live in [results](results.md); methodology in [evaluation](evaluation.md).
 
@@ -9,8 +9,9 @@ Current-stack terms. Numbers live in [results](results.md); methodology in [eval
   both, weighted by playtime. The project's validated core engine.
 - **EASE** — Embarrassingly Shallow Auto-Encoder: a closed-form (Woodbury) linear item-item model
   with L2 penalty λ. The corrected P4 serving pick (λ ≈ 100).
-- **`condcos` / `userknn` / `knnpd03`** — sweep candidates: conditional-cosine (old production
-  baseline, worst), user-kNN, and popularity-discounted kNN (a discovery knob, not a winner).
+- **`condcos`** — conditional-cosine, the old production baseline (worst sweep candidate).
+- **`userknn`** — user-kNN, a sweep candidate.
+- **`knnpd03`** — popularity-discounted kNN (a discovery knob, not a winner).
 - **Mult-DAE** — a denoising-autoencoder neural CF; lost to EASE in this small/sparse regime.
 - **`pvalue` / `pctl_game`** — preference-target definitions: playtime-value vs per-game engagement
   percentile. Statistically indistinguishable on the primary metric.

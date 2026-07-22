@@ -22,17 +22,18 @@ Korean append-only logs under `experiments/` are evidence, not translated.
 | [decisions](decisions.md) | What's settled vs still open |
 | [glossary](glossary.md) | Current-stack terms |
 | [operations](operations.md) | Run / restart the crawl, budget, safety rules |
-| [portfolio-headlines](portfolio-headlines.md) | Approved recruiter-facing framings (dual notation) |
+| `portfolio-headlines.md` (local only) | Approved recruiter-facing framings (dual notation) |
 
 ## Conventions
 - [STYLEGUIDE](STYLEGUIDE.md) — doc format, the density tiers, and the `check_doc_format.py` gate.
 - **Single source of truth**: canonical numbers live once ([results](results.md) for experiments,
   [status](status.md) for live counts); every other page cross-links.
 
-## Evidence & history (Tier-2 detail)
-- [`../experiments/INDEX.md`](../experiments/INDEX.md) — the per-experiment index: every comparison
-  and where its log/report lives (the deep detail behind [results](results.md)).
-- [`../experiments/p4_sweep/`](../experiments/p4_sweep/) — the P4 sweep: `JOURNAL.md`,
-  `LEADERBOARD.md`, `P6_PREREG.md` (Korean, append-only evidence).
-- [`../experiments/DELIBERATION_LOG.md`](../experiments/DELIBERATION_LOG.md) — the reasoning log (Korean).
-- [archive/](archive/) — retired old-stack docs (review-CSV / FE-pipeline / Streamlit vibe app), kept as history.
+## Evidence & history (Tier-2 detail — local only, not in the public repo)
+- `experiments/INDEX.md` — the per-experiment index: every comparison and where its log/report
+  lives (the deep detail behind [results](results.md)).
+- `experiments/p4_sweep/` — the P4 sweep: `JOURNAL.md`, `LEADERBOARD.md`, `P6_PREREG.md`
+  (Korean, append-only evidence).
+- `experiments/DELIBERATION_LOG.md` — the reasoning log (Korean).
+- `docs/archive/` — retired old-stack docs (review-CSV / FE-pipeline / Streamlit vibe app),
+  kept as history.

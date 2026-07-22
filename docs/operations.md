@@ -28,10 +28,12 @@ python -m data_collection.crawl_unified \
 - `--user-source random` — unbiased random-accountID sampling (batched public screening via `GetPlayerSummaries`), the OOD/P6 panel.
 - `--users-chunk 100` — users processed per phase turn (overrides the CLI default of 20).
 
-**Mode in one line:** unbiased random-SteamID64 sampling, achievements OFF, **no snowball** (random mode
-implies no friend enqueue), OOD pool tagged `depth=-1` in `user_queue`. Fully resumable — just re-run the
-`.bat`; it picks up from the SQLite cursors and re-runs idempotently. Output → `data_collection/steam.db`;
-logs → `data_collection/crawl_daily.log`.
+**Mode in one line:** unbiased random-SteamID64 sampling, achievements OFF, **no snowball**
+(random mode implies no friend enqueue), OOD pool tagged `depth=-1` in `user_queue`.
+
+- Fully resumable — just re-run the `.bat`. It picks up from the SQLite cursors and re-runs
+  idempotently.
+- Output → `data_collection/steam.db`; logs → `data_collection/crawl_daily.log`.
 
 ## 2. Watchdog (self-heal within a session)
 
@@ -49,9 +51,10 @@ something (a Claude session) is invoking it; it is **not** OS-scheduled. Do not 
 ## 3. API budget
 
 - **Cap: 90,000 Steam API calls per UTC-day** (`db.DAILY_LIMIT = 90_000`; 10k margin below Steam's
-  100k/day hard cap). Every HTTP request must first win `db.reserve()` (atomic `BEGIN IMMEDIATE`
-  increment *before* the call, failed calls counted too) — so the calendar-day total can never exceed
-  the cap even with parallel workers.
+  100k/day hard cap).
+  - Every HTTP request must first win `db.reserve()` — an atomic `BEGIN IMMEDIATE` increment
+    *before* the call. Failed calls are counted too.
+  - So the calendar-day total can never exceed the cap, even with parallel workers.
 - **Reset: 00:00 UTC (09:00 KST).** The day key is `datetime.now(timezone.utc)` formatted `%Y-%m-%d`,
   so the counter rolls over at UTC midnight.
 
@@ -89,17 +92,22 @@ that are slow on the live DB — avoid heavy JOINs for a quick status check.
 - **Never commit** `data_collection/steam.db`, `.env`, or any crawl export (Steam Web API ToU — end-user
   data is local-only; secrets stay out of git). All are already gitignored.
 - `serving/data/ease/graph_users.json` contains raw SteamID64s of the 12k EASE graph users →
-  **gitignored as of 2026-07-22** (it was briefly git-tracked 2026-07-20→07-22 in a public repo, now
-  untracked; full history purge pending a user decision). Rule: no user-identifiable artifact ever
-  gets tracked under `serving/data/` — the serving app only needs the aggregate count from `meta.json`.
+  **gitignored as of 2026-07-22**.
+  - It was briefly git-tracked 2026-07-20 → 07-22 in a public repo; now untracked, and the repo
+    history was purged.
+  - Rule: no user-identifiable artifact ever gets tracked under `serving/data/`. The serving app
+    only needs the aggregate count from `meta.json`.
 - The same 2026-07-22 sweep (`git grep` for the SteamID64 prefix over all tracked files) found raw
-  SteamIDs in **evidence JSONs too**: `experiments/**/panels.json` / `p6_panels.json` (1,483 + 4,688
-  IDs) and `experiments/**/judge/**/unblind*.json` (12–20 IDs each, mapping panel users to their
-  recommendation cases) → all **untracked + gitignored 2026-07-22**; the files stay local (evidence
-  is preserved — blinded payloads/summaries remain tracked). General rule: **derived artifacts and
-  evidence files carrying user identifiers are local-only**; before committing any builder/experiment
-  output, check it for SteamIDs (`git grep -E "7656119[0-9]{10}"` — code constants like
-  `STEAMID_BASE` are the only legitimate hits).
+  SteamIDs in **evidence JSONs too**:
+  - `experiments/**/panels.json` / `p6_panels.json` — 1,483 + 4,688 IDs.
+  - `experiments/**/judge/**/unblind*.json` — 12–20 IDs each, mapping panel users to their
+    recommendation cases.
+  - All were **untracked + gitignored 2026-07-22**. The files stay local, so evidence is preserved.
+    (Since the same day's repo cleanup, the whole `experiments/` tree is local-only anyway.)
+  - General rule: **derived artifacts and evidence files carrying user identifiers are local-only.**
+    Before committing any builder/experiment output, check it for SteamIDs
+    (`git grep -E "7656119[0-9]{10}"` — code constants like `STEAMID_BASE` are the only
+    legitimate hits).
 - **No destructive git** (no force-push / hard reset of others' work).
 - Do not stop a running crawl/build unless the user explicitly asks.
 

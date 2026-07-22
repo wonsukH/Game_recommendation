@@ -1,6 +1,6 @@
 # Architecture
 
-> type: overview · status: active · updated: 2026-07-20
+> type: overview · status: active · updated: 2026-07-22
 
 **What it is**: a personalized Steam recommender. Input = a user's play history (owned games +
 playtime); output = a ranked list of games they don't own. The confirmed engine is **EASE (λ=100)
@@ -21,14 +21,16 @@ Steam Web API ──crawl──▶ steam.db ──behavioral_extract──▶ ou
 ```
 
 - **Data layer** — `data_collection/` (crawler + SQLite schema): [data-layer](data-layer.md).
-- **Builders (P5, steam.db-native)** — `pipeline/game_rec/data/build_ease_artifact.py`
-  (EASE fit → exact B rows → top-K sparsify; gated by `pipeline/orchestration/p5_validate.py`) and
-  `build_catalog_db.py` (tags/quality/popularity/constraints/titles). Build steps:
-  [operations](operations.md) §7.
-- **Serving** — `serving/main_agent.py` + `agent_graph.py`; ranker adapter
-  `pipeline/game_rec/agent/ease_recommender.py` (contract: `score/recommend/col/inv_col/
-  game_avg_pt`; **no score≤0 truncation** — EASE's negative tail is signal). Steering/cold-fill:
-  `content.py` + `hybrid.py`; constraints/quality: `tools.CatalogMeta`.
+- **Builders (P5, steam.db-native)** — build steps: [operations](operations.md) §7.
+  - `pipeline/game_rec/data/build_ease_artifact.py` — EASE fit → exact B rows → top-K sparsify.
+    Gated by `pipeline/orchestration/p5_validate.py`.
+  - `build_catalog_db.py` — tags/quality/popularity/constraints/titles.
+- **Serving** — `serving/main_agent.py` + `agent_graph.py`.
+  - Ranker adapter: `pipeline/game_rec/agent/ease_recommender.py`.
+    Contract: `score/recommend/col/inv_col/game_avg_pt`.
+    **No score≤0 truncation** — EASE's negative tail is signal.
+  - Steering/cold-fill: `content.py` + `hybrid.py`.
+  - Constraints/quality: `tools.CatalogMeta`.
 - **Evaluation** — `pipeline/orchestration/` harnesses + `pipeline/game_rec/evaluation/`:
   [evaluation](evaluation.md).
 
@@ -46,10 +48,16 @@ Steam Web API ──crawl──▶ steam.db ──behavioral_extract──▶ ou
 
 ## The pivot (why the repo looks bimodal)
 The project began as a review-CSV + tag-embedding **anonymous "vibe" recommender**. On that framing
-an LLM-with-library baseline won, so the vibe stack was retired ([archive](archive/)); the
-LangGraph/Streamlit **app shell survived** and was progressively re-engined: behavioral data (P2),
-co-play CF moat (P3), preference definition (P4), unbiased OOD confirmation (P6), and finally the
-EASE rewire (P5). The validated F-steering (novelty/aspect) rides the rebuilt tag matrix.
+an LLM-with-library baseline won, so the vibe stack was retired (its docs are archived locally, not
+in the public repo). The LangGraph/Streamlit **app shell survived** and was progressively re-engined:
+
+1. behavioral data (P2)
+2. co-play CF moat (P3)
+3. preference definition (P4)
+4. unbiased OOD confirmation (P6)
+5. finally, the EASE rewire (P5)
+
+The validated F-steering (novelty/aspect) rides the rebuilt tag matrix.
 
 ## Current vs legacy
 | | Current (live) | Legacy (archived) |
