@@ -1,48 +1,20 @@
-# Single lock file — exact versions for reproducibility.
-# `pip install -r requirements.txt` installs everything; `pip install -e .` uses this via pyproject.toml.
+# SERVING requirements — what the deployed app needs (Streamlit Community
+# Cloud installs THIS file from the repo root). Research/crawl/eval extras
+# live in requirements-dev.txt (`pip install -r requirements-dev.txt` locally).
 
 # --- Core data + ML ---------------------------------------------------
 pandas==2.3.1
 numpy==2.3.2
 scipy==1.16.1
 scikit-learn==1.7.1
-gensim==4.4.0
-faiss-cpu==1.12.0
-sentence-transformers>=4.0,<5
-huggingface_hub<1.0
-tokenizers<0.21
-transformers>=4.41,<5
-safetensors<0.6
 
 # --- LLM / Agent (Gemini + LangGraph) --------------------------------
 langgraph==0.6.6
-langchain==0.3.27
 langchain-core==0.3.74
-langchain-openai==0.3.31
 langchain-google-genai>=2,<3
-langchain-upstage==0.7.3        # kept for backward compat; runtime uses Gemini
-openai==1.101.0
-tiktoken==0.11.0
 python-dotenv==1.1.1
 
-# --- Data collection --------------------------------------------------
-aiohttp==3.12.15
-requests==2.32.4
-beautifulsoup4==4.13.4
-lxml>=4.9.0
-selenium==4.35.0
-
-# --- Visualization / UI ----------------------------------------------
+# --- Serving I/O ------------------------------------------------------
 streamlit==1.48.1
-plotly>=5
-matplotlib==3.10.5
-seaborn==0.13.2
-umap-learn>=0.5
-
-# --- Utilities --------------------------------------------------------
-tqdm==4.67.1
-networkx==3.5
-python-pptx>=1.0
-
-# --- Test -------------------------------------------------------------
-pytest>=8
+requests==2.32.4
+huggingface_hub<1.0            # boot-time EASE artifact download (public repo)

@@ -1,0 +1,39 @@
+# FULL research environment = serving deps + research/crawl/eval extras.
+# Local setup: pip install -r requirements-dev.txt ; pip install -e .
+-r requirements.txt
+
+# --- Research ML (legacy-stack evidence + experiments) ---------------
+gensim==4.4.0
+faiss-cpu==1.12.0
+sentence-transformers>=4.0,<5
+tokenizers<0.21
+transformers>=4.41,<5
+safetensors<0.6
+
+# --- LLM extras (judges / legacy providers) ---------------------------
+langchain==0.3.27
+langchain-openai==0.3.31
+langchain-upstage==0.7.3        # kept for backward compat; runtime uses Gemini
+openai==1.101.0
+tiktoken==0.11.0
+
+# --- Data collection --------------------------------------------------
+aiohttp==3.12.15
+beautifulsoup4==4.13.4
+lxml>=4.9.0
+selenium==4.35.0
+
+# --- Visualization ----------------------------------------------------
+plotly>=5
+matplotlib==3.10.5
+seaborn==0.13.2
+umap-learn>=0.5
+
+# --- Utilities --------------------------------------------------------
+tqdm==4.67.1
+networkx==3.5
+python-pptx>=1.0
+psutil>=5
+
+# --- Test -------------------------------------------------------------
+pytest>=8

@@ -125,7 +125,7 @@ def build(out: Path) -> None:
     # serving code + data (aggregates only)
     sv = out / "serving"
     sv.mkdir()
-    for f in ("main_agent.py", "agent_graph.py", "llm_guard.py"):
+    for f in ("main_agent.py", "agent_graph.py", "llm_guard.py", "bootstrap.py"):
         shutil.copy2(ROOT / "serving" / f, sv / f)
     _copy_tree(ROOT / "serving" / "data", sv / "data", SERVING_DATA_EXCLUDE)
 

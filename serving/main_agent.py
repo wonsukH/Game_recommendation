@@ -23,11 +23,20 @@ from dotenv import load_dotenv
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 load_dotenv(ROOT / ".env")
+# Streamlit Community Cloud exposes secrets via st.secrets — mirror into env
+# so the whole stack keeps reading os.environ (no-op locally / on other hosts)
+try:
+    for _k, _v in st.secrets.items():
+        if isinstance(_v, str) and _k not in os.environ:
+            os.environ[_k] = _v
+except Exception:
+    pass
 
 from pipeline.game_rec.agent.ease_recommender import EASERecommender  # noqa: E402
 from pipeline.game_rec.agent.tools import CatalogMeta  # noqa: E402
 from pipeline.game_rec.agent.steam_library import get_owned_games, proxy_library  # noqa: E402
 from serving.agent_graph import build_agentic_graph  # noqa: E402
+from serving.bootstrap import ensure_ease_artifact  # noqa: E402
 from serving.llm_guard import build_guarded_llm  # noqa: E402
 
 DATA = str(ROOT / "serving" / "data")
@@ -50,8 +59,9 @@ DEMO_SEEDS = [0, 1, 2, 3, 5, 7]
 st.set_page_config(page_title="게임 추천 에이전트", page_icon="🎮", layout="wide")
 
 
-@st.cache_resource(show_spinner="모델·인덱스 로딩...")
+@st.cache_resource(show_spinner="모델·인덱스 로딩... (첫 기동은 모델 다운로드로 1~2분)")
 def _load():
+    ensure_ease_artifact(DATA)  # cloud boot: 345MB tensor from the HF model repo
     cf = EASERecommender()  # P6-confirmed serving ranker (EASE l100 x pctl_game)
     meta = CatalogMeta(DATA)
     llm = build_guarded_llm(DATA)  # key optional: without it the graph degrades, not dies
