@@ -44,6 +44,8 @@ wishlist (biased: 97%).
   Rocket League / HITMAN 2; commit f542fe9, 2026-07-22, JOURNAL T58; a crawl-time snapshot —
   periodic re-crawl is a P9 backlog item); Gemini cross-judge κ 0.49/0.58 — EASE≈ceiling reproduced
   by a second judge family. JOURNAL T54–T58.
-- **Next**: P7 (optional learned preference weight — likely null) or portfolio materials;
-  P9 continuous (crawl + periodic re-eval). Backlog: cold-start/new-release surface.
+- **Next**: P7 rescoped to recommendation-quality levers — session recency + cold-start surface,
+  optional, absorbs the old cold-start/new-release backlog item ([roadmap](roadmap.md)); portfolio
+  materials; online deployment of the Streamlit app on a free Hugging Face Space (design agreed in
+  principle 2026-07-22, implementation pending); P9 continuous (crawl + periodic re-eval).
 - Decisions register: [decisions](decisions.md).
