@@ -13,6 +13,11 @@ outputs/
 # `python -m pipeline.game_rec.data.build_ease_artifact` (meta.json is tracked)
 serving/data/ease/B_topk.npz
 
+# EASE graph-user manifest — raw SteamID64 list (crawled END-USER data; Steam ToU:
+# never publish). Serving only reads the count in meta.json; offline p5_validate
+# uses the local copy. LOCAL-ONLY.
+serving/data/ease/graph_users.json
+
 # P8 personal demo — the user's own library/recommendations stay LOCAL
 # (publication scope decided separately; anonymized summary only if approved)
 experiments/p8_e2e/my_demo*
