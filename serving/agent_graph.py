@@ -79,11 +79,14 @@ class AgentState(TypedDict, total=False):
     relaxed: List[str]
     steer: dict
     provenance: dict                   # appid -> {"by": [titles], "tags": [shared]}
+    reasons: Dict[int, str]            # appid -> one-line Korean reason (LLM)
+    skip_response: bool                # two-phase serving: cards first, prose later
     final_df: Any
     response: str
 
 
-def build_agentic_graph(cf, meta, llm, data_dir, max_refine: int = 2):
+def build_agentic_graph(cf, meta, llm, data_dir, max_refine: int = 2,
+                        return_responder: bool = False):
     df = pd.read_csv(f"{data_dir}/steam_games_tags.csv")
     appid2title = dict(zip(df["appid"].astype(int), df["game_title"].astype(str)))
     title2appid = {str(v).lower(): int(k) for k, v in appid2title.items()}
@@ -128,8 +131,9 @@ def build_agentic_graph(cf, meta, llm, data_dir, max_refine: int = 2):
             t = r.content if hasattr(r, "content") else str(r)
             a, b = t.find("{"), t.rfind("}")
             parsed = json.loads(t[a:b + 1]) if a != -1 else {}
+            llm_ok = True
         except Exception as e:
-            log.warning("router parse failed: %s", e); parsed = {}
+            log.warning("router parse failed: %s", e); parsed = {}; llm_ok = False
         rt = parsed.get("request_type", "anonymous")
         if rt == "library" and not has_lib:
             rt = "anonymous"
@@ -138,9 +142,12 @@ def build_agentic_graph(cf, meta, llm, data_dir, max_refine: int = 2):
         # explore/steer needs a library base (to be novel against); else LLM-direct
         if rt == "explore" and not has_lib:
             rt = "anonymous"
-        # personalize whenever we have the user's library (anonymous only w/o library)
+        # with a library, EVERY request stays library-grounded (user directive
+        # 2026-07-22): a vibe request steers the user's own taste toward the
+        # requested mood (aspect steering) instead of dropping to LLM-direct;
+        # in no-LLM fallback (router failed) plain personalization is all we can do
         if rt == "anonymous" and has_lib:
-            rt = "library"
+            rt = "explore" if llm_ok else "library"
         return {"request_type": rt,
                 "constraints": {k: v for k, v in (parsed.get("constraints") or {}).items() if v not in (None, False)},
                 "seed_titles": parsed.get("seed_titles") or [],
@@ -236,7 +243,10 @@ def build_agentic_graph(cf, meta, llm, data_dir, max_refine: int = 2):
         acc = (cf.score_with_weights(seeds) if hasattr(cf, "score_with_weights")
                else cf.score(seeds))
         order = np.argsort(-acc)
-        excl = set(matched) | set(s.get("played", []))
+        lib = {**(s.get("library") or {}), **(s.get("friend_library") or {})}
+        # with a library: never recommend owned games, and personalize the
+        # seed-similar pool (user directive 2026-07-22 — see RRF below)
+        excl = set(matched) | set(s.get("played", [])) | {int(a) for a in lib}
         cand = []
         for j in order:  # full-vector ranking, no score<=0 cutoff (see _interleave)
             if not np.isfinite(acc[int(j)]):
@@ -246,7 +256,19 @@ def build_agentic_graph(cf, meta, llm, data_dir, max_refine: int = 2):
                 cand.append(a)
             if len(cand) >= 300:
                 break
-        return {"candidates": _tag_gate(matched, cand)}
+        cand = _tag_gate(matched, cand)
+        if lib:
+            # reciprocal-rank fusion of (seed-similarity rank, library-taste rank):
+            # parameter-free, keeps the seed intent primary (pool IS seed-gated)
+            # while ordering within it by the user's own taste. Serving-pragmatic
+            # blend, not a P6-validated slot — flagged for later offline eval.
+            lacc = cf.score(lib)
+            lib_order = sorted(cand, key=lambda a: -(lacc[cf.col[a]]
+                               if a in cf.col and np.isfinite(lacc[cf.col[a]]) else -1e9))
+            lrank = {a: r for r, a in enumerate(lib_order)}
+            srank = {a: r for r, a in enumerate(cand)}
+            cand = sorted(cand, key=lambda a: -(1.0 / (60 + srank[a]) + 1.0 / (60 + lrank[a])))
+        return {"candidates": cand}
 
     def multi_node(s: AgentState):
         excl = set(s.get("played", [])) | set(s.get("library", {})) | set(s.get("friend_library", {}))
@@ -334,6 +356,8 @@ def build_agentic_graph(cf, meta, llm, data_dir, max_refine: int = 2):
         out = df[df["appid"].isin(top)].set_index("appid").reindex(top).reset_index()
         titles = [appid2title.get(a, str(a)) for a in top]
         prov = _provenance(s, top)
+        if s.get("skip_response"):  # phase 1: recs+evidence now, prose later
+            return {"final_df": out, "response": "", "provenance": prov, "reasons": {}}
         relaxed = s.get("relaxed", [])
         steer = s.get("steer") or {}
         steer_note = ""
@@ -375,17 +399,29 @@ def build_agentic_graph(cf, meta, llm, data_dir, max_refine: int = 2):
                + (f" (relaxed: {relaxed})" if relaxed else "")
                + (f"\nSteering: {steer_note}" if steer_note else "")
                + evidence)
+        reasons: Dict[int, str] = {}
         try:
             r = llm.invoke([HumanMessage(content=(
-                "You are a Korean game-recommendation assistant. Write a friendly Korean reply that "
-                "mentions ALL the picks below with a one-line reason each. " + stance + " If "
-                "constraints were relaxed, say so briefly and honestly. If a Steering direction is "
-                "given, frame the picks as an intentional exploration toward that direction, "
-                "honestly noting they branch from the usual taste.\n\n" + ctx))])
-            resp = r.content if hasattr(r, "content") else str(r)
+                "You are a Korean game-recommendation assistant. " + stance + " If constraints "
+                "were relaxed, mention it briefly and honestly in the reply. If a Steering "
+                "direction is given, frame it as an intentional exploration branching from the "
+                "usual taste.\nOutput ONLY JSON:\n"
+                '{"reply": "short friendly Korean intro, 2-3 sentences, NO per-game list '
+                '(the UI shows per-game reasons on cards)",\n'
+                ' "reasons": {"<EXACT title from Recommended>": "one-line Korean reason", ...}}\n'
+                "Include EVERY recommended title as a key in reasons.\n\n" + ctx))])
+            t = r.content if hasattr(r, "content") else str(r)
+            a, b = t.find("{"), t.rfind("}")
+            parsed = json.loads(t[a:b + 1]) if a != -1 else {}
+            resp = str(parsed.get("reply") or "").strip() or "추천: " + ", ".join(titles)
+            t2a = {str(appid2title.get(x, x)).lower(): int(x) for x in top}
+            for tt, why in (parsed.get("reasons") or {}).items():
+                aid = t2a.get(str(tt).strip().lower())
+                if aid is not None and str(why).strip():
+                    reasons[aid] = str(why).strip()
         except Exception as e:
             log.warning("response gen failed: %s", e); resp = "추천: " + ", ".join(titles)
-        return {"final_df": out, "response": resp, "provenance": prov}
+        return {"final_df": out, "response": resp, "provenance": prov, "reasons": reasons}
 
     g = StateGraph(AgentState)
     for name, fn in [("router_node", router_node), ("library_node", library_node),
@@ -406,4 +442,8 @@ def build_agentic_graph(cf, meta, llm, data_dir, max_refine: int = 2):
                             {"filter_node": "filter_node", "response_node": "response_node"})
     g.add_edge("anonymous_node", "filter_node")
     g.add_edge("response_node", END)
-    return g.compile()
+    compiled = g.compile()
+    # two-phase serving (perceived latency): the app invokes with
+    # skip_response=True to show cards immediately, then calls the responder
+    # with the phase-1 state to fill in prose + per-pick reasons
+    return (compiled, response_node) if return_responder else compiled

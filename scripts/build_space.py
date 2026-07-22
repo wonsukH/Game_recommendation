@@ -37,7 +37,12 @@ SERVING_DATA_EXCLUDE = {
 AGENT_EXCLUDE = {"nodes", "__pycache__", "build_quality.py"}
 
 ID_PAT = re.compile(rb"7656119\d{10}")
-ID_BENIGN = {b"76561197960265728", b"76561198000000000"}  # base const / synthetic doc id
+ID_BENIGN = {
+    b"76561197960265728",  # STEAMID_BASE code constant
+    b"76561198000000000",  # synthetic test id
+    b"76561198346330208",  # the AUTHOR's own public account — self-consented
+                           # in-app sample (user directive 2026-07-22)
+}
 
 SPACE_README = """\
 ---

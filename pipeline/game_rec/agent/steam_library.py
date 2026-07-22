@@ -26,6 +26,33 @@ from pipeline.game_rec.log import get_logger  # noqa: E402
 
 log = get_logger("game_rec.agent.steam_library")
 _OWNED_URL = "https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/"
+_VANITY_URL = "https://api.steampowered.com/ISteamUser/ResolveVanityURL/v1/"
+
+
+def resolve_steam_id(raw: str, api_key: str | None = None) -> str:
+    """Accept what people actually think of as their Steam ID: a profile URL
+    (…/profiles/7656… or …/id/vanityname), a bare 17-digit SteamID64, or a
+    vanity name — and resolve to a SteamID64 string."""
+    import re
+    s = (raw or "").strip().rstrip("/")
+    m = re.search(r"7656119\d{10}", s)
+    if m:
+        return m.group(0)
+    m = re.search(r"steamcommunity\.com/id/([^/?#]+)", s)
+    vanity = m.group(1) if m else s
+    if not vanity or "/" in vanity or " " in vanity:
+        raise RuntimeError("프로필 주소나 아이디 형식을 인식하지 못했습니다")
+    key = api_key or os.environ.get("STEAM_API_KEY")
+    if not key:
+        raise RuntimeError("STEAM_API_KEY not set")
+    r = requests.get(_VANITY_URL, params={"key": key, "vanityurl": vanity,
+                                          "format": "json"}, timeout=20)
+    r.raise_for_status()
+    resp = r.json().get("response", {}) or {}
+    if int(resp.get("success", 0)) != 1:
+        raise RuntimeError(f"'{vanity}' 프로필을 찾지 못했습니다 (커스텀 URL 미설정이면 "
+                           "프로필 주소 전체를 붙여넣어 주세요)")
+    return str(resp["steamid"])
 
 
 def _pool(data_dir: Path) -> set[int]:
