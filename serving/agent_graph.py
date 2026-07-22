@@ -39,7 +39,7 @@ _ROUTER_PROMPT = (
     ' "constraints": {"coop":bool,"multiplayer":bool,"single_player":bool,"korean":bool,"free":bool,'
     '"max_price":number|null,"released_after":int|null},\n'
     " (max_price is in KRW won — '2만원'->20000, '$10'->about 14000)\n"
-    ' "seed_titles": [OFFICIAL ENGLISH titles of any games mentioned, e.g. 다크소울->"Dark Souls", 엘든링->"Elden Ring"]}\n\n'
+    ' "seed_titles": [OFFICIAL ENGLISH titles of any games mentioned, e.g. 다크소울->"Dark Souls", 스타듀 밸리->"Stardew Valley"]}\n\n'
     "request_type rules: 'seed' if a specific game is named as a reference; "
     "'multi_entity' if it mentions a friend/another person; 'explore' if the user "
     "wants to BRANCH OUT from their usual taste — a NEW/unexplored genre, something "

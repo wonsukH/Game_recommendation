@@ -42,7 +42,7 @@ DATA = str(ROOT / "serving" / "data")
 # 5 real routes (+constraints woven into the phrasing, not a fake 6th route)
 EXAMPLES = [
     "내게 맞는 게임 추천해줘",
-    "엘든링 같은 게임",
+    "스타듀 밸리 같은 게임",
     "안 해본 새로운 장르로 색다른 거",
     "나랑 친구 둘 다 좋아할 게임",
     "2만원 이하 협동 게임",
