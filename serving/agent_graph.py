@@ -270,6 +270,7 @@ def build_agentic_graph(cf, meta, llm, data_dir, max_refine: int = 2):
 
     def filter_node(s: AgentState):
         cand = played_filter(s.get("candidates", []), set(s.get("played", [])))
+        cand = meta.availability_filter(cand)  # never surface unpurchasable games
         filt = meta.constraint_filter(cand, s.get("constraints", {}))
         return {"filtered": filt}
 

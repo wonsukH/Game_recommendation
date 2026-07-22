@@ -48,7 +48,8 @@ class HybridRecommender:
             if not np.isfinite(s):
                 break
             a = self.cf.inv_col.get(int(j))
-            if a is not None and a not in exclude:
+            if a is not None and a not in exclude \
+                    and (self.meta is None or self.meta.available(a)):
                 warm.append((a, float(s)))
             if len(warm) >= cap:
                 break
@@ -76,6 +77,8 @@ class HybridRecommender:
                 break
             a = self.content.row2appid[int(r)]
             if a in warm_set or a in exclude:
+                continue
+            if self.meta is not None and not self.meta.available(a):
                 continue
             cands.append((a, float(sc)))
             if len(cands) >= need * 8:  # headroom for the quality gate

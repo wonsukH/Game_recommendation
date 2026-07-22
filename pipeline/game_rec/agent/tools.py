@@ -94,6 +94,20 @@ class CatalogMeta:
         r = self.appid2row.get(int(appid))
         return float(self._pct[r]) if r is not None else 0.0
 
+    def available(self, appid: int) -> bool:
+        """Crawl-time purchasability. A store page with NO price AND not free
+        is a page-retained delisting (Black Survival, Rocket League, HITMAN 2
+        class — verified precise on the top-owned flagged titles, T59).
+        Unknown appid -> True (benefit of the doubt)."""
+        m = self.meta.get(int(appid))
+        if m is None:
+            return True
+        return bool(m["is_free"] or m.get("price") is not None)
+
+    def availability_filter(self, candidates: list[int]) -> list[int]:
+        """Drop games that can no longer be obtained on the store."""
+        return [a for a in candidates if self.available(a)]
+
     def quality_pct(self, appid: int) -> float | None:
         """User-score quality percentile in [0,1] (None if too few reviews)."""
         return self._quality_pct.get(int(appid))

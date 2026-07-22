@@ -13,6 +13,10 @@ outputs/
 # `python -m pipeline.game_rec.data.build_ease_artifact` (meta.json is tracked)
 serving/data/ease/B_topk.npz
 
+# P8 personal demo — the user's own library/recommendations stay LOCAL
+# (publication scope decided separately; anonymized summary only if approved)
+experiments/p8_e2e/my_demo*
+
 # Research/evaluation evidence is TRACKED (reports, logs, judgments) — it is NOT
 # recomputable pipeline output, so it lives at top-level experiments/ (not outputs/).
 # Only large recomputable caches inside it are ignored:
