@@ -25,7 +25,7 @@ exploration 1,936 / light 1,252. Cohort-shift signal: unbiased library median 8 
 wishlist (biased: 97%).
 
 ## Current phase
-- **P5 builder rewire: DONE (2026-07-20, commit 4171a7e).** The app serves the P6-confirmed
+- **P5 builder rewire: DONE (2026-07-20, commit 3e24f38).** The app serves the P6-confirmed
   **EASE(λ100) × pctl_game** from a gate-validated sparse-B artifact (K=2048; truncation loss
   −0.0027 within the −0.005 tolerance, top-20 Jaccard 0.966); catalog artifacts all steam.db-native
   (tags 34.8k games, SteamSpy quality 34.7k, fresh unbiased popularity from 20.3k OOD users);
@@ -41,7 +41,7 @@ wishlist (biased: 97%).
   tag-similarity gate shipped from live feedback (threshold 0.30, user-tuned); an availability
   filter now excludes delisted-but-page-remaining titles on every recommendation route — the
   store's "no price + not free" signal precisely detects them (2,391 games, e.g. GTA V Legacy /
-  Rocket League / HITMAN 2; commit f542fe9, 2026-07-22, JOURNAL T58; a crawl-time snapshot —
+  Rocket League / HITMAN 2; commit 688923d, 2026-07-22, JOURNAL T58; a crawl-time snapshot —
   periodic re-crawl is a P9 backlog item); Gemini cross-judge κ 0.49/0.58 — EASE≈ceiling reproduced
   by a second judge family. JOURNAL T54–T58.
 - **Next**: P7 rescoped to recommendation-quality levers — session recency + cold-start surface,
