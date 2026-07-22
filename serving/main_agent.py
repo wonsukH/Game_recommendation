@@ -58,11 +58,14 @@ CONS_LABEL = {"coop": "협동", "multiplayer": "멀티플레이", "single_player
               "released_after": "출시 시기"}
 
 st.set_page_config(page_title="게임 추천 에이전트", page_icon="🎮", layout="centered")
-# Korean-safe wrapping: never break inside a word (the sidebar was wrapping
-# labels mid-word); applied globally.
-st.markdown("<style>html, body, div, p, span, label, button "
-            "{word-break: keep-all !important; overflow-wrap: break-word;}</style>",
-            unsafe_allow_html=True)
+# Korean-safe wrapping (never break inside a word) + a wider default sidebar
+# so Korean labels/buttons fit on one line.
+st.markdown("<style>"
+            "html, body, div, p, span, label, button "
+            "{word-break: keep-all !important; overflow-wrap: break-word;} "
+            'section[data-testid="stSidebar"] '
+            "{width: 350px !important; min-width: 350px !important;}"
+            "</style>", unsafe_allow_html=True)
 
 
 @st.cache_resource(show_spinner="추천 엔진 로딩 중... (첫 기동은 모델 다운로드로 1~2분 걸립니다)")
@@ -134,6 +137,16 @@ with st.sidebar:
     k = st.slider("추천 개수", 3, 10, 5)
     if ss.played:
         st.caption(f"🚫 제외 목록: {len(ss.played)}개 게임")
+
+    st.divider()
+    st.markdown("**어떻게 추천하나요?**")
+    st.caption("① 내 라이브러리의 게임별 플레이 시간을 읽고")
+    st.caption("② 12,000명의 실제 플레이 패턴에서 함께 사랑받는 게임을 찾아")
+    st.caption("③ 어떤 보유 게임 때문인지 근거와 함께 보여드립니다")
+    st.caption("💡 조건을 붙여보세요 — \"2만원 이하 협동\", \"한국어 지원\", \"안 해본 장르로\"")
+    st.divider()
+    st.caption("📚 카탈로그 34,050개 게임 · "
+               "[소스 코드 · 검증 기록](https://github.com/wonsukH/Game_recommendation)")
 
 
 # ---------------- main ----------------
