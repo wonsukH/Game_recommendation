@@ -1,6 +1,6 @@
 # Operations runbook
 
-> type: runbook · status: active · updated: 2026-07-20
+> type: runbook · status: active · updated: 2026-07-22
 
 Day-to-day runbook for the live Steam crawl. Answer-first; each section is a task you can do now.
 Live counts and the current step are **not** here — see [status](status.md).
@@ -88,6 +88,18 @@ that are slow on the live DB — avoid heavy JOINs for a quick status check.
 
 - **Never commit** `data_collection/steam.db`, `.env`, or any crawl export (Steam Web API ToU — end-user
   data is local-only; secrets stay out of git). All are already gitignored.
+- `serving/data/ease/graph_users.json` contains raw SteamID64s of the 12k EASE graph users →
+  **gitignored as of 2026-07-22** (it was briefly git-tracked 2026-07-20→07-22 in a public repo, now
+  untracked; full history purge pending a user decision). Rule: no user-identifiable artifact ever
+  gets tracked under `serving/data/` — the serving app only needs the aggregate count from `meta.json`.
+- The same 2026-07-22 sweep (`git grep` for the SteamID64 prefix over all tracked files) found raw
+  SteamIDs in **evidence JSONs too**: `experiments/**/panels.json` / `p6_panels.json` (1,483 + 4,688
+  IDs) and `experiments/**/judge/**/unblind*.json` (12–20 IDs each, mapping panel users to their
+  recommendation cases) → all **untracked + gitignored 2026-07-22**; the files stay local (evidence
+  is preserved — blinded payloads/summaries remain tracked). General rule: **derived artifacts and
+  evidence files carrying user identifiers are local-only**; before committing any builder/experiment
+  output, check it for SteamIDs (`git grep -E "7656119[0-9]{10}"` — code constants like
+  `STEAMID_BASE` are the only legitimate hits).
 - **No destructive git** (no force-push / hard reset of others' work).
 - Do not stop a running crawl/build unless the user explicitly asks.
 
