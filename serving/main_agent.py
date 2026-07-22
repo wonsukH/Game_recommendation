@@ -140,13 +140,12 @@ with st.sidebar:
 
     st.divider()
     st.markdown("**어떻게 추천하나요?**")
-    st.caption("① 내 라이브러리의 게임별 플레이 시간을 읽고")
-    st.caption("② 12,000명의 실제 플레이 패턴에서 함께 사랑받는 게임을 찾아")
-    st.caption("③ 어떤 보유 게임 때문인지 근거와 함께 보여드립니다")
+    st.caption("① 내 라이브러리의 게임별 플레이 시간을 읽습니다.")
+    st.caption("② 실제 플레이어들의 플레이 패턴에서 함께 사랑받는 게임을 찾습니다.")
+    st.caption("③ 어떤 보유 게임 때문에 추천됐는지 근거를 함께 보여드립니다.")
     st.caption("💡 조건을 붙여보세요 — \"2만원 이하 협동\", \"한국어 지원\", \"안 해본 장르로\"")
     st.divider()
-    st.caption("📚 카탈로그 34,050개 게임 · "
-               "[소스 코드 · 검증 기록](https://github.com/wonsukH/Game_recommendation)")
+    st.caption("[소스 코드 · 검증 기록](https://github.com/wonsukH/Game_recommendation)")
 
 
 # ---------------- main ----------------
