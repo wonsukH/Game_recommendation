@@ -194,7 +194,7 @@ def build_agentic_graph(cf, meta, llm, data_dir, max_refine: int = 2):
     # similar-mode signal (tag-cosine Vb) — so co-play supplies "people
     # actually play these together" and tags supply "and it's actually a
     # similar game". Niche seeds (soulslikes etc.) pass mostly unchanged.
-    SEED_MIN_TAG_SIM = 0.25
+    SEED_MIN_TAG_SIM = 0.30  # user-tuned 2026-07-22 (0.25 let Tekken/DJMAX through on the ER seed)
 
     def _tag_gate(seed_ids: list, cand: list, min_sim: float = SEED_MIN_TAG_SIM,
                   min_keep: int = 10):
