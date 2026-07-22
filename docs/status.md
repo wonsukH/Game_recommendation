@@ -44,8 +44,14 @@ wishlist (biased: 97%).
   Rocket League / HITMAN 2; commit 688923d, 2026-07-22, JOURNAL T58; a crawl-time snapshot —
   periodic re-crawl is a P9 backlog item); Gemini cross-judge κ 0.49/0.58 — EASE≈ceiling reproduced
   by a second judge family. JOURNAL T54–T58.
-- **Next**: P7 rescoped to recommendation-quality levers — session recency + cold-start surface,
-  optional, absorbs the old cold-start/new-release backlog item ([roadmap](roadmap.md)); portfolio
-  materials; online deployment of the Streamlit app on a free Hugging Face Space (design agreed in
-  principle 2026-07-22, implementation pending); P9 continuous (crawl + periodic re-eval).
+- **Online deployment: LIVE (2026-07-22)** — https://game-rec-agent.streamlit.app/ on Streamlit
+  Community Cloud (free; HF now charges for app Spaces — HF hosts only the 345 MB EASE tensor as a
+  free public model repo, downloaded at boot). Visitors bring their own Steam profile URL / vanity
+  name (no demo accounts ship); with a library loaded every route is library-grounded; cards carry
+  per-pick reasons + EASE-decomposition provenance; two-phase render (cards first, prose async);
+  daily-capped LLM with a Steam-ID-only no-LLM degradation. Privacy: build-time SteamID scan gate;
+  the repo history was purged of all crawl-user IDs (2026-07-22).
+- **Next**: P7 rescoped to recommendation-quality levers — session recency + cold-start surface +
+  series/edition dedup, optional ([roadmap](roadmap.md)); portfolio materials; P9 continuous
+  (crawl + periodic re-eval).
 - Decisions register: [decisions](decisions.md).
