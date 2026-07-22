@@ -83,9 +83,12 @@ def _titles(lib, n=8):
 # ---------------- sidebar: users (single=library, multi=covariate/multi_entity) ----------------
 with st.sidebar:
     st.header("🎮 내 취향")
-    if not llm_guard.has_llm:
-        st.info("🔇 무-LLM 모드: 추천 엔진은 정상 동작, 자연어 라우팅/설명만 꺼져 있습니다. "
-                "Steam ID로 라이브러리를 불러오면 개인화 추천을 받을 수 있어요.")
+    # no-LLM policy (user decision 2026-07-22): without NL understanding the app
+    # serves ONLY Steam-ID library personalization — everything else is guided off
+    llm_off = (not llm_guard.has_llm) or llm_guard.exhausted()
+    if llm_off:
+        st.info("🔇 AI 자연어 이해가 꺼져 있습니다 (무료 쿼터 소진 또는 미설정). "
+                "지금은 **Steam ID 라이브러리 기반 개인화 추천만** 동작합니다.")
     if HAS_LOCAL_DB:  # local dev only: the crawl DB never ships with the deployed app
         st.caption("데모 유저를 고르세요. **여러 명 선택 = 공변량(나+친구) → 다중주체 추천**.")
         picked = st.multiselect("데모 유저 (클릭)", DEMO_SEEDS,
@@ -167,7 +170,19 @@ typed = st.chat_input("예: 협동·한국어 / 다크소울 같은 거 / 나랑
 query = ss.pending or typed
 ss.pending = None
 
-if query:
+if query and llm_off and not ss.library:
+    # no-LLM + no library: nothing meaningful can run — guide, don't pretend
+    ss.messages.append({"role": "user", "content": query})
+    guide = ("🔇 지금은 AI 자연어 이해가 꺼져 있어 채팅 요청을 해석할 수 없습니다. "
+             "사이드바에서 **Steam ID로 라이브러리를 불러오면** 플레이 기록 기반 "
+             "개인화 추천은 정상 동작합니다.")
+    ss.messages.append({"role": "assistant", "content": guide})
+    with main_col:
+        with st.chat_message("user"):
+            st.markdown(query)
+        with st.chat_message("assistant"):
+            st.markdown(guide)
+elif query:
     ss.messages.append({"role": "user", "content": query})
     with main_col:
         with st.chat_message("user"):
@@ -188,8 +203,9 @@ if query:
                 bits.append("요소:" + ",".join(t for t in steer["aspect_tags"] if t))
             meta_line = (f"🧭 route: **{rt}**" + (f" · 🧭 {' / '.join(bits)}" if bits else "")
                          + (f" · 제약완화: {relaxed}" if relaxed else ""))
-            if llm_guard.has_llm and llm_guard.exhausted():
-                meta_line += " · 🔇 오늘의 AI 설명 쿼터 소진 — 추천은 계속 동작합니다"
+            if llm_off:
+                meta_line += (" · 🔇 무-LLM 모드: 요청 유형 해석 없이 "
+                              "라이브러리 개인화로 처리됨")
             st.caption(meta_line)
             recs = (res.get("filtered") or res.get("candidates") or [])[:int(k)]
             if recs:
