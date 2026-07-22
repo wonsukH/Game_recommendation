@@ -1,1 +1,0 @@
-{"round": "round00", "panel": "dev", "k": 20, "seed": 42, "dual_gate": true, "candidates": ["anchor_binary", "random_s", "random_support", "pctl_game", "logratio_median", "pvalue_lognorm_eb", "pctl_user", "double_quantile", "ach_completion_mult", "ach_completion_pctl_blend", "afk_joint_gate"], "ts": "2026-07-03 06:49:54"}

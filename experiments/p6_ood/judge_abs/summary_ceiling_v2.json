@@ -1,7 +1,0 @@
-{
-  "ceiling_strict": 0.513,
-  "strict_ci": "[0.441,0.580]",
-  "ceiling_lenient": 0.802,
-  "lenient_ci": "[0.747,0.853]",
-  "n_users": 20
-}

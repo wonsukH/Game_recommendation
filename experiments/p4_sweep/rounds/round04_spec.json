@@ -1,8 +1,0 @@
-[
-  {"name": "per_user_cap", "params": {"base": "blend", "lam": 0.4, "alpha": 0.3}, "alias": "best_ref"},
-  {"name": "per_user_cap", "params": {"base": "blend", "lam": 0.4, "alpha": 0.3}, "wp": "flat", "alias": "best_flatwp"},
-  {"name": "per_user_cap", "params": {"base": "blend", "lam": 0.4, "alpha": 0.3}, "graph": "binary", "wp": "flat", "alias": "best_binC_flatwp"},
-  {"name": "per_user_cap", "params": {"base": "blend", "lam": 0.4, "alpha": 0.0}, "alias": "discovery_ref"},
-  {"name": "pctl_game", "alias": "pctl_game_ref"},
-  {"name": "random_support", "alias": "random_support_ref"}
-]

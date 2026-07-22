@@ -1,1 +1,0 @@
-{"panel": "dev", "k": 20, "seed": 42, "rankers": ["userknn25", "knnpd03", "knnpd06", "knnpd09", "rp3b"], "prefs": ["pvalue_eb"], "ts": "2026-07-03 13:31:27"}
