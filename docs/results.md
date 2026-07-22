@@ -1,6 +1,6 @@
 # Results — current truth (P4 + P6)
 
-> type: experiment-report · status: active · updated: 2026-07-14
+> type: experiment-report · status: active · updated: 2026-07-22
 
 **This page is the single source of truth for headline numbers.** Other pages cross-link here
 instead of restating figures. Methodology and the circularity caveat: [evaluation](evaluation.md).
@@ -128,6 +128,8 @@ Every claim below that matters is (or will be, at P6) confirmed on wishlist. Ful
 
 ## Status
 P4 shortlisting **done** (in-cohort + fresh n = 854) → **P6 OOD confirmation done (2026-07-14)** —
-verdicts above. Next: **P5** builder rewire around the confirmed EASE ranker, plus the exploration
-track E1–E4 and the absolute-rubric judge. Live progress: [status](status.md); plan:
-[roadmap](roadmap.md).
+verdicts above. **P5** builder rewire around the confirmed EASE ranker is **done (2026-07-20, commit
+4171a7e; JOURNAL T53)**; the exploration track E1–E4 and the absolute-rubric judge are **done**
+(JOURNAL T47–T52); **P8** serving e2e + the consented 5-account live demo are **done (2026-07-22;
+JOURNAL T54–T58)**. Next: **P7** (optional learned preference weight, likely a null) or portfolio
+materials; **P9** continuous. Live progress: [status](status.md); plan: [roadmap](roadmap.md).

@@ -1,6 +1,6 @@
 # experiments/ — 구조 안내 (목적별 정리)
 
-> **유형**: index · **상태**: active · **갱신**: 2026-06-29
+> **유형**: index · **상태**: active · **갱신**: 2026-07-22
 
 > 위치 주의: 이 폴더는 **프로젝트 최상위 `experiments/`** 다. (예전엔 `outputs/experiments/`에 있었으나, `outputs/`는 build_offline로 재생성되는 *파이프라인 산출물*용이자 `.gitignore` 대상이라, 재생성 불가능한 *연구 증거*인 실험을 그 안에 두는 건 부적절 → 최상위로 분리. 코드의 출력 경로도 `REPO_ROOT/experiments`로 갱신됨.)
 
@@ -22,10 +22,12 @@
 | `03_decisive_tags_vs_llm/` | 태그 경유 vs LLM-설명문 임베딩 직결 | 태그(vote합의)가 설명문보다 나음(Ve−Vf=+0.60 유의) | `decisive_report.md` |
 | `04_paradigm_vs_llm/` | 시스템 vs 생성형 LLM (best-fit & 공정 발굴) | 시스템 승률 0.04 — LLM이 ~96% 승(발굴 프레이밍서도) | `paradigm_report.md`, `gem_report.md` |
 | `05_personalization/` | **개인화 CF vs "LLM+내 라이브러리" (hold-out)** | **CF가 유의하게 승(recall@20 0.293 vs 0.173) — 첫 승리 영역** | `personalization_report.html`, `personalization_full/report.md` |
+| `p4_sweep/` | **행동 선호 정의 + 서빙 랭커 숏리스트**(steam.db 행동 데이터, P4) | EASE 숏리스트 1위 · `pctl_game` 채택 — 최종 판정은 P6로 위임 | `JOURNAL.md`(T1~T58), `LEADERBOARD.md`, `P6_PREREG.md` |
+| `p6_ood/` | **무편향 OOD 1,000명 사전등록 1회 확정** + 탐사 트랙(E1~E6)·절대 심판 | **EASE 확정(양 축 유의)** · knnpd03 기각 · 심판 상한≈EASE | `confirm_frozen/`, `judge_abs/`, `e*_*/summary.json` |
 | `_workflow_scripts/` | Claude 서브에이전트 심판에 쓴 임시 워크플로우 JS | (참고용, 재실행 불필요) | `_*.js` |
 
 ## 한 줄 결론의 흐름
-익명/태그-유사도 프레이밍(01–04)은 LLM에 ~96% 패배 → 그 스택 **폐기**(이는 *익명/vibe 한정* 판정). **개인화 CF(05)는 "LLM+내 라이브러리"를 유의하게 이김(recall@20 0.293 vs 0.173) + EASE 동률** = *현재 구현된* 코어 moat(범위 한정). 자기비판적 평가는 그 우위를 정직히 한정하는 **보완** 역량(성능 '대신' 아님). 현 시스템 = CF + `agent_graph`(library/seed/multi_entity/explore/anonymous) + steam.db; 01–04 스택은 폐기·증거로만 보존. 데이터층 재구축 로드맵 = `docs/roadmap.md`(정본 진입점 = `docs/README.md`).
+익명/태그-유사도 프레이밍(01–04)은 LLM에 ~96% 패배 → 그 스택 **폐기**(이는 *익명/vibe 한정* 판정). **개인화 CF(05)는 "LLM+내 라이브러리"를 유의하게 이김(recall@20 0.293 vs 0.173)** — 첫 승리 영역. 이후 행동 스토어(steam.db) 위에서 `p4_sweep`(숏리스트) → `p6_ood`(무편향 사전등록 확정)로 **서빙 = EASE(λ100) × pctl_game이 확정**됐고, P8 라이브 데모까지 완료. 자기비판적 평가는 그 우위를 정직히 한정하는 **보완** 역량(성능 '대신' 아님). 현 시스템 = EASE + `agent_graph`(library/seed/multi_entity/explore/anonymous) + steam.db; 01–04 스택은 폐기·증거로만 보존. 헤드라인 수치 정본 = `docs/results.md`(정본 진입점 = `docs/README.md`).
 
 ## 재현 / 주의
 - 각 run 디렉터리(`phase1_full/`, `personalization_full/` 등)는 `report.md`+`manifest.json`(아티팩트 sha256 지문)+`per_query.csv`+`aggregate.json`로 자기완결적.

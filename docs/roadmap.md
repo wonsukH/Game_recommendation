@@ -1,6 +1,6 @@
 # Roadmap
 
-> type: roadmap · status: active · updated: 2026-07-14
+> type: roadmap · status: active · updated: 2026-07-22
 
 The data layer pivoted from review-CSV to a behavioral SQLite store (`steam.db`), which forces a
 re-wire of the recommender's inputs, the "liked" definition, the quality signals, and the whole
@@ -41,9 +41,9 @@ plan when it starts. Headline numbers live in [results](results.md); methodology
 - **P8 — Serving update. DONE (2026-07-22).** Full e2e with the real Gemini router — 7/7 route
   cases PASS (model odyssey resolved to `gemini-3-flash-preview`; KRW price-constraint chain fixed
   and verified); real-human demo on 5 consented accounts (author + friends) with N=1 self-rating
-  aligning with the judge instrument; seed-route tag gate shipped from live feedback; Gemini
-  cross-judge κ 0.49/0.58 reproduces EASE≈ceiling. Records: JOURNAL T54–T58;
-  [portfolio-headlines](portfolio-headlines.md) demo section.
+  aligning with the judge instrument; seed-route tag gate shipped from live feedback, plus an
+  availability filter (delisted titles never surface); Gemini cross-judge κ 0.49/0.58 reproduces
+  EASE≈ceiling. Records: JOURNAL T54–T58; [portfolio-headlines](portfolio-headlines.md) demo section.
 
 - **P9 — Continuous / monitoring (always-on).** Crawl to target; periodically re-run P5–6 on
   accumulated data; commit + push at each pillar. Ongoing.

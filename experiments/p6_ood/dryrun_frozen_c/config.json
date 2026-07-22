@@ -1,0 +1,20 @@
+{
+  "run": "dryrun_frozen_c",
+  "panel": "dryrun",
+  "graph": "frozen",
+  "n_users": 300,
+  "n_graph": 1133,
+  "n_wl_eligible": 155,
+  "seed_split": 42,
+  "draw_seed": 777,
+  "artifacts": "D:\\YBIGTA\\Newbie_project\\Game_recommendation\\outputs\\p6",
+  "git_head": "1c28195c702cccb091479f20188440842283019d",
+  "panel_sha": null,
+  "started": "2026-07-14T03:43:18",
+  "elapsed_s": 40,
+  "anchors": {
+    "oracle_ndcg": 1.0,
+    "pop_ndcg": 0.0986,
+    "pop_wl": 0.0128
+  }
+}

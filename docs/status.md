@@ -1,6 +1,6 @@
 # Status — live
 
-> type: overview · status: active · updated: 2026-07-20
+> type: overview · status: active · updated: 2026-07-22
 
 Live project state. Counts are a **snapshot** (regenerate from `data_collection/steam.db` with a
 read-only connection — see [operations](operations.md)). Durable phase plan: [roadmap](roadmap.md).
@@ -38,8 +38,12 @@ wishlist (biased: 97%).
 - **P8 serving e2e + attended bundle: DONE (2026-07-22).** 7/7 route cases pass with the real
   Gemini router (`gemini-3-flash-preview`; free-tier ~20 calls/day/model constraint documented);
   consented 5-account live demo (self-rating 7/10 interested ≈ instrument prediction); seed-route
-  tag-similarity gate shipped from live feedback (threshold 0.30, user-tuned); Gemini cross-judge
-  κ 0.49/0.58 — EASE≈ceiling reproduced by a second judge family. JOURNAL T54–T58.
+  tag-similarity gate shipped from live feedback (threshold 0.30, user-tuned); an availability
+  filter now excludes delisted-but-page-remaining titles on every recommendation route — the
+  store's "no price + not free" signal precisely detects them (2,391 games, e.g. GTA V Legacy /
+  Rocket League / HITMAN 2; commit f542fe9, 2026-07-22, JOURNAL T58; a crawl-time snapshot —
+  periodic re-crawl is a P9 backlog item); Gemini cross-judge κ 0.49/0.58 — EASE≈ceiling reproduced
+  by a second judge family. JOURNAL T54–T58.
 - **Next**: P7 (optional learned preference weight — likely null) or portfolio materials;
   P9 continuous (crawl + periodic re-eval). Backlog: cold-start/new-release surface.
 - Decisions register: [decisions](decisions.md).

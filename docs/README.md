@@ -1,6 +1,6 @@
 # Game Recommendation — wiki
 
-> type: index · status: active · updated: 2026-07-13
+> type: index · status: active · updated: 2026-07-22
 
 Project knowledge base (English). **Read only the depth you need**: this index (Tier 0) → a Tier-1
 overview → its Tier-2 detail. The agent's behavioral code is in [`../CLAUDE.md`](../CLAUDE.md). The
@@ -16,7 +16,7 @@ Korean append-only logs under `experiments/` are evidence, not translated.
 | [architecture](architecture.md) | System shape + the pivot (behavioral CF vs the retired vibe stack) |
 | [data-layer](data-layer.md) | `steam.db` schema + crawler design / cost / budget |
 | [evaluation](evaluation.md) | Metrics, the circularity caveat, statistics, panels |
-| [results](results.md) | **P4 current truth** — the canonical headline numbers |
+| [results](results.md) | **Current truth (P4+P6+demo)** — the canonical headline numbers |
 | [roadmap](roadmap.md) | Durable phases P4–P9 |
 | [status](status.md) | Live crawl, counts, current phase |
 | [decisions](decisions.md) | What's settled vs still open |
