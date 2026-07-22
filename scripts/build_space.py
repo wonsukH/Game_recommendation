@@ -45,9 +45,8 @@ title: Steam Game Recommendation Agent
 emoji: \U0001F3AE
 colorFrom: indigo
 colorTo: purple
-sdk: streamlit
-sdk_version: "1.48.1"
-app_file: serving/main_agent.py
+sdk: docker
+app_port: 8501
 pinned: false
 ---
 
@@ -80,6 +79,26 @@ GITATTRIBUTES = """\
 *.npy filter=lfs diff=lfs merge=lfs -text
 """
 
+# HF dropped the native streamlit SDK (gradio|docker|static only) -> Docker
+# Space. HF runs the container as uid 1000 with an app-owned WORKDIR; HOME must
+# be writable (streamlit config) and serving/data too (_llm_quota.json).
+DOCKERFILE = """\
+FROM python:3.13-slim
+RUN useradd -m -u 1000 user
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+RUN chown -R user:user /app
+USER user
+ENV HOME=/home/user
+EXPOSE 8501
+CMD ["streamlit", "run", "serving/main_agent.py", \\
+     "--server.port=8501", "--server.address=0.0.0.0", \\
+     "--server.headless=true", "--server.enableCORS=false", \\
+     "--server.enableXsrfProtection=false"]
+"""
+
 
 def _copy_tree(src: Path, dst: Path, exclude: set[str]) -> None:
     dst.mkdir(parents=True, exist_ok=True)
@@ -99,6 +118,7 @@ def build(out: Path) -> None:
 
     (out / "README.md").write_text(SPACE_README, encoding="utf-8")
     (out / "requirements.txt").write_text(SPACE_REQUIREMENTS, encoding="utf-8")
+    (out / "Dockerfile").write_text(DOCKERFILE, encoding="utf-8")
     (out / ".gitattributes").write_text(GITATTRIBUTES, encoding="utf-8")
     (out / ".gitignore").write_text("_llm_quota.json\n__pycache__/\n", encoding="utf-8")
 
