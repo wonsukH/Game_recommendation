@@ -24,14 +24,17 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 load_dotenv(ROOT / ".env")
 
-from langchain_google_genai import ChatGoogleGenerativeAI  # noqa: E402
 from pipeline.game_rec.agent.ease_recommender import EASERecommender  # noqa: E402
 from pipeline.game_rec.agent.tools import CatalogMeta  # noqa: E402
 from pipeline.game_rec.agent.steam_library import get_owned_games, proxy_library  # noqa: E402
 from serving.agent_graph import build_agentic_graph  # noqa: E402
+from serving.llm_guard import build_guarded_llm  # noqa: E402
 
 DATA = str(ROOT / "serving" / "data")
 MANUAL = ROOT / "docs" / "technical_reference.html"
+# demo-user picker needs the local crawl DB — absent on the deployed Space,
+# where visitors bring their own Steam ID instead (ToU: user data never ships)
+HAS_LOCAL_DB = (ROOT / "data_collection" / "steam.db").exists()
 
 # routing-grouped example prompts (click -> runs immediately)
 EXAMPLES = {
@@ -49,18 +52,13 @@ st.set_page_config(page_title="게임 추천 에이전트", page_icon="🎮", la
 
 @st.cache_resource(show_spinner="모델·인덱스 로딩...")
 def _load():
-    key = os.environ.get("GEMINI_API_KEY")
-    if not key:
-        st.stop()
     cf = EASERecommender()  # P6-confirmed serving ranker (EASE l100 x pctl_game)
     meta = CatalogMeta(DATA)
-    # default flash: the free-tier key has ZERO 2.5-pro quota (P8 finding)
-    llm = ChatGoogleGenerativeAI(model=os.environ.get("GEMINI_CHAT_MODEL", "gemini-2.5-flash"),
-                                 google_api_key=key, temperature=0.3)
+    llm = build_guarded_llm(DATA)  # key optional: without it the graph degrades, not dies
     graph = build_agentic_graph(cf, meta, llm, DATA)
     import pandas as pd
     df = pd.read_csv(f"{DATA}/steam_games_tags.csv")
-    return graph, dict(zip(df["appid"].astype(int), df["game_title"].astype(str)))
+    return graph, dict(zip(df["appid"].astype(int), df["game_title"].astype(str))), llm
 
 
 @st.cache_data(show_spinner=False)
@@ -68,7 +66,7 @@ def _demo_lib(seed: int) -> dict:
     return proxy_library(seed=int(seed))
 
 
-graph, appid2title = _load()
+graph, appid2title, llm_guard = _load()
 ss = st.session_state
 ss.setdefault("library", {})
 ss.setdefault("friend_library", {})
@@ -85,26 +83,33 @@ def _titles(lib, n=8):
 # ---------------- sidebar: users (single=library, multi=covariate/multi_entity) ----------------
 with st.sidebar:
     st.header("🎮 내 취향")
-    st.caption("데모 유저를 고르세요. **여러 명 선택 = 공변량(나+친구) → 다중주체 추천**.")
-    picked = st.multiselect("데모 유저 (클릭)", DEMO_SEEDS,
-                            format_func=lambda s: f"유저 #{s}", default=[])
-    if st.button("선택 유저 불러오기", use_container_width=True, type="primary"):
-        libs = [_demo_lib(s) for s in picked] if picked else []
-        if not libs:
-            ss.library, ss.friend_library = {}, {}
-            st.warning("유저를 1명 이상 선택하세요.")
-        elif len(libs) == 1:
-            ss.library, ss.friend_library = dict(libs[0]), {}
-            st.success(f"개인화 모드 · 라이브러리 {len(ss.library)}개")
-        else:  # >=2 -> covariate: first=me, rest merged=friend -> multi_entity
-            ss.library = dict(libs[0])
-            fr = {}
-            for L in libs[1:]:
-                fr.update(L)
-            ss.friend_library = fr
-            st.success(f"공변량(다중주체) · 나 {len(ss.library)} + 친구 {len(ss.friend_library)}")
+    if not llm_guard.has_llm:
+        st.info("🔇 무-LLM 모드: 추천 엔진은 정상 동작, 자연어 라우팅/설명만 꺼져 있습니다. "
+                "Steam ID로 라이브러리를 불러오면 개인화 추천을 받을 수 있어요.")
+    if HAS_LOCAL_DB:  # local dev only: the crawl DB never ships with the deployed app
+        st.caption("데모 유저를 고르세요. **여러 명 선택 = 공변량(나+친구) → 다중주체 추천**.")
+        picked = st.multiselect("데모 유저 (클릭)", DEMO_SEEDS,
+                                format_func=lambda s: f"유저 #{s}", default=[])
+        if st.button("선택 유저 불러오기", use_container_width=True, type="primary"):
+            libs = [_demo_lib(s) for s in picked] if picked else []
+            if not libs:
+                ss.library, ss.friend_library = {}, {}
+                st.warning("유저를 1명 이상 선택하세요.")
+            elif len(libs) == 1:
+                ss.library, ss.friend_library = dict(libs[0]), {}
+                st.success(f"개인화 모드 · 라이브러리 {len(ss.library)}개")
+            else:  # >=2 -> covariate: first=me, rest merged=friend -> multi_entity
+                ss.library = dict(libs[0])
+                fr = {}
+                for L in libs[1:]:
+                    fr.update(L)
+                ss.friend_library = fr
+                st.success(f"공변량(다중주체) · 나 {len(ss.library)} + 친구 {len(ss.friend_library)}")
+    else:
+        st.caption("**내 Steam ID를 입력하면 내 라이브러리 기반 개인화 추천**을 받습니다. "
+                   "(공개 프로필이어야 하며, 서버에 저장되지 않습니다)")
 
-    with st.expander("🔑 실제 Steam ID로 불러오기"):
+    with st.expander("🔑 실제 Steam ID로 불러오기", expanded=not HAS_LOCAL_DB):
         sid = st.text_input("내 Steam ID (17자리, 공개)")
         if st.button("내 라이브러리", use_container_width=True) and sid:
             try:
@@ -183,6 +188,8 @@ if query:
                 bits.append("요소:" + ",".join(t for t in steer["aspect_tags"] if t))
             meta_line = (f"🧭 route: **{rt}**" + (f" · 🧭 {' / '.join(bits)}" if bits else "")
                          + (f" · 제약완화: {relaxed}" if relaxed else ""))
+            if llm_guard.has_llm and llm_guard.exhausted():
+                meta_line += " · 🔇 오늘의 AI 설명 쿼터 소진 — 추천은 계속 동작합니다"
             st.caption(meta_line)
             recs = (res.get("filtered") or res.get("candidates") or [])[:int(k)]
             if recs:

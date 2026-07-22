@@ -23,6 +23,10 @@ serving/data/ease/graph_users.json
 experiments/**/*panels*.json
 experiments/**/unblind*.json
 
+# HF Space build payload (assembled by scripts/build_space.py) + LLM quota state
+deploy/
+serving/data/_llm_quota.json
+
 # P8 personal demo — the user's own library/recommendations stay LOCAL
 # (publication scope decided separately; anonymized summary only if approved)
 experiments/p8_e2e/my_demo*
