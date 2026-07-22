@@ -44,6 +44,12 @@ plan when it starts. Headline numbers live in [results](results.md); methodology
     0.01–0.02 where EASE is structurally 0 (pre-registered P3 directional, E4×E6 — [results](results.md)).
     This is a **capability gap** (games with no co-play can never surface through EASE), not an
     accuracy lever. Absorbs the former standalone "cold-start/new-release" backlog item.
+  - **(c) Series/edition dedup on library-route output (user-flagged 2026-07-22).** Co-play alone
+    cannot tell whether two titles are effectively the same game line (improved edition / remaster /
+    sequel) or genuinely different — so a user playing the improved version can get its predecessor
+    recommended. The seed route's franchise exclusion (`_series_prefix`) does not cover the library
+    route. Candidate mitigation: exclude recommendations whose series prefix matches an owned game —
+    with a known over-filtering risk (same-series games that ARE different); needs its own check.
   - Honesty note: the largest *proven* quality lever remains data scale (E4: the EASE curve is still
     rising — [results](results.md)); that lever lives in **P9**, not P7.
   *Done when:* each sub-lever gets its own pre-registered comparison when picked up; a null keeps the

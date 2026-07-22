@@ -51,7 +51,10 @@ Profiles sorted by the engine's actual signal (per-game playtime percentile), no
   적용. 라이브 사용자 검증이 오프라인 지표가 못 보는 결함을 이틀 새 2건 잡아낸 사례.
 - 정직 각주: 크롤 수집 사용자의 라이브러리는 익명화해도 재식별 위험이 있어 **게시하지 않음**(동의
   계정만 게시); 초저플레이 소품 게임의 백분위 노이즈(예: 무료 데모작 고가중치)는 알려진 한계;
-  가용성 신호는 크롤 시점 스냅샷(주기 재크롤은 P9 백로그).
+  가용성 신호는 크롤 시점 스냅샷(주기 재크롤은 P9 백로그); **시리즈·개선판 무분별**(2026-07-22
+  추가) — co-play만으로는 두 게임이 사실상 같은 계열(개선판·리마스터·후속)인지 별개 게임인지
+  구분하지 못해, 개선판을 플레이 중인 유저에게 그 **전작을 역방향 추천**할 수 있음. seed 라우트의
+  프랜차이즈 제외는 library 라우트 결과엔 적용되지 않음(완화 후보는 [roadmap](roadmap.md) P7 (c)).
 
 ## Cross-links
 Canonical numbers: [results](results.md) · method: [evaluation](evaluation.md) · evidence:
