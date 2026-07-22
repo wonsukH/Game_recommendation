@@ -78,6 +78,7 @@ class AgentState(TypedDict, total=False):
     refine_iter: int
     relaxed: List[str]
     steer: dict
+    provenance: dict                   # appid -> {"by": [titles], "tags": [shared]}
     final_df: Any
     response: str
 
@@ -290,10 +291,49 @@ def build_agentic_graph(cf, meta, llm, data_dir, max_refine: int = 2):
             return "filter_node"
         return "response_node"
 
+    def _provenance(s: AgentState, top: List[int]) -> dict:
+        """EASE is linear: score(j) = sum_i w_i * B[i, j], so each pick decomposes
+        EXACTLY into per-library-game contributions. Top contributors + the tags
+        they share with the pick = the honest "why" (no LLM confabulation)."""
+        lib = {**(s.get("library") or {}), **(s.get("friend_library") or {})}
+        if not lib or not (hasattr(cf, "profile_weight") and hasattr(cf, "B")):
+            return {}
+        w = {a: cf.profile_weight(a, pt) for a, pt in lib.items()}
+        prov: dict = {}
+        for rec in top:
+            j = cf.col.get(int(rec))
+            if j is None:
+                continue
+            contrib = []
+            for a, wa in w.items():
+                i = cf.col.get(int(a))
+                if i is None or wa <= 0:
+                    continue
+                c = wa * cf.B[i, j]
+                if c > 0:
+                    contrib.append((int(a), float(c)))
+            contrib.sort(key=lambda t: -t[1])
+            by_ids = [a for a, _ in contrib[:3]]
+            shared = []
+            r = content.appid2row.get(int(rec))
+            if r is not None and by_ids:
+                rec_row = content.Xn.getrow(r)
+                ctag: set = set()
+                for a in by_ids:
+                    cr = content.appid2row.get(a)
+                    if cr is not None:
+                        ctag |= set(content.Xn.getrow(cr).indices)
+                order = rec_row.indices[np.argsort(-rec_row.data)]
+                shared = [content.idx2tag.get(int(t)) for t in order if int(t) in ctag][:3]
+            prov[int(rec)] = {"by": [appid2title.get(a, str(a)) for a in by_ids],
+                              "tags": [t for t in shared if t]}
+        return prov
+
     def response_node(s: AgentState):
         top = (s.get("filtered") or s.get("candidates") or [])[: s.get("k", 5)]
         out = df[df["appid"].isin(top)].set_index("appid").reindex(top).reset_index()
         titles = [appid2title.get(a, str(a)) for a in top]
+        prov = _provenance(s, top)
         relaxed = s.get("relaxed", [])
         steer = s.get("steer") or {}
         steer_note = ""
@@ -304,23 +344,48 @@ def build_agentic_graph(cf, meta, llm, data_dir, max_refine: int = 2):
             if steer.get("aspect_tags"):
                 bits.append("좋아한 요소 강조: " + ", ".join(t for t in steer["aspect_tags"] if t))
             steer_note = " | ".join(bits)
+        evidence = ""
+        if prov:
+            lines = []
+            for a in top:
+                p = prov.get(int(a)) or {}
+                if p.get("by"):
+                    lines.append(f"- {appid2title.get(a, a)}: driven by the user's "
+                                 f"{', '.join(p['by'])}"
+                                 + (f"; shared traits: {', '.join(p['tags'])}" if p.get("tags") else ""))
+            if lines:
+                evidence = "\nEvidence (per pick):\n" + "\n".join(lines)
+        # honesty stance: NEVER claim taste knowledge the system doesn't have.
+        # Anonymous/no-library picks come only from the request's described mood.
+        has_lib = bool(s.get("library") or s.get("friend_library"))
+        if has_lib and prov:
+            stance = ("Picks are personalized from the user's actual play history. Ground every "
+                      "per-pick reason ONLY in the Evidence lines (the user's driven-by games and "
+                      "shared traits); do not invent taste facts beyond them.")
+        elif has_lib:
+            stance = ("Picks are personalized from the user's play history; reasons may reference "
+                      "their loaded library in general terms only — invent no specifics.")
+        else:
+            stance = ("The user has NO library loaded. Picks come only from the mood/genre described "
+                      "in the request. NEVER claim to know the user's taste, history, or library — "
+                      "never say things like '취향을 반영했다'; justify each pick against the REQUEST.")
         ctx = (f"Request: {s['user_query']}\nRoute: {s.get('request_type')}\n"
-               f"Recommended (personalized, in order): {titles}\n"
+               f"Recommended (in order): {titles}\n"
                f"Constraints applied: {s.get('constraints')}"
                + (f" (relaxed: {relaxed})" if relaxed else "")
-               + (f"\nSteering: {steer_note}" if steer_note else ""))
+               + (f"\nSteering: {steer_note}" if steer_note else "")
+               + evidence)
         try:
             r = llm.invoke([HumanMessage(content=(
-                "You are a Korean game-recommendation assistant. Given the picks below (already "
-                "personalized & filtered), write a friendly Korean reply that mentions ALL of them with a "
-                "one-line reason each. If constraints were relaxed, say so briefly and honestly. If a "
-                "Steering direction is given, frame the picks as an intentional exploration toward that "
-                "direction (new genres / a liked aspect), honestly noting they branch from the usual taste."
-                "\n\n" + ctx))])
+                "You are a Korean game-recommendation assistant. Write a friendly Korean reply that "
+                "mentions ALL the picks below with a one-line reason each. " + stance + " If "
+                "constraints were relaxed, say so briefly and honestly. If a Steering direction is "
+                "given, frame the picks as an intentional exploration toward that direction, "
+                "honestly noting they branch from the usual taste.\n\n" + ctx))])
             resp = r.content if hasattr(r, "content") else str(r)
         except Exception as e:
             log.warning("response gen failed: %s", e); resp = "추천: " + ", ".join(titles)
-        return {"final_df": out, "response": resp}
+        return {"final_df": out, "response": resp, "provenance": prov}
 
     g = StateGraph(AgentState)
     for name, fn in [("router_node", router_node), ("library_node", library_node),
