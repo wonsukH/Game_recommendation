@@ -35,7 +35,11 @@ wishlist (biased: 97%).
 - **P6 OOD confirmation: DONE (2026-07-14)** — serving = EASE both axes, pref = pctl_game,
   knnpd03 dropped ([results](results.md)). Exploration track E1–E6 + absolute judge: DONE
   (JOURNAL T47–T52).
-- **Next: P8** — full end-to-end with the LLM router (user-attended; Gemini spend) + serving
-  polish. Backlog: cold-start/new-release surface (two-tower niche), real-human portfolio demo,
-  Gemini κ judge cross-check.
+- **P8 serving e2e + attended bundle: DONE (2026-07-22).** 7/7 route cases pass with the real
+  Gemini router (`gemini-3-flash-preview`; free-tier ~20 calls/day/model constraint documented);
+  consented 5-account live demo (self-rating 7/10 interested ≈ instrument prediction); seed-route
+  tag-similarity gate shipped from live feedback (threshold 0.30, user-tuned); Gemini cross-judge
+  κ 0.49/0.58 — EASE≈ceiling reproduced by a second judge family. JOURNAL T54–T58.
+- **Next**: P7 (optional learned preference weight — likely null) or portfolio materials;
+  P9 continuous (crawl + periodic re-eval). Backlog: cold-start/new-release surface.
 - Decisions register: [decisions](decisions.md).

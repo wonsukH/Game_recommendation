@@ -29,6 +29,26 @@ portfolio rules. The Korean strings are the paste-ready copy.
 - Do not use: raw judge percentages without the ceiling, K_for_100% coverage (worst-target
   artifact), deep-tail (K ≥ 10k) comparisons (artifact zone).
 
+## Live demo evidence (2026-07-22 — consented accounts, IDs withheld)
+Real libraries → live EASE recommendations. 5 accounts: the author + 4 friends **with explicit
+consent to publish** (one friend's library was private → excluded). No SteamIDs in this document.
+Profiles sorted by the engine's actual signal (per-game playtime percentile), not raw hours.
+
+| 계정 | 취향 (가중치 상위) | 추천 top-5 |
+|---|---|---|
+| 본인 | SANABI(1.00) · ENDER LILIES(.97) · **Eternal Return 844h(.96 — 백분위가 온라인게임 인플레를 흡수)** · Core Keeper · NieR:Automata | Hades · Don't Starve Together · Slay the Spire · Cuphead · DELTARUNE |
+| 친구 1 | Limbus Company 718h(.93) · Skul(.83) · SANABI(.76) · L4D2 | Terraria · Don't Starve Together · R6 Siege · Portal 2 · Buckshot Roulette |
+| 친구 3 | Eternal Return(.89) · Party Animals(.87) · Palworld(.85) · R6 Siege 296h(.81) | Monster Hunter: World · Apex · Terraria · Stardew Valley · Marvel Rivals |
+| 친구 4 | Eternal Return 306h(.95) · Skul(.91) · Warframe(.82) · Subnautica(.80) | PUBG · Destiny 2 · Slay the Spire · Risk of Rain 2 · **Subnautica: Below Zero(속편 인지)** |
+
+- **본인 자기평정(블라인드 아님)**: top-10 중 관심 7 · 모름 1 · 비선호 2 — LLM 심사 계기의 예측
+  (관대 82%)과 정합.
+- **실사용 피드백 → 당일 개선 사례**: "이터널 리턴 같은 거 → 유희왕?"(대중적 시드에서 co-play
+  유사가 인구 차트로 퇴화) → 태그-유사도 게이트 추가 → 유희왕·리듬게임 탈락, **Black Survival
+  (ER의 직계 전신)·SMITE(MOBA)** 진입.
+- 정직 각주: 크롤 수집 사용자의 라이브러리는 익명화해도 재식별 위험이 있어 **게시하지 않음**(동의
+  계정만 게시); 초저플레이 소품 게임의 백분위 노이즈(예: 무료 데모작 고가중치)는 알려진 한계.
+
 ## Cross-links
 Canonical numbers: [results](results.md) · method: [evaluation](evaluation.md) · evidence:
-`experiments/p4_sweep/JOURNAL.md` T43–T52.
+`experiments/p4_sweep/JOURNAL.md` T43–T58.

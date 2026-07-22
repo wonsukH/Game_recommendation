@@ -38,9 +38,12 @@ plan when it starts. Headline numbers live in [results](results.md); methodology
   *Done when:* the pre-registered comparison lands; keep the fixed weight if the learned model loses
   (P4 already points that way — a valid null). Depends on P5–6.
 
-- **P8 — Serving update.** Repoint the serving graph to the regenerated artifacts and the new quality
-  gate / catalog sources.
-  *Done when:* all serving routes pass end-to-end and tests are green. Depends on P5(–7).
+- **P8 — Serving update. DONE (2026-07-22).** Full e2e with the real Gemini router — 7/7 route
+  cases PASS (model odyssey resolved to `gemini-3-flash-preview`; KRW price-constraint chain fixed
+  and verified); real-human demo on 5 consented accounts (author + friends) with N=1 self-rating
+  aligning with the judge instrument; seed-route tag gate shipped from live feedback; Gemini
+  cross-judge κ 0.49/0.58 reproduces EASE≈ceiling. Records: JOURNAL T54–T58;
+  [portfolio-headlines](portfolio-headlines.md) demo section.
 
 - **P9 — Continuous / monitoring (always-on).** Crawl to target; periodically re-run P5–6 on
   accumulated data; commit + push at each pillar. Ongoing.
