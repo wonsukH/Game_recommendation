@@ -463,7 +463,20 @@ start_date를 1년 전으로 적어놓고 켰다가 365개 실행이 한꺼번�
 
 <h3>스케줄러가 스스로 도는지 확인한 결과</h3>
 <p>
-10분 주기 DAG를 걸어 관측한 것이다. <code>run_type=scheduled</code>이므로 수동 트리거가 아니다.
+파이프라인 본체도 무인으로 돌았다. <code>0 12 * * *</code>가 걸린 <code>p5_rebuild</code>가
+사람이 자리에 없는 동안 cron 경계 0.77초 뒤에 시작해 27분 03초 만에 5개 태스크를 다 끝냈다.
+</p>
+<pre><code>run_id  scheduled__2026-08-01T12:00:00+00:00   state success
+start   2026-08-02 12:00:00.767 UTC
+end     2026-08-02 12:27:04.294 UTC</code></pre>
+<p>
+게이트 수치는 앞선 수동 실행 두 번과 신뢰구간까지 같았다.
+<code>logical_date</code>가 08-01 12:00인 것은 이 실행이 담당하는 구간의 시작이 거기이고,
+구간이 끝나는 08-02 12:00에 돌기 때문이다.
+</p>
+<p>
+아래는 그 이전에 10분 주기 DAG로 먼저 확인한 것이다.
+<code>run_type=scheduled</code>이므로 수동 트리거가 아니다.
 </p>
 <pre><code>fired at 2026-08-02 07:14:32 UTC | run_id=scheduled__2026-08-02T07:00:00+00:00
 logical_date=2026-08-02T07:00:00+00:00 | run_type=scheduled</code></pre>
