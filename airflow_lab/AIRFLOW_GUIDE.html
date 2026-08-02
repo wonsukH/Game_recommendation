@@ -454,6 +454,29 @@ start_date를 1년 전으로 적어놓고 켰다가 365개 실행이 한꺼번�
 과거 구간을 일부러 돌리고 싶을 때는 <code>catchup</code>을 켜는 대신 backfill 명령을 쓴다.
 </p>
 <pre><code>airflow dags backfill p5_rebuild -s 2026-07-01 -e 2026-07-07</code></pre>
+<div class="note">
+<p>
+<code>catchup=False</code>는 "앞으로 것만 돈다"가 아니다. "밀린 것을 <em>전부</em> 소급하지 않는다"이고,
+<strong>가장 최근 구간 하나는 실행한다.</strong> unpause 직후 아무것도 안 걸었는데 실행이 하나 뜨는 이유다.
+</p>
+</div>
+
+<h3>스케줄러가 스스로 도는지 확인한 결과</h3>
+<p>
+10분 주기 DAG를 걸어 관측한 것이다. <code>run_type=scheduled</code>이므로 수동 트리거가 아니다.
+</p>
+<pre><code>fired at 2026-08-02 07:14:32 UTC | run_id=scheduled__2026-08-02T07:00:00+00:00
+logical_date=2026-08-02T07:00:00+00:00 | run_type=scheduled</code></pre>
+<table>
+<tr><th>logical_date</th><th>실제 발화 (UTC)</th><th>비고</th></tr>
+<tr><td>07:00:00</td><td>07:14:32</td><td>unpause 시점에 밀린 구간 하나가 실행됨</td></tr>
+<tr><td>07:10:00</td><td>07:20:01</td><td>정상 주기, 지연 1초</td></tr>
+</table>
+<p>
+두 번째 행이 <code>logical_date</code>의 의미를 그대로 보여준다. 구간 시작이 07:10인 실행이
+구간이 끝나는 07:20에 돈다. 스케줄 시각에 그 시각의 데이터를 처리하는 것이 아니라,
+<strong>직전 구간</strong>을 처리한다.
+</p>
 
 <h3>max_active_runs</h3>
 <p>

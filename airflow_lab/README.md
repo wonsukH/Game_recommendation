@@ -14,7 +14,8 @@ airflow_lab/
   Dockerfile                apache/airflow:2.10.5-python3.11 + numpy/scipy/pandas/sklearn
   seed.sh                   스크래치에 입력 파일 채우기
   dags/p5_rebuild.py        5-task 파이프라인 DAG
-  dags/behavior_probe.py    스케줄러 동작 확인용 (파이프라인 아님)
+  dags/behavior_probe.py    재시도·타임아웃·trigger_rule 확인용 (파이프라인 아님)
+  dags/schedule_check.py    스케줄 발화 확인용, 확인 후 pause (파이프라인 아님)
   AIRFLOW_GUIDE.html        Airflow 실행·사용 레퍼런스
   work/                     스크래치 산출물 (gitignored)
   logs/                     태스크 로그 (gitignored)
@@ -275,6 +276,30 @@ crawl = SSHOperator(
 `retries=0`이 중요하다. 크롤은 실패해도 이미 쓴 API 호출이 예산에서 빠져나간 뒤다.
 재시도가 안전한지와 재시도가 **바람직한지**는 다른 질문이다.
 
+### schedule_check — 스케줄러가 스스로 도는지
+
+run 1·2와 프로브는 전부 `dags trigger` 수동 실행이었다. 배치 시스템에 대한 가장 기본적인 주장,
+"알아서 시작한다"가 검증되지 않은 채였다. `dags/schedule_check.py`(echo 한 줄)를 10분 주기로
+걸어 확인했다.
+
+| logical_date | 실제 발화 (UTC) | 비고 |
+|---|---|---|
+| 07:00:00 | 07:14:32 | unpause 시점에 밀린 구간 1개가 실행됨 |
+| 07:10:00 | 07:20:01 | 정상 주기, 지연 1초 |
+
+```
+fired at 2026-08-02 07:14:32 UTC | run_id=scheduled__2026-08-02T07:00:00+00:00
+logical_date=2026-08-02T07:00:00+00:00 | run_type=scheduled
+```
+
+`run_type=scheduled` 이므로 수동 트리거가 아니다. 두 번째 행이 `logical_date`의 의미를 그대로
+보여준다 — 구간 시작이 07:10인 실행이 구간이 끝나는 07:20에 돈다.
+
+첫 행도 알아둘 만하다. `catchup=False`는 "앞으로 것만"이 아니라 "밀린 것을 전부 소급하지 않는다"는
+뜻이고, **가장 최근 구간 하나는 실행한다.** unpause 직후 아무것도 안 걸었는데 실행이 하나 뜬 이유다.
+
+확인 후 이 DAG는 pause 했다. 10분 심박을 계속 돌릴 이유가 없다.
+
 ## 정리
 
 ### 확인한 것
@@ -290,8 +315,9 @@ crawl = SSHOperator(
 
 ### 확인하지 못한 것
 
-- **스케줄러가 cron 시각에 스스로 발화하는 것.** 지금까지의 실행은 전부 수동 트리거다.
-  스케줄은 `0 12 * * *` UTC로 설정되어 있으나 그 시각을 아직 넘기지 않았다.
+- **`p5_rebuild` 자신의 스케줄 발화.** 스케줄러가 스스로 실행을 만든다는 것은
+  `schedule_check`로 확인했으나(위), `p5_rebuild`의 `0 12 * * *`는 아직 그 시각을 넘기지 않았다.
+  즉 "스케줄러가 돈다"는 확인됐고 "이 파이프라인이 스케줄로 돈다"는 아직이다.
 - **수집(크롤) 태스크.** DAG에 넣지 않았다. 사유는 위 "크롤 태스크 방침".
 - **실제 `serving/data` 갱신.** 의도적으로 막아뒀다. 스크래치 산출물만 만들었고
   배포 아티팩트는 07-22자 그대로다.
