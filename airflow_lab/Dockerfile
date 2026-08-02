@@ -1,5 +1,17 @@
 FROM apache/airflow:2.10.5-python3.11
 
+# build_ease_artifact stamps meta.json with `git rev-parse HEAD` and falls back to
+# "unknown" on any exception. The base image has no git, so every artifact this
+# stack produced was untraceable to the code that built it — a silent loss, since
+# the fallback is a plain except.
+#
+# safe.directory is needed too: /opt/project is mounted root-owned and the tasks
+# run as uid 50000, which trips git's dubious-ownership check.
+USER root
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends git \
+    && rm -rf /var/lib/apt/lists/*
+
 # Versions are pinned to the project's requirements.txt, NOT to loose ranges.
 #
 # They were ranges at first, which resolved to pandas 3.0.5 while the project
@@ -15,7 +27,8 @@ FROM apache/airflow:2.10.5-python3.11
 # the build context up would ship the 2GB steam.db to the daemon. Keep these in
 # step with requirements.txt by hand.
 USER airflow
-RUN pip install --no-cache-dir \
+RUN git config --global --add safe.directory /opt/project \
+    && pip install --no-cache-dir \
         "numpy==2.3.2" \
         "scipy==1.16.1" \
         "pandas==2.3.1" \
