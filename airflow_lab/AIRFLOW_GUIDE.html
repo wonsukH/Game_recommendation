@@ -496,6 +496,51 @@ start_date를 1년 전으로 적어놓고 켰다가 365개 실행이 한꺼번�
 형제 태스크가 죽어도 무관한 가지는 영향을 받지 않는다.
 </p>
 
+<h3>입력을 채우고 실패한 것만 다시 돌리기</h3>
+<p>
+없던 두 파일을 채운 뒤, 실패한 태스크만 <code>tasks clear</code>로 초기화해서 재실행했다.
+이미 성공한 <code>behavioral_extract</code>(11분)와 <code>build_ease_artifact</code>(5분 31초)는
+다시 돌지 않는다. 17분을 아끼는 것이 이 구조의 실익이다.
+</p>
+<pre><code>airflow tasks clear p5_rebuild -t "build_catalog_db|p5_validate|p5_smoke" \
+  -s 2026-08-02 -e 2026-08-03 --yes</code></pre>
+<p>
+재실행 로그는 <code>attempt=4.log</code>로 이어붙는다. <code>clear</code>는 시도 횟수를 되돌리지 않아서
+1~3차 실패 기록이 덮이지 않는다.
+</p>
+<p>결과는 5/5 success였고, 산출물이 2026-07-20 프로덕션 빌드를 재현했다.</p>
+<table>
+<tr><th>지표</th><th>이 실행</th><th>기존 라이브 산출물</th></tr>
+<tr><td>절단 손실 <code>d(sparse-exact)</code></td><td>-0.0027 [-0.0041, -0.0013] SIG</td><td>-0.0027</td></tr>
+<tr><td>top-20 Jaccard</td><td>0.966</td><td>0.966</td></tr>
+<tr><td><code>d(pctl-pvalue)</code></td><td>+0.0104 [+0.0071, +0.0139] SIG</td><td>+0.0104 SIG</td></tr>
+<tr><td>items / B nnz / graph users</td><td>34,050 / 69,734,400 / 12,000</td><td>34,050 / 69,734,400 / 12,000</td></tr>
+</table>
+
+<h3>나머지 동작은 따로 유발해서 확인</h3>
+<p>
+위 사고는 "재시도가 소진되는" 경우만 보여줬다. 재시도로 <em>복구되는</em> 경우, 타임아웃,
+<code>trigger_rule</code> 변경은 안 보여줬으므로 <code>dags/behavior_probe.py</code>로 따로 확인했다.
+echo와 sleep뿐이고 파이프라인과 무관하다.
+</p>
+<table>
+<tr><th>태스크</th><th>설정</th><th>관측</th></tr>
+<tr><td><code>flaky</code></td><td>try 1에만 <code>exit 1</code>, <code>retries=2</code></td><td>attempt 1 실패 → 30초 뒤 attempt 2 성공</td></tr>
+<tr><td><code>hard_fail</code></td><td><code>retries=0</code></td><td>0.25초 만에 failed, 재시도 없음</td></tr>
+<tr><td><code>gated_all_success</code></td><td>기본 trigger_rule</td><td>upstream_failed, 실행 안 됨</td></tr>
+<tr><td><code>gated_all_done</code></td><td><code>trigger_rule="all_done"</code></td><td>앞이 실패해도 success</td></tr>
+<tr><td><code>slow</code></td><td>120초 sleep, <code>execution_timeout=30s</code></td><td>30.2초에 <code>AirflowTaskTimeout</code></td></tr>
+</table>
+<p>
+<code>flaky</code>는 Jinja 템플릿으로 시도 횟수를 읽어 첫 시도에만 실패한다.
+템플릿이 <code>bash_command</code>에서 쓸 수 있다는 것 자체가 알아둘 만하다.
+</p>
+<pre><code>bash_command=(
+    "if [ {{ ti.try_number }} -lt 2 ]; then"
+    "  echo \"attempt {{ ti.try_number }}: simulated transient failure\"; exit 1;"
+    "fi; echo \"attempt {{ ti.try_number }}: recovered\""
+)</code></pre>
+
 <h3>재시도가 항상 좋은 것은 아니다</h3>
 <p>
 두 실패 모두 "파일이 없다"는 결정론적 오류인데 3번씩 돌았다. 1분 간격이라 헛되이 4분을 썼다.
