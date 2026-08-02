@@ -311,6 +311,7 @@ airflow_lab/logs/
 # Explanatory docs stay local (same rule as docs/technical_reference.html).
 airflow_lab/README.md
 airflow_lab/AIRFLOW_GUIDE.html
+airflow_lab/docs_assets/
 
 # Internal-only material (local + private sharing, never public)
 /experiments/
