@@ -843,7 +843,28 @@ DB 크기와 실행 환경이 동시에 다르므로 마운트 비용만 분리�
 <tr><td>DB 접근</td><td>9p 바인드 마운트, 읽기 전용</td><td>같은 파일시스템 또는 네트워크 DB</td></tr>
 <tr><td>수집 태스크</td><td>없음</td><td>별도 실행 경로 필요</td></tr>
 <tr><td>산출물</td><td>스크래치 디렉터리</td><td>실제 서빙 경로</td></tr>
+<tr><td>메모리</td><td>WSL2 기본값(호스트의 50%)에 묶임</td><td>워커별 리소스 지정</td></tr>
 </table>
+
+<h3>메모리 천장</h3>
+<p>
+<code>.wslconfig</code>가 없으면 WSL2는 호스트 RAM의 절반을 VM에 준다. 이 머신에서는 15.4GB의 절반인
+7.4GB가 컨테이너 전체의 천장이 된다. run 2의 <code>p5_validate</code>를 돌리는 중 측정값이다.
+</p>
+<pre><code>airflow-scheduler   CPU 360%   MEM 6.049GiB / 7.446GiB
+host RAM free 0.8 GB of 15.4 GB</code></pre>
+<p>
+<code>p5_validate</code>가 EASE를 재적합하면서 12,000 × 34,050 dense 1.63GB를 잡는 구간이다.
+지금은 통과하지만 여유가 1.4GB뿐이라, 크롤이 쌓여 유저나 아이템이 늘면
+<strong>호스트에서는 돌아갈 작업이 컨테이너 안에서 먼저 죽는다.</strong>
+그때는 <code>%USERPROFILE%\.wslconfig</code>로 명시한다.
+</p>
+<pre><code>[wsl2]
+memory=10GB</code></pre>
+<p>
+적용하려면 <code>wsl --shutdown</code>이 필요하고, 그러면 실행 중인 WSL 배포판과 컨테이너가 함께 내려간다.
+돌고 있는 DAG가 없을 때 한다.
+</p>
 
 <h3>알림 붙이기</h3>
 <p>
