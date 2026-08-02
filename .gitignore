@@ -308,6 +308,9 @@ experiments/p4_sweep/judge/_diff_tmp.json
 # carries raw SteamID64s (same rule as serving/data/ease/graph_users.json above).
 airflow_lab/work/
 airflow_lab/logs/
+# Explanatory docs stay local (same rule as docs/technical_reference.html).
+airflow_lab/README.md
+airflow_lab/AIRFLOW_GUIDE.html
 
 # Internal-only material (local + private sharing, never public)
 /experiments/

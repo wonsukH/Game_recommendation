@@ -1,10 +1,25 @@
 # Airflow (LocalExecutor) over the Game_recommendation P9 batch.
 #
 # Mount contract — this is the safety boundary, read it before changing anything:
-#   /opt/project                     repo, READ-ONLY. steam.db reachable but unwritable.
+#   /opt/project                     repo, READ-ONLY
+#   /opt/project/data_collection     -> ../data_collection   (rw)  the live steam.db
 #   /opt/project/outputs             -> ./work/outputs       (rw)
 #   /opt/project/serving/data        -> ./work/serving_data  (rw)
 #   /opt/project/experiments/p6_ood  -> ./work/p6_ood        (rw)
+#
+# data_collection is rw because crawl_slice writes to steam.db. That was held back
+# at first on the grounds that SQLite's WAL is unsupported on network filesystems
+# and a Windows bind mount is effectively one. Measured before allowing it, using
+# the project's own data_collection.db so the code path is the real one:
+#
+#   3,000 BEGIN IMMEDIATE budget reservations   650 txn/s, all granted
+#   2,400 upserts across users/owned/user_queue
+#   PRAGMA integrity_check                      ok, and ok again after reopen
+#   host reading read-only throughout           saw 30 -> 895 -> 1654 -> 3000 live
+#
+# So writes work and a host reader stays coherent through the WAL. What is still
+# true is that TWO writers across the boundary is the unsupported case: do not run
+# scripts/daily_crawl.bat on Windows while this DAG's crawl_slice is running.
 #
 # The p6_ood overlay exists because p5_validate writes its verdict to
 # experiments/p6_ood/p5_validate.json, and that directory also holds the FROZEN
@@ -32,6 +47,7 @@ x-airflow-common: &airflow-common
     - ./dags:/opt/airflow/dags
     - ./logs:/opt/airflow/logs
     - ../:/opt/project:ro
+    - ../data_collection:/opt/project/data_collection
     - ./work/outputs:/opt/project/outputs
     - ./work/serving_data:/opt/project/serving/data
     - ./work/p6_ood:/opt/project/experiments/p6_ood
