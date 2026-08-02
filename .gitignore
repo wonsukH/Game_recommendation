@@ -304,6 +304,11 @@ experiments/p4_sweep/judge/_diff_tmp.json
 .claude/*.lock
 .claude/scheduled_tasks.lock
 
+# Airflow lab: scratch artifact dirs + task logs. work/serving_data/ease/graph_users.json
+# carries raw SteamID64s (same rule as serving/data/ease/graph_users.json above).
+airflow_lab/work/
+airflow_lab/logs/
+
 # Internal-only material (local + private sharing, never public)
 /experiments/
 /pipeline/orchestration/

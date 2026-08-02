@@ -1,0 +1,81 @@
+# Airflow (LocalExecutor) over the Game_recommendation P9 batch.
+#
+# Mount contract — this is the safety boundary, read it before changing anything:
+#   /opt/project                     repo, READ-ONLY. steam.db reachable but unwritable.
+#   /opt/project/outputs             -> ./work/outputs       (rw)
+#   /opt/project/serving/data        -> ./work/serving_data  (rw)
+#   /opt/project/experiments/p6_ood  -> ./work/p6_ood        (rw)
+#
+# The p6_ood overlay exists because p5_validate writes its verdict to
+# experiments/p6_ood/p5_validate.json, and that directory also holds the FROZEN
+# P6 panels — irreplaceable evidence. Giving the container rw on the real
+# directory would put those one bug away from deletion, so it gets a scratch copy
+# and p6_panels.json is seeded in (see README).
+#
+# The two rw overlays are nested inside the ro mount, so every default path in the
+# pipeline scripts (they all resolve REPO_ROOT/outputs and REPO_ROOT/serving/data)
+# lands in the scratch dirs without a single line of project code changing. The real
+# serving/data — 16 git-tracked files the deployed app reads — is physically
+# unreachable from inside the container.
+
+x-airflow-common: &airflow-common
+  build: .
+  environment: &airflow-common-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+    AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL: '15'
+    PYTHONPATH: /opt/project
+    PYTHONDONTWRITEBYTECODE: '1'
+  volumes:
+    - ./dags:/opt/airflow/dags
+    - ./logs:/opt/airflow/logs
+    - ../:/opt/project:ro
+    - ./work/outputs:/opt/project/outputs
+    - ./work/serving_data:/opt/project/serving/data
+    - ./work/p6_ood:/opt/project/experiments/p6_ood
+  depends_on:
+    postgres:
+      condition: service_healthy
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      retries: 10
+
+  airflow-init:
+    <<: *airflow-common
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        airflow db migrate
+        airflow users create \
+          --username admin --password admin \
+          --firstname a --lastname a --role Admin --email a@a.a || true
+    restart: "no"
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    restart: unless-stopped
+
+  airflow-webserver:
+    <<: *airflow-common
+    command: webserver
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+volumes:
+  pgdata:
