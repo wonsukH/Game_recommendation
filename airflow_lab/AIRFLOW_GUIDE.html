@@ -847,6 +847,55 @@ DB 크기와 실행 환경이 동시에 다르므로 마운트 비용만 분리�
 문서만 믿었다면 원인을 찾는 데 한참 걸렸을 것이다.
 </p>
 
+<h3>이미지 라이브러리 버전이 산출물을 바꿈</h3>
+<p>
+가장 오래 안 보였던 결함이다. 게이트가 통과하고 스모크가 PASS한 뒤, 만들어진
+<code>catalog.json</code>을 프로젝트가 이미 갖고 있던 것과 대조해 보니
+<strong>2,391개 항목이 달랐다.</strong> 차이는 <code>currency</code> 필드 하나였고 전부 같은 패턴이었다.
+</p>
+<pre><code>live    "currency": null
+DAG     "currency": NaN</code></pre>
+<p>
+맨몸 <code>NaN</code>은 표준 JSON이 아니다. 파이썬 <code>json</code>은 읽지만 엄격한 파서는 거부한다.
+즉 DAG가 만든 아티팩트는 파이썬 밖에서 쓸 수 없는 상태였다.
+</p>
+<p>
+원인은 Dockerfile이었다. <code>"pandas&gt;=2.2"</code> 같은 느슨한 범위를 썼더니 pandas 3.0.5가 잡혔는데,
+프로젝트는 <code>pandas==2.3.1</code>을 고정한다. 결측 <code>price_currency</code>를
+pandas 2.x는 <code>None</code>으로, 3.x는 <code>NaN</code>으로 넘긴다. 그 값이 가드 없이 JSON에 실렸다.
+</p>
+<p>
+버전을 프로젝트 고정값에 맞춰 다시 빌드하니 <code>catalog.json</code>이 라이브와
+바이트까지 같아졌다(7,809,497). 차이 2,391건은 0이 됐다.
+</p>
+<div class="note">
+<p>
+<strong>컨테이너의 라이브러리 버전은 파이프라인 설정의 일부다.</strong>
+범위로 적으면 이미지를 다시 빌드하는 날 산출물이 조용히 바뀐다.
+그날 게이트는 여전히 통과할 것이고, 아무도 모른다.
+</p>
+</div>
+
+<h3>게이트 통과가 산출물 일치는 아니다</h3>
+<p>
+위 결함은 게이트도 스모크도 잡지 못했다. 이미 갖고 있던 아티팩트와 직접 대조해서만 보였다.
+6개 산출물을 전부 비교한 결과다.
+</p>
+<table>
+<tr><th>산출물</th><th>결과</th></tr>
+<tr><td><code>catalog.json</code></td><td>바이트 동일</td></tr>
+<tr><td><code>index_maps.json</code></td><td>바이트 동일</td></tr>
+<tr><td><code>game_quality.json</code></td><td>바이트 동일</td></tr>
+<tr><td><code>X_game_tag_csr.npz</code></td><td>배열 동일. 바이트 차이는 npz 안 zip 메타데이터</td></tr>
+<tr><td><code>steam_games_tags.csv</code></td><td>내용 동일. 라이브 CRLF 대 컨테이너 LF</td></tr>
+<tr><td><code>game_popularity.npy</code></td><td>값이 다름. 입력 <code>pop_unbiased.json</code>의 시점 차이</td></tr>
+</table>
+<p>
+CSV의 크기 차이는 41,267바이트였는데 행 수와 정확히 같다. 한 줄에 1바이트씩,
+Windows 호스트가 쓴 CRLF와 리눅스 컨테이너가 쓴 LF의 차이다.
+바이트 비교만 하고 멈췄으면 실재하는 차이로 오해했을 것이다.
+</p>
+
 <h3>게이트 태스크가 로컬 전용 파일에 의존</h3>
 <p>
 <code>p5_validate</code>는 <code>experiments/p6_ood/p6_panels.json</code>을 읽는다.

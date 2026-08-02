@@ -144,7 +144,8 @@ P6 E2 산출물이다. 둘 다 이것들을 만든 머신에만 있다.
 | `p5_validate` | 3회 실패 후 success | 12분 12초 |
 | `p5_smoke` | success | 11초 |
 
-산출물이 2026-07-20 프로덕션 빌드를 재현했다.
+산출물이 2026-07-20 프로덕션 빌드의 게이트 수치를 재현했다.
+파일 단위 대조는 아래 "산출물 대조" 참고 — 처음에는 일치하지 않았다.
 
 | 지표 | 이 실행 | `docs/status.md` · 라이브 `meta.json` |
 |---|---|---|
@@ -275,6 +276,51 @@ crawl = SSHOperator(
 
 `retries=0`이 중요하다. 크롤은 실패해도 이미 쓴 API 호출이 예산에서 빠져나간 뒤다.
 재시도가 안전한지와 재시도가 **바람직한지**는 다른 질문이다.
+
+### 산출물 대조 — 그리고 거기서 나온 결함
+
+"프로덕션 빌드를 재현했다"는 앞의 서술은 게이트 수치에 대해서만 참이었다.
+실제로 파일을 대조해 보니 `catalog.json`이 라이브와 **2,391개 appid에서 달랐다.**
+차이는 `currency` 하나뿐이었고, 전부 라이브 `None` 대 DAG `nan` 이었다.
+
+그 결과 DAG가 만든 `catalog.json`은 **표준 JSON이 아니었다.** 파이썬 `json`은 읽지만
+엄격한 파서는 맨몸 `NaN`에서 거부한다.
+
+**원인은 내가 만든 것이다.** Dockerfile이 `pandas>=2.2` 같은 느슨한 범위를 써서 컨테이너가
+pandas 3.0.5를 잡았는데, 프로젝트는 `pandas==2.3.1`을 고정한다. 결측 `price_currency`를
+pandas 2.x는 `None`으로, 3.x는 `NaN`으로 넘긴다.
+
+코드 쪽에도 사각지대가 있다. `build_catalog_db.parse_catalog_row`는 이웃한 두 필드를
+`pd.isna()`로 가드하는데 `currency`만 안 한다.
+
+```python
+price = None
+currency = getattr(row, "price_currency", None)          # 가드 없음
+if row.price_final is not None and not pd.isna(row.price_final):   # 가드 있음
+    ...
+if row.metacritic_score is not None and not pd.isna(row.metacritic_score) ...  # 가드 있음
+```
+
+pandas 2.3.1에서는 무해했고, 3.x에서 표준 JSON 위반으로 드러났다.
+**프로젝트 코드 수정은 사용자 확인 사항으로 남긴다.**
+
+버전을 프로젝트 고정값에 맞춰 다시 빌드하고 카탈로그 단계만 재실행한 뒤 대조한 결과다.
+
+| 산출물 | 결과 |
+|---|---|
+| `catalog.json` | 바이트 동일 (7,809,497) |
+| `index_maps.json` | 바이트 동일 |
+| `game_quality.json` | 바이트 동일 |
+| `X_game_tag_csr.npz` | 배열 동일 (41266×447, nnz 476,961). 바이트 차이는 npz 안 zip 메타데이터 |
+| `steam_games_tags.csv` | 내용 동일 (41,267행, 다른 행 0). 라이브 CRLF 대 컨테이너 LF, 크기 차 41,267바이트 = 행 수 |
+| `game_popularity.npy` | **값이 다름.** max\|diff\| 5.28e-03, 41,266개 전부 |
+
+마지막 것만 진짜 차이다. 이 배열은 씨앗으로 넣은 `pop_unbiased.json`에서 나오는데,
+그 파일이 라이브 빌드가 쓴 것과 다른 시점의 것이다. OOD 코호트 크기가 달라지면 소유율이 달라진다.
+파이프라인의 문제가 아니라 입력 빈티지 문제다.
+
+**교훈.** 게이트가 통과하고 스모크가 PASS해도 산출물이 같다는 뜻은 아니다.
+이 결함은 이미 갖고 있던 아티팩트와 **직접 대조해서만** 보였다.
 
 ### schedule_check — 스케줄러가 스스로 도는지
 
