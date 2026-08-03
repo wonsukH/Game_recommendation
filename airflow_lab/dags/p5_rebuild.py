@@ -4,7 +4,7 @@ Steps 2-6 are the sequence docs/operations.md §7 documents as a manual run. Ste
 is the crawl, bounded into a daily slice so it is a batch instead of a daemon.
 
     crawl ──▶ extract ──┬─▶ ease ──▶ validate ──┐
-                        │                       ├──▶ smoke
+                        │                       ├──▶ smoke ──▶ stage ──▶ compare
                         └─▶ catalog ────────────┘
 
 Every task shells out to a real pipeline module. Nothing here is a placeholder:
@@ -123,7 +123,26 @@ with DAG(
         bash_command=f"{PY} pipeline.orchestration.p5_smoke",
     )
 
+    # 여기부터가 릴리스다. 산출물을 서비스 경로에 덮어쓰지 않고 버전으로 굳힌 뒤,
+    # 지금 프로덕션인 것과 비교만 한다. 실제 승격(포인터 변경)은 사람이 한다.
+    # 배포 후 지표를 보는 장치가 없어서 자동 승격을 걸 근거가 없기 때문이다.
+    REL = "python /opt/project/airflow_lab/release.py"
+
+    stage = BashOperator(
+        task_id="stage_release",
+        bash_command=f"{REL} stage --version {{{{ ts_nodash }}}}",
+        retries=0,
+    )
+
+    # 회귀여도 실패시키지 않는다. 판정은 로그에 남고 사람이 본다.
+    # --fail-on-regression 을 주면 게이트처럼 쓸 수 있다.
+    compare = BashOperator(
+        task_id="compare_release",
+        bash_command=f"{REL} compare --version {{{{ ts_nodash }}}}",
+        retries=0,
+    )
+
     crawl >> extract
     extract >> ease >> validate
     extract >> catalog
-    [validate, catalog] >> smoke
+    [validate, catalog] >> smoke >> stage >> compare

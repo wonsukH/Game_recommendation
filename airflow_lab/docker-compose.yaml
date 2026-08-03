@@ -6,6 +6,7 @@
 #   /opt/project/outputs             -> ./work/outputs       (rw)
 #   /opt/project/serving/data        -> ./work/serving_data  (rw)
 #   /opt/project/experiments/p6_ood  -> ./work/p6_ood        (rw)
+#   /opt/project/airflow_lab/releases -> ./releases          (rw)  버전별 릴리스
 #
 # data_collection is rw because crawl_slice writes to steam.db. That was held back
 # at first on the grounds that SQLite's WAL is unsupported on network filesystems
@@ -51,6 +52,7 @@ x-airflow-common: &airflow-common
     - ./work/outputs:/opt/project/outputs
     - ./work/serving_data:/opt/project/serving/data
     - ./work/p6_ood:/opt/project/experiments/p6_ood
+    - ./releases:/opt/project/airflow_lab/releases
   depends_on:
     postgres:
       condition: service_healthy

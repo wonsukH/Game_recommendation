@@ -312,6 +312,7 @@ airflow_lab/logs/
 airflow_lab/README.md
 airflow_lab/AIRFLOW_GUIDE.html
 airflow_lab/docs_assets/
+airflow_lab/releases/
 
 # Internal-only material (local + private sharing, never public)
 /experiments/
